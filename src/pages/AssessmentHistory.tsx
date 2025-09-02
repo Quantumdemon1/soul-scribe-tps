@@ -3,12 +3,15 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useAssessments } from '@/hooks/useAssessments';
 import { useAuth } from '@/hooks/useAuth';
 import { PersonalityDashboard } from '@/components/dashboard/PersonalityDashboard';
-import { ArrowLeft, Calendar, Trash2, Eye, History, User, TrendingUp, LogIn } from 'lucide-react';
+import { AssessmentComparison } from '@/components/analytics/AssessmentComparison';
+import { ArrowLeft, Calendar, Trash2, Eye, History, User, TrendingUp, LogIn, Download, GitCompare } from 'lucide-react';
 import { format } from 'date-fns';
+import { PDFReportGenerator } from '@/utils/pdfGenerator';
 
 const AssessmentHistory: React.FC = () => {
   const { assessments, loading, deleteAssessment } = useAssessments();
@@ -155,9 +158,21 @@ const AssessmentHistory: React.FC = () => {
               </Card>
             </div>
 
-            {/* Assessment List */}
-            <div className="space-y-4">
-              {assessments.map((assessment) => {
+            {/* Main Content */}
+            <Tabs defaultValue="history" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="history" className="flex items-center gap-2">
+                  <History className="w-4 h-4" />
+                  Assessment History
+                </TabsTrigger>
+                <TabsTrigger value="comparison" className="flex items-center gap-2">
+                  <GitCompare className="w-4 h-4" />
+                  Compare Progress
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="history" className="space-y-4 mt-6">
+                {assessments.map((assessment) => {
                 const variantDetails = getVariantDetails(assessment.variant);
                 return (
                   <Card key={assessment.id} className="hover:shadow-md transition-shadow">
@@ -199,6 +214,14 @@ const AssessmentHistory: React.FC = () => {
                             <Eye className="w-4 h-4 mr-1" />
                             View Results
                           </Button>
+
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => PDFReportGenerator.generatePDFReport(assessment.profile)}
+                          >
+                            <Download className="w-4 h-4" />
+                          </Button>
                           
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
@@ -229,8 +252,13 @@ const AssessmentHistory: React.FC = () => {
                     </CardContent>
                   </Card>
                 );
-              })}
-            </div>
+                })}
+              </TabsContent>
+
+              <TabsContent value="comparison" className="mt-6">
+                <AssessmentComparison assessments={assessments} />
+              </TabsContent>
+            </Tabs>
           </>
         )}
       </div>
