@@ -12,6 +12,8 @@ import { LLMService } from '@/services/llmService';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { Settings, Database, Brain, BarChart3 } from 'lucide-react';
+import { AnalyticsOverview } from '@/components/analytics/AnalyticsOverview';
+import { SystemHealth } from '@/components/analytics/SystemHealth';
 
 interface LLMConfig {
   provider: 'openai' | 'anthropic';
@@ -329,17 +331,20 @@ export const AdminPanel: React.FC = () => {
           </TabsContent>
 
           <TabsContent value="analytics" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>System Analytics</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">
-                  Analytics dashboard coming soon. This will include usage statistics, 
-                  performance metrics, and user insights.
-                </p>
-              </CardContent>
-            </Card>
+            <Tabs defaultValue="overview" className="space-y-4">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="overview">Analytics Overview</TabsTrigger>
+                <TabsTrigger value="system">System Health</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="overview">
+                <AnalyticsOverview />
+              </TabsContent>
+              
+              <TabsContent value="system">
+                <SystemHealth />
+              </TabsContent>
+            </Tabs>
           </TabsContent>
         </Tabs>
       </div>
