@@ -3,6 +3,7 @@ import { Question } from './Question';
 import { TPS_QUESTIONS } from '../../data/questions';
 import { TPSScoring } from '../../utils/tpsScoring';
 import { PersonalityProfile } from '../../types/tps.types';
+import { AssessmentVariations } from '../../utils/assessmentVariations';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -12,36 +13,79 @@ import { useAuth } from '@/hooks/useAuth';
 import { useAssessments } from '@/hooks/useAssessments';
 import { toast } from '@/hooks/use-toast';
 
-export const PersonalityTest: React.FC = () => {
+interface PersonalityTestProps {
+  assessmentType?: string;
+}
+
+export const PersonalityTest: React.FC<PersonalityTestProps> = ({ assessmentType = 'full' }) => {
   const [currentPage, setCurrentPage] = useState(0);
-  const [responses, setResponses] = useState<number[]>(Array(108).fill(5));
+  const [responses, setResponses] = useState<number[]>([]);
   const [isComplete, setIsComplete] = useState(false);
   const [profile, setProfile] = useState<PersonalityProfile | null>(null);
   const { user } = useAuth();
   const { saveAssessment } = useAssessments();
 
+  // Get assessment configuration
+  const assessmentConfig = React.useMemo(() => {
+    switch (assessmentType) {
+      case 'quick':
+        return AssessmentVariations.getQuickAssessmentConfig();
+      case 'mini':
+        return AssessmentVariations.getMiniAssessmentConfig();
+      default:
+        return {
+          name: 'Complete Assessment',
+          description: 'Comprehensive 108-question assessment for maximum accuracy',
+          questionCount: 108,
+          estimatedTime: '20-25 minutes',
+          questions: Array.from({ length: 108 }, (_, i) => i + 1)
+        };
+    }
+  }, [assessmentType]);
+
+  const questions = React.useMemo(() => {
+    return assessmentConfig.questions.map(index => TPS_QUESTIONS[index - 1]);
+  }, [assessmentConfig]);
+
   const questionsPerPage = 6;
-  const totalPages = Math.ceil(TPS_QUESTIONS.length / questionsPerPage);
+  const totalPages = Math.ceil(questions.length / questionsPerPage);
   const progressPercentage = ((currentPage + 1) / totalPages) * 100;
+
+  // Initialize responses array with correct length
+  useEffect(() => {
+    if (responses.length === 0) {
+      setResponses(Array(assessmentConfig.questionCount).fill(5));
+    }
+  }, [assessmentConfig.questionCount, responses.length]);
 
   // Load saved responses from localStorage
   useEffect(() => {
-    const savedResponses = localStorage.getItem('tps-responses');
-    const savedPage = localStorage.getItem('tps-current-page');
+    const storageKey = `tps-responses-${assessmentType}`;
+    const pageKey = `tps-current-page-${assessmentType}`;
+    
+    const savedResponses = localStorage.getItem(storageKey);
+    const savedPage = localStorage.getItem(pageKey);
     
     if (savedResponses) {
-      setResponses(JSON.parse(savedResponses));
+      const parsed = JSON.parse(savedResponses);
+      if (parsed.length === assessmentConfig.questionCount) {
+        setResponses(parsed);
+      }
     }
     if (savedPage) {
       setCurrentPage(parseInt(savedPage));
     }
-  }, []);
+  }, [assessmentType, assessmentConfig.questionCount]);
 
   // Save responses to localStorage
   useEffect(() => {
-    localStorage.setItem('tps-responses', JSON.stringify(responses));
-    localStorage.setItem('tps-current-page', currentPage.toString());
-  }, [responses, currentPage]);
+    if (responses.length > 0) {
+      const storageKey = `tps-responses-${assessmentType}`;
+      const pageKey = `tps-current-page-${assessmentType}`;
+      localStorage.setItem(storageKey, JSON.stringify(responses));
+      localStorage.setItem(pageKey, currentPage.toString());
+    }
+  }, [responses, currentPage, assessmentType]);
 
   const handleResponseChange = (questionIndex: number, value: number) => {
     const newResponses = [...responses];
@@ -64,19 +108,24 @@ export const PersonalityTest: React.FC = () => {
   };
 
   const calculateResults = async () => {
-    const personalityProfile = TPSScoring.generateFullProfile(responses);
+    // Adjust responses for shortened assessments
+    const fullResponses = assessmentType === 'full' 
+      ? responses 
+      : AssessmentVariations.adjustScoring(responses, assessmentConfig);
+    
+    const personalityProfile = TPSScoring.generateFullProfile(fullResponses);
     setProfile(personalityProfile);
     setIsComplete(true);
     
     // Save to localStorage for immediate access
     localStorage.setItem('tps-profile', JSON.stringify(personalityProfile));
-    localStorage.removeItem('tps-responses');
-    localStorage.removeItem('tps-current-page');
+    localStorage.removeItem(`tps-responses-${assessmentType}`);
+    localStorage.removeItem(`tps-current-page-${assessmentType}`);
 
     // Save to Supabase if user is authenticated
     if (user) {
       try {
-        await saveAssessment(personalityProfile, responses, 'full');
+        await saveAssessment(personalityProfile, fullResponses, assessmentType);
       } catch (error) {
         // Error handling is done in useAssessments hook
         console.log('Assessment not saved to cloud, but available locally');
@@ -89,7 +138,7 @@ export const PersonalityTest: React.FC = () => {
     }
   };
 
-  const currentQuestions = TPS_QUESTIONS.slice(
+  const currentQuestions = questions.slice(
     currentPage * questionsPerPage,
     (currentPage + 1) * questionsPerPage
   );
@@ -111,7 +160,7 @@ export const PersonalityTest: React.FC = () => {
               </CardTitle>
             </div>
             <p className="text-lg opacity-90">
-              Comprehensive Personality Assessment
+              {assessmentConfig.name}
             </p>
           </CardHeader>
           <CardContent className="pt-0">
@@ -126,7 +175,7 @@ export const PersonalityTest: React.FC = () => {
               />
               <div className="flex justify-between text-sm opacity-90">
                 <span>{Math.round(progressPercentage)}% Complete</span>
-                <span>{108 - (currentPage * questionsPerPage)} questions remaining</span>
+                <span>{assessmentConfig.questionCount - (currentPage * questionsPerPage)} questions remaining</span>
               </div>
             </div>
           </CardContent>

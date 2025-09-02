@@ -4,7 +4,7 @@ import { AssessmentVariations } from '../../utils/assessmentVariations';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Clock, Target, Zap, Star, User, LogOut } from 'lucide-react';
+import { Clock, Target, Zap, Star, User, LogOut, History } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
 const AssessmentSelection: React.FC = () => {
@@ -13,9 +13,7 @@ const AssessmentSelection: React.FC = () => {
   const { user, signOut } = useAuth();
 
   if (selectedAssessment) {
-    // For now, always return the standard PersonalityTest
-    // In the future, we could pass the assessment type to modify behavior
-    return <PersonalityTest />;
+    return <PersonalityTest assessmentType={selectedAssessment} />;
   }
 
   return (
@@ -28,6 +26,10 @@ const AssessmentSelection: React.FC = () => {
             <div className="flex items-center gap-4">
               {user ? (
                 <>
+                  <Button variant="outline" size="sm" onClick={() => window.location.href = '/history'}>
+                    <History className="w-4 h-4 mr-1" />
+                    History
+                  </Button>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <User className="w-4 h-4" />
                     {user.email}
