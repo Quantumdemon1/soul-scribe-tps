@@ -98,6 +98,7 @@ export const PersonalityTypes: React.FC<PersonalityTypesProps> = ({ profile }) =
               <div>
                 <h3 className="text-xl">Enneagram: {profile.mappings.enneagram}</h3>
                 <p className="text-sm text-muted-foreground font-normal">{enneagramDescription.name}</p>
+                <p className="text-xs text-muted-foreground">Wing: {profile.mappings.enneagramDetails.wing} • Tritype: {profile.mappings.enneagramDetails.tritype}</p>
               </div>
             </div>
             <Button 

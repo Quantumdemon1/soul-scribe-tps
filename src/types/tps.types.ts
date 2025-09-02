@@ -6,6 +6,19 @@ export interface DominantTraits {
   [triad: string]: string;
 }
 
+export interface EnneagramDetails {
+  type: number;
+  wing: number;
+  tritype: string;
+}
+
+export interface PersonalityArchetype {
+  name: string;
+  type: 'real' | 'fictional';
+  similarity: number;
+  description: string;
+}
+
 export interface PersonalityProfile {
   dominantTraits: DominantTraits;
   traitScores: TPSScores;
@@ -18,8 +31,12 @@ export interface PersonalityProfile {
   mappings: {
     mbti: string;
     enneagram: string;
+    enneagramDetails: EnneagramDetails;
     bigFive: Record<string, number>;
     dndAlignment: string;
+    socionics: string;
+    hollandCode: string;
+    personalityMatches: PersonalityArchetype[];
   };
   timestamp: string;
 }

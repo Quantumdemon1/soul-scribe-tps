@@ -1,7 +1,7 @@
 import { TPSScores, DominantTraits, PersonalityProfile } from '../types/tps.types';
 
 export class TPSScoring {
-  private static readonly TRAIT_MAPPINGS = {
+  static readonly TRAIT_MAPPINGS = {
     "Structured": [1, 4, 7, 10, 13, 16],
     "Ambivalent": [2, 5, 8, 11, 14, 17],
     "Independent": [3, 6, 9, 12, 15, 18],
@@ -155,92 +155,424 @@ export class TPSScoring {
   }
 
   private static mapToOtherFrameworks(dominantTraits: DominantTraits, traitScores: TPSScores) {
+    const mbti = this.calculateMBTI(traitScores);
+    const enneagramDetails = this.calculateEnneagramDetails(traitScores);
+    
     return {
-      mbti: this.calculateMBTI(dominantTraits, traitScores),
-      enneagram: this.calculateEnneagram(dominantTraits, traitScores),
+      mbti,
+      enneagram: `Type ${enneagramDetails.type}w${enneagramDetails.wing}`,
+      enneagramDetails,
       bigFive: this.calculateBigFive(traitScores),
-      dndAlignment: this.calculateAlignment(dominantTraits)
+      dndAlignment: this.calculateAlignment(traitScores),
+      socionics: this.calculateSocionics(mbti),
+      hollandCode: this.calculateHollandCode(traitScores),
+      personalityMatches: this.findPersonalityMatches(traitScores)
     };
   }
 
-  private static calculateMBTI(dominantTraits: DominantTraits, scores: TPSScores): string {
-    let mbti = '';
+  private static calculateMBTI(traitScores: TPSScores): string {
+    // EXTRAVERSION vs INTROVERSION
+    const extraversion = (
+      (traitScores['Communal Navigate'] * 0.35) +
+      (traitScores['Dynamic'] * 0.35) +
+      (traitScores['Assertive'] * 0.15) +
+      (traitScores['Direct'] * 0.15)
+    ) / 10;
     
-    const communalScore = scores['Communal Navigate'] || 0;
-    const dynamicScore = scores['Dynamic'] || 0;
-    mbti += (communalScore + dynamicScore) / 2 > 5 ? 'E' : 'I';
+    const mbti_E_I = extraversion > 5 ? 'E' : 'I';
     
-    const intuitiveScore = scores['Intuitive'] || 0;
-    const universalScore = scores['Universal'] || 0;
-    mbti += (intuitiveScore + universalScore) / 2 > 5 ? 'N' : 'S';
+    // SENSING vs INTUITION
+    const intuition = (
+      (traitScores['Intuitive'] * 0.40) +
+      (traitScores['Universal'] * 0.30) +
+      (traitScores['Varied'] * 0.15) +
+      (traitScores['Self-Aware'] * 0.15)
+    ) / 10;
     
-    const stoicScore = scores['Stoic'] || 0;
-    const directScore = scores['Direct'] || 0;
-    mbti += (stoicScore + directScore) / 2 > 5 ? 'T' : 'F';
+    const mbti_S_N = intuition > 5 ? 'N' : 'S';
     
-    const structuredScore = scores['Structured'] || 0;
-    const lawfulScore = scores['Lawful'] || 0;
-    mbti += (structuredScore + lawfulScore) / 2 > 5 ? 'J' : 'P';
+    // THINKING vs FEELING
+    const thinking = (
+      (traitScores['Analytical'] * 0.35) +
+      (traitScores['Stoic'] * 0.25) +
+      (traitScores['Direct'] * 0.20) +
+      (traitScores['Pragmatic'] * 0.20)
+    ) / 10;
     
-    return mbti;
+    const mbti_T_F = thinking > 5 ? 'T' : 'F';
+    
+    // JUDGING vs PERCEIVING
+    const judging = (
+      (traitScores['Structured'] * 0.35) +
+      (traitScores['Lawful'] * 0.25) +
+      (traitScores['Self-Mastery'] * 0.20) +
+      (traitScores['Assertive'] * 0.20)
+    ) / 10;
+    
+    const mbti_J_P = judging > 5 ? 'J' : 'P';
+    
+    return mbti_E_I + mbti_S_N + mbti_T_F + mbti_J_P;
   }
 
-  private static calculateEnneagram(dominantTraits: DominantTraits, scores: TPSScores): string {
-    const mappings = {
-      1: ['Self-Mastery', 'Lawful', 'Structured'],
-      2: ['Communal Navigate', 'Diplomatic', 'Responsive'],
-      3: ['Assertive', 'Extrinsic', 'Pragmatic'],
-      4: ['Self-Aware', 'Intuitive', 'Independent'],
-      5: ['Analytical', 'Independent Navigate', 'Intrinsic'],
-      6: ['Ambivalent', 'Pessimistic', 'Lawful'],
-      7: ['Dynamic', 'Optimistic', 'Self-Indulgent'],
-      8: ['Assertive', 'Direct', 'Independent'],
-      9: ['Passive', 'Ambivalent', 'Optimistic']
-    };
-    
-    let highestScore = 0;
-    let enneagramType = 1;
-    
-    for (const [type, traits] of Object.entries(mappings)) {
-      const avgScore = traits.reduce((sum, trait) => 
-        sum + (scores[trait] || 0), 0) / traits.length;
+  private static calculateEnneagramDetails(traitScores: TPSScores): { type: number, wing: number, tritype: string } {
+    const enneagramScores = {
+      1: ( // The Perfectionist
+        (traitScores['Self-Mastery'] * 0.30) +
+        (traitScores['Lawful'] * 0.25) +
+        (traitScores['Structured'] * 0.25) +
+        (traitScores['Analytical'] * 0.10) +
+        (traitScores['Stoic'] * 0.10)
+      ) / 5,
       
-      if (avgScore > highestScore) {
-        highestScore = avgScore;
-        enneagramType = parseInt(type);
-      }
-    }
+      2: ( // The Helper
+        (traitScores['Communal Navigate'] * 0.30) +
+        (traitScores['Diplomatic'] * 0.25) +
+        (traitScores['Responsive'] * 0.25) +
+        (traitScores['Passive'] * 0.10) +
+        (traitScores['Social'] * 0.10)
+      ) / 5,
+      
+      3: ( // The Achiever
+        (traitScores['Assertive'] * 0.30) +
+        (traitScores['Extrinsic'] * 0.30) +
+        (traitScores['Pragmatic'] * 0.20) +
+        (traitScores['Dynamic'] * 0.10) +
+        (traitScores['Optimistic'] * 0.10)
+      ) / 5,
+      
+      4: ( // The Individualist
+        (traitScores['Self-Aware'] * 0.30) +
+        (traitScores['Intuitive'] * 0.25) +
+        (traitScores['Independent'] * 0.20) +
+        (traitScores['Turbulent'] * 0.15) +
+        (traitScores['Universal'] * 0.10)
+      ) / 5,
+      
+      5: ( // The Investigator
+        (traitScores['Analytical'] * 0.30) +
+        (traitScores['Independent Navigate'] * 0.25) +
+        (traitScores['Intrinsic'] * 0.20) +
+        (traitScores['Stoic'] * 0.15) +
+        (traitScores['Physical'] * 0.10)
+      ) / 5,
+      
+      6: ( // The Loyalist
+        (traitScores['Ambivalent'] * 0.25) +
+        (traitScores['Pessimistic'] * 0.25) +
+        (traitScores['Lawful'] * 0.20) +
+        (traitScores['Responsive Regulation'] * 0.15) +
+        (traitScores['Structured'] * 0.15)
+      ) / 5,
+      
+      7: ( // The Enthusiast
+        (traitScores['Dynamic'] * 0.30) +
+        (traitScores['Optimistic'] * 0.25) +
+        (traitScores['Self-Indulgent'] * 0.20) +
+        (traitScores['Varied'] * 0.15) +
+        (traitScores['Independent'] * 0.10)
+      ) / 5,
+      
+      8: ( // The Challenger
+        (traitScores['Assertive'] * 0.35) +
+        (traitScores['Direct'] * 0.25) +
+        (traitScores['Independent'] * 0.20) +
+        (traitScores['Physical'] * 0.10) +
+        (traitScores['Self-Principled'] * 0.10)
+      ) / 5,
+      
+      9: ( // The Peacemaker
+        (traitScores['Passive'] * 0.30) +
+        (traitScores['Ambivalent'] * 0.25) +
+        (traitScores['Optimistic'] * 0.15) +
+        (traitScores['Mixed Navigate'] * 0.15) +
+        (traitScores['Responsive'] * 0.15)
+      ) / 5
+    };
     
-    return `Type ${enneagramType}`;
+    // Find primary type
+    const sortedTypes = Object.entries(enneagramScores)
+      .sort(([,a], [,b]) => b - a);
+    const primaryType = parseInt(sortedTypes[0][0]);
+    
+    // Calculate wing (adjacent type with higher score)
+    const leftWing = primaryType === 1 ? 9 : primaryType - 1;
+    const rightWing = primaryType === 9 ? 1 : primaryType + 1;
+    const wing = enneagramScores[leftWing] > enneagramScores[rightWing] ? leftWing : rightWing;
+    
+    // Calculate tritype (top type from each center)
+    const heartTypes = [2, 3, 4];
+    const headTypes = [5, 6, 7];
+    const gutTypes = [8, 9, 1];
+    
+    const heartTop = heartTypes.reduce((max, type) => 
+      enneagramScores[type] > enneagramScores[max] ? type : max, 2);
+    const headTop = headTypes.reduce((max, type) => 
+      enneagramScores[type] > enneagramScores[max] ? type : max, 5);
+    const gutTop = gutTypes.reduce((max, type) => 
+      enneagramScores[type] > enneagramScores[max] ? type : max, 8);
+    
+    const tritype = `${primaryType}${
+      heartTypes.includes(primaryType) ? headTop : heartTop
+    }${gutTypes.includes(primaryType) ? 
+      (heartTypes.includes(primaryType) ? gutTop : headTop) : gutTop}`;
+    
+    return { type: primaryType, wing, tritype };
   }
 
-  private static calculateBigFive(scores: TPSScores): Record<string, number> {
+  private static calculateBigFive(traitScores: TPSScores): Record<string, number> {
     return {
-      Openness: ((scores['Intuitive'] || 0) + (scores['Universal'] || 0) + (scores['Self-Aware'] || 0)) / 3,
-      Conscientiousness: ((scores['Structured'] || 0) + (scores['Self-Mastery'] || 0) + (scores['Lawful'] || 0)) / 3,
-      Extraversion: ((scores['Assertive'] || 0) + (scores['Dynamic'] || 0) + (scores['Communal Navigate'] || 0)) / 3,
-      Agreeableness: ((scores['Diplomatic'] || 0) + (scores['Passive'] || 0) + (scores['Responsive'] || 0)) / 3,
-      Neuroticism: ((scores['Turbulent'] || 0) + (scores['Pessimistic'] || 0) + (scores['Self-Indulgent'] || 0)) / 3
+      Openness: (
+        (traitScores['Intuitive'] * 0.25) +
+        (traitScores['Universal'] * 0.20) +
+        (traitScores['Self-Aware'] * 0.15) +
+        (traitScores['Varied'] * 0.15) +
+        (traitScores['Independent'] * 0.10) +
+        (traitScores['Self-Principled'] * 0.10) +
+        (traitScores['Dynamic'] * 0.05)
+      ) / 7,
+      
+      Conscientiousness: (
+        (traitScores['Structured'] * 0.25) +
+        (traitScores['Self-Mastery'] * 0.25) +
+        (traitScores['Lawful'] * 0.20) +
+        (traitScores['Pragmatic'] * 0.10) +
+        (traitScores['Assertive'] * 0.10) +
+        (traitScores['Realistic'] * 0.10)
+      ) / 6,
+      
+      Extraversion: (
+        (traitScores['Assertive'] * 0.20) +
+        (traitScores['Dynamic'] * 0.20) +
+        (traitScores['Communal Navigate'] * 0.20) +
+        (traitScores['Direct'] * 0.15) +
+        (traitScores['Optimistic'] * 0.15) +
+        (traitScores['Extrinsic'] * 0.10)
+      ) / 6,
+      
+      Agreeableness: (
+        (traitScores['Diplomatic'] * 0.25) +
+        (traitScores['Passive'] * 0.20) +
+        (traitScores['Responsive'] * 0.15) +
+        (traitScores['Communal Navigate'] * 0.15) +
+        (traitScores['Mixed Communication'] * 0.15) +
+        (traitScores['Social'] * 0.10)
+      ) / 6,
+      
+      Neuroticism: (
+        (traitScores['Turbulent'] * 0.30) +
+        (traitScores['Pessimistic'] * 0.25) +
+        (traitScores['Self-Indulgent'] * 0.15) +
+        (traitScores['Passive'] * 0.10) +
+        (traitScores['Ambivalent'] * 0.10) +
+        ((10 - traitScores['Stoic']) * 0.10)
+      ) / 6
     };
   }
 
-  private static calculateAlignment(dominantTraits: DominantTraits): string {
-    let ethical = '';
-    let moral = '';
+  private static calculateAlignment(traitScores: TPSScores): string {
+    // Lawful-Chaotic Axis
+    const lawfulness = (
+      (traitScores['Lawful'] * 0.40) +
+      (traitScores['Structured'] * 0.30) +
+      (traitScores['Diplomatic'] * 0.15) +
+      (traitScores['Self-Mastery'] * 0.15)
+    ) / 4;
     
-    if (dominantTraits['External-Design'] === 'Lawful') ethical = 'Lawful';
-    else if (dominantTraits['External-Design'] === 'Self-Principled') ethical = 'Chaotic';
+    const chaos = (
+      (traitScores['Self-Principled'] * 0.35) +
+      (traitScores['Independent'] * 0.35) +
+      (traitScores['Dynamic'] * 0.15) +
+      (traitScores['Intuitive'] * 0.15)
+    ) / 4;
+    
+    let ethical: string;
+    if (lawfulness > 6.5) ethical = 'Lawful';
+    else if (chaos > 6.5) ethical = 'Chaotic';
     else ethical = 'Neutral';
     
-    if (dominantTraits['Internal-Behavior'] === 'Optimistic' && 
-        dominantTraits['Interpersonal-Navigate'] === 'Communal Navigate') {
-      moral = 'Good';
-    } else if (dominantTraits['Internal-Self-Focus'] === 'Self-Indulgent') {
-      moral = 'Evil';
-    } else {
-      moral = 'Neutral';
-    }
+    // Good-Evil Axis
+    const goodness = (
+      (traitScores['Communal Navigate'] * 0.30) +
+      (traitScores['Diplomatic'] * 0.25) +
+      (traitScores['Optimistic'] * 0.20) +
+      (traitScores['Responsive'] * 0.15) +
+      (traitScores['Social'] * 0.10)
+    ) / 5;
+    
+    const selfishness = (
+      (traitScores['Self-Indulgent'] * 0.40) +
+      (traitScores['Independent Navigate'] * 0.20) +
+      (traitScores['Assertive'] * 0.20) +
+      (traitScores['Pessimistic'] * 0.20)
+    ) / 4;
+    
+    let moral: string;
+    if (goodness > 6.5) moral = 'Good';
+    else if (selfishness > 6.5) moral = 'Evil';
+    else moral = 'Neutral';
     
     return `${ethical} ${moral}`;
+  }
+
+  private static calculateSocionics(mbti: string): string {
+    const socMapping: Record<string, string> = {
+      'INTJ': 'INTp (ILI)',
+      'INTP': 'INTj (LII)',
+      'ENTJ': 'ENTj (LIE)',
+      'ENTP': 'ENTp (ILE)',
+      'INFJ': 'INFp (IEI)',
+      'INFP': 'INFj (EII)',
+      'ENFJ': 'ENFj (EIE)',
+      'ENFP': 'ENFp (IEE)',
+      'ISTJ': 'ISTp (SLI)',
+      'ISFJ': 'ISFp (SEI)',
+      'ESTJ': 'ESTj (LSE)',
+      'ESFJ': 'ESFj (ESE)',
+      'ISTP': 'ISTj (LSI)',
+      'ISFP': 'ISFj (ESI)',
+      'ESTP': 'ESTp (SLE)',
+      'ESFP': 'ESFp (SEE)'
+    };
+    
+    return socMapping[mbti] || mbti;
+  }
+
+  private static calculateHollandCode(traitScores: TPSScores): string {
+    const scores = {
+      R: ( // Realistic
+        (traitScores['Physical'] * 0.40) +
+        (traitScores['Pragmatic'] * 0.30) +
+        (traitScores['Independent Navigate'] * 0.20) +
+        (traitScores['Stoic'] * 0.10)
+      ) / 4,
+      
+      I: ( // Investigative
+        (traitScores['Analytical'] * 0.40) +
+        (traitScores['Intrinsic'] * 0.25) +
+        (traitScores['Independent'] * 0.20) +
+        (traitScores['Universal'] * 0.15)
+      ) / 4,
+      
+      A: ( // Artistic
+        (traitScores['Intuitive'] * 0.35) +
+        (traitScores['Self-Aware'] * 0.25) +
+        (traitScores['Self-Principled'] * 0.20) +
+        (traitScores['Dynamic'] * 0.20)
+      ) / 4,
+      
+      S: ( // Social
+        (traitScores['Communal Navigate'] * 0.35) +
+        (traitScores['Social'] * 0.30) +
+        (traitScores['Diplomatic'] * 0.20) +
+        (traitScores['Responsive'] * 0.15)
+      ) / 4,
+      
+      E: ( // Enterprising
+        (traitScores['Assertive'] * 0.35) +
+        (traitScores['Extrinsic'] * 0.25) +
+        (traitScores['Direct'] * 0.20) +
+        (traitScores['Optimistic'] * 0.20)
+      ) / 4,
+      
+      C: ( // Conventional
+        (traitScores['Structured'] * 0.35) +
+        (traitScores['Lawful'] * 0.30) +
+        (traitScores['Passive'] * 0.20) +
+        (traitScores['Realistic'] * 0.15)
+      ) / 4
+    };
+    
+    // Return top 3 codes
+    return Object.entries(scores)
+      .sort(([,a], [,b]) => b - a)
+      .slice(0, 3)
+      .map(([code]) => code)
+      .join('');
+  }
+
+  private static findPersonalityMatches(userScores: TPSScores): { name: string; type: 'real' | 'fictional'; similarity: number; description: string }[] {
+    const archetypes = [
+      {
+        name: "Barack Obama",
+        type: "real" as const,
+        traits: {
+          'Diplomatic': 9,
+          'Assertive': 7,
+          'Communal Navigate': 8,
+          'Optimistic': 7,
+          'Pragmatic': 8
+        },
+        description: "Inspirational communication and collaborative leadership"
+      },
+      {
+        name: "Hermione Granger",
+        type: "fictional" as const,
+        traits: {
+          'Analytical': 9,
+          'Self-Mastery': 9,
+          'Structured': 8,
+          'Lawful': 8,
+          'Direct': 7
+        },
+        description: "Analytical brilliance and disciplined achievement"
+      },
+      {
+        name: "Steve Jobs",
+        type: "real" as const,
+        traits: {
+          'Assertive': 9,
+          'Intuitive': 8,
+          'Self-Principled': 9,
+          'Direct': 8,
+          'Independent': 8
+        },
+        description: "Visionary innovation and uncompromising standards"
+      },
+      {
+        name: "Tyrion Lannister",
+        type: "fictional" as const,
+        traits: {
+          'Analytical': 8,
+          'Diplomatic': 8,
+          'Intuitive': 7,
+          'Mixed Communication': 7,
+          'Pragmatic': 8
+        },
+        description: "Strategic thinking with emotional intelligence"
+      },
+      {
+        name: "Oprah Winfrey",
+        type: "real" as const,
+        traits: {
+          'Communal Navigate': 9,
+          'Responsive': 8,
+          'Optimistic': 9,
+          'Social': 9,
+          'Self-Aware': 7
+        },
+        description: "Empathetic leadership and inspirational communication"
+      }
+    ];
+    
+    // Calculate similarity scores
+    const matches = archetypes.map(archetype => {
+      const similarity = Object.entries(archetype.traits)
+        .reduce((sum, [trait, value]) => {
+          const diff = Math.abs((userScores[trait] || 5) - value);
+          return sum + (10 - diff);
+        }, 0) / Object.keys(archetype.traits).length;
+      
+      return { 
+        name: archetype.name, 
+        type: archetype.type, 
+        similarity, 
+        description: archetype.description 
+      };
+    });
+    
+    // Return top 3 matches
+    return matches
+      .sort((a, b) => b.similarity - a.similarity)
+      .slice(0, 3);
   }
 }

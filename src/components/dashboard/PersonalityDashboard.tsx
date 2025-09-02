@@ -184,7 +184,7 @@ export const PersonalityDashboard: React.FC<DashboardProps> = ({ profile }) => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                   <div className="text-center p-6 bg-muted/50 rounded-lg">
                     <h3 className="font-medium text-muted-foreground mb-2">MBTI Type</h3>
                     <Badge variant="default" className="text-lg px-4 py-2">
@@ -195,6 +195,21 @@ export const PersonalityDashboard: React.FC<DashboardProps> = ({ profile }) => {
                     <h3 className="font-medium text-muted-foreground mb-2">Enneagram</h3>
                     <Badge variant="secondary" className="text-lg px-4 py-2">
                       {profile.mappings.enneagram}
+                    </Badge>
+                    <div className="text-xs text-muted-foreground mt-1">
+                      Tritype: {profile.mappings.enneagramDetails.tritype}
+                    </div>
+                  </div>
+                  <div className="text-center p-6 bg-muted/50 rounded-lg">
+                    <h3 className="font-medium text-muted-foreground mb-2">Socionics</h3>
+                    <Badge variant="outline" className="text-lg px-4 py-2">
+                      {profile.mappings.socionics}
+                    </Badge>
+                  </div>
+                  <div className="text-center p-6 bg-muted/50 rounded-lg">
+                    <h3 className="font-medium text-muted-foreground mb-2">Holland Code</h3>
+                    <Badge variant="secondary" className="text-lg px-4 py-2">
+                      {profile.mappings.hollandCode}
                     </Badge>
                   </div>
                   <div className="text-center p-6 bg-muted/50 rounded-lg">
@@ -217,6 +232,43 @@ export const PersonalityDashboard: React.FC<DashboardProps> = ({ profile }) => {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Personality Matches */}
+            {profile.mappings.personalityMatches && profile.mappings.personalityMatches.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <User className="w-5 h-5" />
+                    Personality Matches
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid md:grid-cols-3 gap-4">
+                    {profile.mappings.personalityMatches.map((match, index) => (
+                      <div key={index} className="p-4 rounded-lg border bg-card">
+                        <div className="flex items-center justify-between mb-2">
+                          <h4 className="font-semibold">{match.name}</h4>
+                          <Badge variant={match.type === 'real' ? 'default' : 'secondary'}>
+                            {match.type === 'real' ? 'Real' : 'Fictional'}
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-muted-foreground mb-2">{match.description}</p>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-muted-foreground">Match:</span>
+                          <div className="flex-1 bg-muted rounded-full h-2">
+                            <div 
+                              className="bg-primary h-2 rounded-full"
+                              style={{ width: `${match.similarity * 10}%` }}
+                            />
+                          </div>
+                          <span className="text-xs font-medium">{(match.similarity * 10).toFixed(0)}%</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Trait Visualization */}
             <Card>
