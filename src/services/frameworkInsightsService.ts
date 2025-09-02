@@ -1,5 +1,5 @@
 import { PersonalityProfile, TPSScores } from '@/types/tps.types';
-import { FrameworkInsights, MBTIInsight, EnneagramInsight, BigFiveInsight, AlignmentInsight } from '@/types/llm.types';
+import { FrameworkInsights, MBTIInsight, EnneagramInsight, BigFiveInsight, AlignmentInsight, CoreInsight } from '@/types/llm.types';
 import { LLMService } from './llmService';
 import { parseLLMJson } from '@/utils/jsonUtils';
 
@@ -246,5 +246,41 @@ Provide a 3-4 paragraph synthesis that:
 Write in second person, be specific and insightful. Focus on the interconnections and what makes their particular combination unique.`;
     
     return await this.llmService.callLLM(prompt, 'frameworkAnalysis');
+  }
+
+  async generateCoreInsights(profile: PersonalityProfile): Promise<CoreInsight> {
+    const topTraits = Object.entries(profile.traitScores)
+      .sort(([,a], [,b]) => b - a)
+      .slice(0, 8);
+
+    const prompt = `Generate personalized core insights for this TPS personality profile:
+
+TRAIT SCORES:
+${Object.entries(profile.traitScores)
+  .map(([trait, score]) => `- ${trait}: ${score.toFixed(1)}`)
+  .join('\n')}
+
+DOMAIN SCORES:
+${Object.entries(profile.domainScores)
+  .map(([domain, score]) => `- ${domain}: ${(score * 10).toFixed(1)}/10`)
+  .join('\n')}
+
+TOP TRAITS:
+${topTraits.map(([trait, score]) => `- ${trait}: ${score.toFixed(1)}`).join('\n')}
+
+FRAMEWORK MAPPINGS:
+- MBTI: ${profile.mappings.mbti}
+- Enneagram: ${profile.mappings.enneagram}
+- Big Five: ${JSON.stringify(profile.mappings.bigFive)}
+
+Return a JSON object matching the CoreInsight interface that provides:
+1. A personalized personality summary explaining their unique trait configuration
+2. Detailed domain analysis explaining WHY each domain scored as it did
+3. Comprehensive strengths analysis based on trait combinations
+
+Focus on practical insights that help them understand their patterns and apply this knowledge.`;
+
+    const response = await this.llmService.callLLM(prompt, 'coreInsights');
+    return parseLLMJson<CoreInsight>(response);
   }
 }

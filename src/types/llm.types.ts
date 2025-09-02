@@ -9,6 +9,7 @@ export interface LLMConfig {
     careerGuidance: string;
     developmentPlanning: string;
     frameworkAnalysis: string;
+    coreInsights: string;
   };
 }
 
@@ -118,6 +119,38 @@ export interface AlignmentInsight {
     manifestations: string[];
   };
   decisionMaking: string;
+  confidence: number;
+}
+
+export interface CoreInsight {
+  personalitySummary: {
+    overview: string;
+    uniqueExpression: string;
+    traitIntegration: string;
+    confidence: number;
+  };
+  domainAnalysis: {
+    [domain: string]: {
+      score: number;
+      explanation: string;
+      contributingTraits: string[];
+      implications: string[];
+      developmentSuggestions: string[];
+    };
+  };
+  strengthsAnalysis: {
+    primary: {
+      trait: string;
+      description: string;
+      applications: string[];
+    }[];
+    secondary: {
+      trait: string;
+      description: string;
+      applications: string[];
+    }[];
+    interactions: string;
+  };
   confidence: number;
 }
 

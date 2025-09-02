@@ -1,105 +1,259 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { PersonalityProfile } from '../../types/tps.types';
+import { CoreInsight } from '../../types/llm.types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { PersonalityInsightGenerator } from '../../utils/personalityInsights';
-import { TrendingUp, Brain, Target, Lightbulb } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { FrameworkInsightsService } from '../../services/frameworkInsightsService';
+import { TrendingUp, Brain, Target, Lightbulb, ChevronDown, RefreshCw, Sparkles } from 'lucide-react';
 
 interface CoreInsightsProps {
   profile: PersonalityProfile;
 }
 
 export const CoreInsights: React.FC<CoreInsightsProps> = ({ profile }) => {
-  const insights = PersonalityInsightGenerator.generateCoreInsights(profile);
-  
-  // Get top traits
-  const topTraits = Object.entries(profile.traitScores)
-    .sort(([,a], [,b]) => b - a)
-    .slice(0, 6);
+  const [coreInsights, setCoreInsights] = useState<CoreInsight | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({
+    summary: true,
+    domains: true,
+    strengths: true
+  });
+
+  const frameworkService = new FrameworkInsightsService();
+
+  const generateInsights = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const insights = await frameworkService.generateCoreInsights(profile);
+      setCoreInsights(insights);
+    } catch (err) {
+      console.error('Failed to generate core insights:', err);
+      setError('Failed to generate personalized insights. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    generateInsights();
+  }, [profile]);
+
+  const toggleSection = (section: string) => {
+    setOpenSections(prev => ({ ...prev, [section]: !prev[section] }));
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <LoadingSpinner />
+        <span className="ml-2 text-muted-foreground">Generating personalized insights...</span>
+      </div>
+    );
+  }
+
+  if (error || !coreInsights) {
+    return (
+      <Card>
+        <CardContent className="py-6">
+          <div className="text-center">
+            <p className="text-destructive mb-4">{error || 'Failed to load insights'}</p>
+            <Button onClick={generateInsights} variant="outline">
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Try Again
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <div className="space-y-6">
+      {/* AI-Generated Actions */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Sparkles className="w-5 h-5 text-primary" />
+          <span className="text-sm text-muted-foreground">
+            AI-generated personalized insights (Confidence: {(coreInsights.confidence * 100).toFixed(0)}%)
+          </span>
+        </div>
+        <Button onClick={generateInsights} variant="ghost" size="sm">
+          <RefreshCw className="w-4 h-4 mr-2" />
+          Regenerate
+        </Button>
+      </div>
+
       {/* Personality Summary */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Brain className="w-5 h-5 text-primary" />
-            Personality Summary
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-foreground/80 leading-relaxed">{insights.summary}</p>
-        </CardContent>
-      </Card>
+      <Collapsible open={openSections.summary} onOpenChange={() => toggleSection('summary')}>
+        <Card>
+          <CollapsibleTrigger asChild>
+            <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Brain className="w-5 h-5 text-primary" />
+                  Personality Summary
+                </div>
+                <ChevronDown className={`w-4 h-4 transition-transform ${openSections.summary ? 'rotate-180' : ''}`} />
+              </CardTitle>
+            </CardHeader>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <CardContent>
+              <div className="space-y-4">
+                <div>
+                  <h4 className="font-semibold text-foreground mb-2">Overview</h4>
+                  <p className="text-foreground/80 leading-relaxed">{coreInsights.personalitySummary.overview}</p>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-foreground mb-2">Your Unique Expression</h4>
+                  <p className="text-foreground/80 leading-relaxed">{coreInsights.personalitySummary.uniqueExpression}</p>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-foreground mb-2">Trait Integration</h4>
+                  <p className="text-foreground/80 leading-relaxed">{coreInsights.personalitySummary.traitIntegration}</p>
+                </div>
+              </div>
+            </CardContent>
+          </CollapsibleContent>
+        </Card>
+      </Collapsible>
 
       {/* Domain Analysis */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <TrendingUp className="w-5 h-5 text-primary" />
-            Domain Analysis
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {Object.entries(profile.domainScores).map(([domain, score]) => (
-              <div key={domain} className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <h3 className="font-semibold text-foreground">{domain}</h3>
-                  <Badge variant={score > 7 ? "default" : score > 5 ? "secondary" : "outline"}>
-                    {(score * 10).toFixed(1)}/10
-                  </Badge>
+      <Collapsible open={openSections.domains} onOpenChange={() => toggleSection('domains')}>
+        <Card>
+          <CollapsibleTrigger asChild>
+            <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5 text-primary" />
+                  Domain Analysis
                 </div>
-                <Progress value={score * 10} className="h-2" />
-                <p className="text-sm text-muted-foreground">
-                  {getDomainDescription(domain, score)}
-                </p>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+                <ChevronDown className={`w-4 h-4 transition-transform ${openSections.domains ? 'rotate-180' : ''}`} />
+              </CardTitle>
+            </CardHeader>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <CardContent>
+              <div className="grid grid-cols-1 gap-6">
+                {Object.entries(coreInsights.domainAnalysis).map(([domain, analysis]) => (
+                  <div key={domain} className="space-y-4 p-4 rounded-lg bg-muted/30">
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-semibold text-foreground">{domain}</h3>
+                      <Badge variant={analysis.score > 7 ? "default" : analysis.score > 5 ? "secondary" : "outline"}>
+                        {(analysis.score * 10).toFixed(1)}/10
+                      </Badge>
+                    </div>
+                    <Progress value={analysis.score * 10} className="h-2" />
+                    <p className="text-sm text-foreground/80">{analysis.explanation}</p>
+                    
+                    <div className="space-y-2">
+                      <h4 className="text-sm font-medium text-foreground">Contributing Traits:</h4>
+                      <div className="flex flex-wrap gap-1">
+                        {analysis.contributingTraits.map((trait, idx) => (
+                          <Badge key={idx} variant="outline" className="text-xs">
+                            {trait}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
 
-      {/* Top Traits */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Target className="w-5 h-5 text-primary" />
-            Your Strongest Traits
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {topTraits.map(([trait, score]) => (
-              <div key={trait} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-                <span className="font-medium text-foreground">{trait}</span>
-                <Badge variant="default">{score.toFixed(1)}</Badge>
+                    <div className="space-y-2">
+                      <h4 className="text-sm font-medium text-foreground">Implications:</h4>
+                      <ul className="text-sm text-foreground/80 space-y-1">
+                        {analysis.implications.map((implication, idx) => (
+                          <li key={idx} className="flex items-start gap-2">
+                            <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0" />
+                            {implication}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+            </CardContent>
+          </CollapsibleContent>
+        </Card>
+      </Collapsible>
 
-      {/* Core Strengths */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Lightbulb className="w-5 h-5 text-primary" />
-            Your Core Strengths
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {insights.strengths.map((strength, index) => (
-              <div key={index} className="flex items-start gap-3">
-                <div className="w-2 h-2 rounded-full bg-primary mt-2 flex-shrink-0" />
-                <p className="text-foreground/80">{strength}</p>
+      {/* Strengths Analysis */}
+      <Collapsible open={openSections.strengths} onOpenChange={() => toggleSection('strengths')}>
+        <Card>
+          <CollapsibleTrigger asChild>
+            <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Lightbulb className="w-5 h-5 text-primary" />
+                  Your Core Strengths
+                </div>
+                <ChevronDown className={`w-4 h-4 transition-transform ${openSections.strengths ? 'rotate-180' : ''}`} />
+              </CardTitle>
+            </CardHeader>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <CardContent>
+              <div className="space-y-6">
+                <div>
+                  <h4 className="font-semibold text-foreground mb-3">Primary Strengths</h4>
+                  <div className="space-y-4">
+                    {coreInsights.strengthsAnalysis.primary.map((strength, idx) => (
+                      <div key={idx} className="p-4 rounded-lg bg-primary/5 border border-primary/20">
+                        <h5 className="font-medium text-foreground mb-2">{strength.trait}</h5>
+                        <p className="text-sm text-foreground/80 mb-3">{strength.description}</p>
+                        <div className="space-y-1">
+                          <h6 className="text-xs font-medium text-foreground/60">Applications:</h6>
+                          <ul className="text-xs text-foreground/70 space-y-1">
+                            {strength.applications.map((app, appIdx) => (
+                              <li key={appIdx} className="flex items-start gap-2">
+                                <span className="w-1 h-1 rounded-full bg-primary mt-1.5 flex-shrink-0" />
+                                {app}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="font-semibold text-foreground mb-3">Secondary Strengths</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {coreInsights.strengthsAnalysis.secondary.map((strength, idx) => (
+                      <div key={idx} className="p-3 rounded-lg bg-muted/50">
+                        <h5 className="font-medium text-foreground mb-1">{strength.trait}</h5>
+                        <p className="text-sm text-foreground/80 mb-2">{strength.description}</p>
+                        <div className="space-y-1">
+                          <h6 className="text-xs font-medium text-foreground/60">Applications:</h6>
+                          <ul className="text-xs text-foreground/70 space-y-0.5">
+                            {strength.applications.slice(0, 2).map((app, appIdx) => (
+                              <li key={appIdx} className="flex items-start gap-1.5">
+                                <span className="w-0.5 h-0.5 rounded-full bg-foreground/50 mt-1.5 flex-shrink-0" />
+                                {app}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="p-4 rounded-lg bg-gradient-to-r from-primary/5 to-secondary/5 border border-primary/10">
+                  <h4 className="font-semibold text-foreground mb-2">Strength Interactions</h4>
+                  <p className="text-sm text-foreground/80">{coreInsights.strengthsAnalysis.interactions}</p>
+                </div>
               </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+            </CardContent>
+          </CollapsibleContent>
+        </Card>
+      </Collapsible>
     </div>
   );
 };
