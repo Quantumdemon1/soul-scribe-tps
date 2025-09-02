@@ -9,13 +9,30 @@ export class LLMService {
       const { data, error } = await supabase
         .from('llm_config')
         .select('config')
-        .single();
+        .maybeSingle();
       
-      if (error || !data) {
+      if (error) {
+        console.error('Error loading LLM configuration:', error);
         throw new Error('Failed to load LLM configuration');
       }
       
-      this.config = data.config as unknown as LLMConfig;
+      if (!data) {
+        // Return default configuration if none exists
+        this.config = {
+          provider: 'openai',
+          model: 'gpt-4o-mini',
+          temperature: 0.7,
+          maxTokens: 2000,
+          systemPrompts: {
+            tieBreaking: 'You are a skilled personality psychologist conducting Socratic clarification for the TPS assessment.',
+            insightGeneration: 'You are an expert personality psychologist providing comprehensive insights based on TPS assessment results.',
+            careerGuidance: 'You are a career counselor specializing in personality-career alignment using TPS assessment data.',
+            developmentPlanning: 'You are a personal development coach creating customized growth plans based on TPS personality profiles.'
+          }
+        };
+      } else {
+        this.config = data.config as unknown as LLMConfig;
+      }
     }
     
     return this.config;

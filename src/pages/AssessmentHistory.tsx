@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -6,29 +7,35 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useAssessments } from '@/hooks/useAssessments';
 import { useAuth } from '@/hooks/useAuth';
 import { PersonalityDashboard } from '@/components/dashboard/PersonalityDashboard';
-import { ArrowLeft, Calendar, Trash2, Eye, History, User, TrendingUp } from 'lucide-react';
+import { ArrowLeft, Calendar, Trash2, Eye, History, User, TrendingUp, LogIn } from 'lucide-react';
 import { format } from 'date-fns';
 
 const AssessmentHistory: React.FC = () => {
   const { assessments, loading, deleteAssessment } = useAssessments();
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [selectedProfile, setSelectedProfile] = useState(null);
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Card className="max-w-md">
-          <CardHeader className="text-center">
-            <User className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-            <CardTitle>Sign In Required</CardTitle>
-          </CardHeader>
-          <CardContent className="text-center">
-            <p className="text-muted-foreground mb-4">
-              You need to be signed in to view your assessment history.
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 flex items-center justify-center">
+        <Card className="w-full max-w-md">
+          <CardContent className="p-8 text-center">
+            <User className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+            <h2 className="text-xl font-semibold mb-2">Sign In Required</h2>
+            <p className="text-muted-foreground mb-6">
+              You need to sign in to view your assessment history.
             </p>
-            <Button onClick={() => window.location.href = '/auth'}>
-              Sign In
-            </Button>
+            <div className="space-y-3">
+              <Button onClick={() => navigate('/auth')} className="w-full">
+                <LogIn className="w-4 h-4 mr-2" />
+                Sign In
+              </Button>
+              <Button variant="outline" onClick={() => navigate('/')} className="w-full">
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back to Assessment
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -74,7 +81,7 @@ const AssessmentHistory: React.FC = () => {
           <div className="flex items-center justify-between mb-6">
             <Button 
               variant="outline" 
-              onClick={() => window.location.href = '/'}
+              onClick={() => navigate('/')}
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Home
@@ -111,7 +118,7 @@ const AssessmentHistory: React.FC = () => {
               <p className="text-muted-foreground mb-4">
                 Take your first personality assessment to start tracking your development.
               </p>
-              <Button onClick={() => window.location.href = '/'}>
+              <Button onClick={() => navigate('/')}>
                 Take Assessment
               </Button>
             </CardContent>

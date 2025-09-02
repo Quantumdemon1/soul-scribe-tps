@@ -4,14 +4,16 @@ import { AssessmentVariations } from '../../utils/assessmentVariations';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Clock, Target, Zap, Star, User, LogOut, History } from 'lucide-react';
+import { Clock, Target, Zap, Star, User, LogOut, History, LogIn } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { Header } from '@/components/layout/Header';
+import { useNavigate } from 'react-router-dom';
 
 const AssessmentSelection: React.FC = () => {
   const [selectedAssessment, setSelectedAssessment] = useState<string | null>(null);
   const assessmentOptions = AssessmentVariations.getAssessmentOptions();
   const { user, signOut } = useAuth();
+  const navigate = useNavigate();
 
   if (selectedAssessment) {
     return <PersonalityTest assessmentType={selectedAssessment} />;
@@ -19,18 +21,47 @@ const AssessmentSelection: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header />
-      <div className="max-w-6xl mx-auto px-6 py-12">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-foreground mb-4">
-            Triadic Personality System Assessment
-          </h1>
-          <p className="text-xl text-muted-foreground mb-6 max-w-3xl mx-auto">
-            Choose the assessment format that works best for you. All versions provide valuable insights 
-            into your personality across multiple established frameworks.
-          </p>
+      <div className="container mx-auto px-4 py-8">
+        {/* Header with auth controls */}
+        <div className="flex justify-between items-center mb-8">
+          <div className="text-sm text-muted-foreground">
+            TPS Assessment System
+          </div>
+          <div className="flex items-center gap-3">
+            {user ? (
+              <div className="flex items-center gap-3">
+                <span className="text-sm text-muted-foreground">
+                  Welcome, {user.email}
+                </span>
+                <Button variant="outline" size="sm" onClick={() => navigate('/history')}>
+                  <History className="w-4 h-4 mr-2" />
+                  History
+                </Button>
+                <Button variant="outline" size="sm" onClick={signOut}>
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Sign Out
+                </Button>
+              </div>
+            ) : (
+              <Button variant="outline" size="sm" onClick={() => navigate('/auth')}>
+                <LogIn className="w-4 h-4 mr-2" />
+                Sign In
+              </Button>
+            )}
+          </div>
         </div>
+
+        <div className="max-w-6xl mx-auto px-6 py-12">
+          {/* Header */}
+          <div className="text-center mb-12">
+            <h1 className="text-4xl font-bold text-foreground mb-4">
+              Triadic Personality System Assessment
+            </h1>
+            <p className="text-xl text-muted-foreground mb-6 max-w-3xl mx-auto">
+              Choose the assessment format that works best for you. All versions provide valuable insights 
+              into your personality across multiple established frameworks.
+            </p>
+          </div>
 
         {/* Assessment Options */}
         <div className="grid md:grid-cols-3 gap-8 mb-12">
@@ -174,6 +205,7 @@ const AssessmentSelection: React.FC = () => {
               </CardContent>
             </Card>
           </div>
+        </div>
         </div>
       </div>
     </div>
