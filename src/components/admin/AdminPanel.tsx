@@ -7,13 +7,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
+import { Slider } from '@/components/ui/slider';
 import { LLMService } from '@/services/llmService';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
-import { Settings, Database, Brain, BarChart3 } from 'lucide-react';
+import { Settings, Database, Brain, BarChart3, Save, RefreshCw, CheckCircle, AlertCircle, Copy, Upload, Download } from 'lucide-react';
 import { AnalyticsOverview } from '@/components/analytics/AnalyticsOverview';
 import { SystemHealth } from '@/components/analytics/SystemHealth';
+import { DEFAULT_SYSTEM_PROMPTS } from '@/config/systemPrompts';
 
 interface LLMConfig {
   provider: 'openai' | 'anthropic';
@@ -33,18 +34,35 @@ const defaultConfig: LLMConfig = {
   model: 'gpt-5-2025-08-07',
   temperature: 0.7,
   maxTokens: 2000,
-  systemPrompts: {
-    tieBreaking: 'You are an expert personality assessment assistant. Help clarify personality trait preferences through thoughtful questions and analysis.',
-    insightGeneration: 'You are a personality psychologist. Generate deep, actionable insights about personality patterns and characteristics.',
-    careerGuidance: 'You are a career counselor with expertise in personality psychology. Provide specific, practical career guidance.',
-    developmentPlanning: 'You are a personal development coach. Create actionable development plans based on personality insights.'
-  }
+  systemPrompts: { ...DEFAULT_SYSTEM_PROMPTS }
+};
+
+const modelOptions = {
+  openai: [
+    'gpt-5-2025-08-07',
+    'gpt-5-mini-2025-08-07',
+    'gpt-5-nano-2025-08-07',
+    'gpt-4.1-2025-04-14',
+    'o3-2025-04-16',
+    'o4-mini-2025-04-16',
+    'gpt-4o-mini'
+  ],
+  anthropic: [
+    'claude-opus-4-20250514',
+    'claude-sonnet-4-20250514',
+    'claude-3-5-haiku-20241022',
+    'claude-3-7-sonnet-20250219',
+    'claude-3-5-sonnet-20241022'
+  ]
 };
 
 export const AdminPanel: React.FC = () => {
   const [config, setConfig] = useState<LLMConfig>(defaultConfig);
   const [loading, setLoading] = useState(false);
   const [stats, setStats] = useState<any>(null);
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [testResult, setTestResult] = useState<string>('');
+  const [selectedPrompt, setSelectedPrompt] = useState<keyof typeof DEFAULT_SYSTEM_PROMPTS>('tieBreaking');
 
   useEffect(() => {
     loadConfig();
@@ -85,7 +103,7 @@ export const AdminPanel: React.FC = () => {
   };
 
   const saveConfig = async () => {
-    setLoading(true);
+    setSaveStatus('saving');
     try {
       const { error } = await supabase
         .from('llm_config')
@@ -97,18 +115,20 @@ export const AdminPanel: React.FC = () => {
 
       if (error) throw error;
 
+      setSaveStatus('saved');
       toast({
         title: "Configuration Saved",
         description: "LLM configuration has been updated successfully."
       });
+      setTimeout(() => setSaveStatus('idle'), 3000);
     } catch (error) {
+      setSaveStatus('error');
       toast({
         title: "Error",
         description: "Failed to save configuration.",
         variant: "destructive"
       });
-    } finally {
-      setLoading(false);
+      setTimeout(() => setSaveStatus('idle'), 3000);
     }
   };
 
@@ -116,13 +136,15 @@ export const AdminPanel: React.FC = () => {
     setLoading(true);
     try {
       const llmService = new LLMService();
-      const result = await llmService.callLLM('Hello, this is a test.', 'insightGeneration');
+      const result = await llmService.callLLM('Test connection. Respond with "Connected successfully."', 'insightGeneration');
       
+      setTestResult('✅ Connection successful');
       toast({
         title: "LLM Test Successful",
         description: "Connection and configuration are working properly."
       });
     } catch (error) {
+      setTestResult('❌ Connection failed: ' + (error as Error).message);
       toast({
         title: "LLM Test Failed",
         description: "Check your API keys and configuration.",
@@ -133,18 +155,73 @@ export const AdminPanel: React.FC = () => {
     }
   };
 
+  const exportConfig = () => {
+    const blob = new Blob([JSON.stringify(config, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `tps-llm-config-${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const importConfig = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const imported = JSON.parse(e.target?.result as string);
+          setConfig(imported);
+          setSaveStatus('idle');
+          toast({
+            title: "Configuration Imported",
+            description: "Configuration has been imported successfully."
+          });
+        } catch (error) {
+          toast({
+            title: "Import Failed",
+            description: "Invalid configuration file.",
+            variant: "destructive"
+          });
+        }
+      };
+      reader.readAsText(file);
+    }
+  };
+
+  const resetPrompt = () => {
+    setConfig({
+      ...config,
+      systemPrompts: {
+        ...config.systemPrompts,
+        [selectedPrompt]: DEFAULT_SYSTEM_PROMPTS[selectedPrompt]
+      }
+    });
+  };
+
+  const copyPrompt = () => {
+    navigator.clipboard.writeText(config.systemPrompts[selectedPrompt]);
+    toast({
+      title: "Copied",
+      description: "Prompt copied to clipboard."
+    });
+  };
+
   return (
     <div className="min-h-screen bg-background p-6">
-      <div className="max-w-6xl mx-auto space-y-6">
+      <div className="max-w-7xl mx-auto space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold flex items-center gap-2">
-              <Settings className="w-8 h-8 text-primary" />
+            <h1 className="text-3xl font-bold flex items-center gap-3">
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <Settings className="w-8 h-8 text-primary" />
+              </div>
               Admin Panel
             </h1>
-            <p className="text-muted-foreground">Manage TPS assessment system configuration</p>
+            <p className="text-muted-foreground mt-1">Manage TPS assessment system configuration</p>
           </div>
-          <Badge variant="secondary" className="text-sm">
+          <Badge variant="secondary" className="text-sm px-3 py-1">
             Admin Access
           </Badge>
         </div>
@@ -166,18 +243,22 @@ export const AdminPanel: React.FC = () => {
           </TabsList>
 
           <TabsContent value="llm" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card>
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+              {/* Provider Settings */}
+              <Card className="h-fit">
                 <CardHeader>
-                  <CardTitle>Provider Settings</CardTitle>
+                  <CardTitle className="flex items-center gap-2">
+                    <Brain className="w-5 h-5 text-primary" />
+                    Provider Settings
+                  </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="provider">LLM Provider</Label>
+                <CardContent className="space-y-6">
+                  <div className="space-y-3">
+                    <Label>LLM Provider</Label>
                     <Select 
                       value={config.provider} 
                       onValueChange={(value: 'openai' | 'anthropic') => 
-                        setConfig({...config, provider: value})
+                        setConfig({...config, provider: value, model: modelOptions[value][0]})
                       }
                     >
                       <SelectTrigger>
@@ -190,105 +271,178 @@ export const AdminPanel: React.FC = () => {
                     </Select>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="model">Model</Label>
-                    <Input
-                      id="model"
+                  <div className="space-y-3">
+                    <Label>Model</Label>
+                    <Select
                       value={config.model}
-                      onChange={(e) => setConfig({...config, model: e.target.value})}
-                      placeholder="gpt-5-2025-08-07"
-                    />
+                      onValueChange={(value) => setConfig({...config, model: value})}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {modelOptions[config.provider].map(model => (
+                          <SelectItem key={model} value={model}>{model}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="temperature">Temperature</Label>
-                    <Input
-                      id="temperature"
-                      type="number"
-                      min="0"
-                      max="2"
-                      step="0.1"
-                      value={config.temperature}
-                      onChange={(e) => setConfig({...config, temperature: parseFloat(e.target.value)})}
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <Label>Temperature: {config.temperature}</Label>
+                      <span className="text-xs text-muted-foreground">
+                        {config.temperature <= 0.3 ? 'Focused' : config.temperature >= 0.7 ? 'Creative' : 'Balanced'}
+                      </span>
+                    </div>
+                    <Slider
+                      value={[config.temperature]}
+                      onValueChange={([value]) => setConfig({...config, temperature: value})}
+                      max={1}
+                      min={0}
+                      step={0.1}
+                      className="w-full"
                     />
+                    <div className="flex justify-between text-xs text-muted-foreground">
+                      <span>0.0</span>
+                      <span>1.0</span>
+                    </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="maxTokens">Max Tokens</Label>
+                  <div className="space-y-3">
+                    <Label>Max Tokens</Label>
                     <Input
-                      id="maxTokens"
                       type="number"
                       value={config.maxTokens}
-                      onChange={(e) => setConfig({...config, maxTokens: parseInt(e.target.value)})}
+                      onChange={(e) => setConfig({...config, maxTokens: parseInt(e.target.value) || 2000})}
+                      min={100}
+                      max={8000}
                     />
                   </div>
 
-                  <div className="flex gap-2">
-                    <Button onClick={saveConfig} disabled={loading} className="flex-1">
-                      {loading ? 'Saving...' : 'Save Configuration'}
+                  <div className="flex gap-3 pt-4">
+                    <Button 
+                      onClick={saveConfig} 
+                      disabled={saveStatus === 'saving'} 
+                      className="flex-1"
+                      variant={saveStatus === 'saved' ? 'default' : 'default'}
+                    >
+                      {saveStatus === 'saving' && <RefreshCw className="w-4 h-4 mr-2 animate-spin" />}
+                      {saveStatus === 'saved' && <CheckCircle className="w-4 h-4 mr-2" />}
+                      {saveStatus === 'error' && <AlertCircle className="w-4 h-4 mr-2" />}
+                      {saveStatus === 'idle' && <Save className="w-4 h-4 mr-2" />}
+                      {saveStatus === 'saving' ? 'Saving...' : saveStatus === 'saved' ? 'Saved!' : 'Save Config'}
                     </Button>
                     <Button onClick={testLLM} variant="outline" disabled={loading}>
-                      Test LLM
+                      {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : 'Test'}
                     </Button>
+                  </div>
+
+                  {testResult && (
+                    <div className="p-3 bg-muted rounded-lg">
+                      <p className="text-sm font-mono">{testResult}</p>
+                    </div>
+                  )}
+
+                  {/* Import/Export */}
+                  <div className="border-t pt-4">
+                    <div className="flex gap-3">
+                      <Button
+                        onClick={exportConfig}
+                        variant="outline"
+                        size="sm"
+                        className="flex-1"
+                      >
+                        <Download className="w-4 h-4 mr-2" />
+                        Export
+                      </Button>
+                      <label className="flex-1">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="w-full"
+                          asChild
+                        >
+                          <span>
+                            <Upload className="w-4 h-4 mr-2" />
+                            Import
+                          </span>
+                        </Button>
+                        <input
+                          type="file"
+                          accept=".json"
+                          onChange={importConfig}
+                          className="hidden"
+                        />
+                      </label>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card>
+              {/* System Prompts */}
+              <Card className="h-fit">
                 <CardHeader>
-                  <CardTitle>System Prompts</CardTitle>
+                  <CardTitle className="flex items-center gap-2">
+                    <Brain className="w-5 h-5 text-primary" />
+                    System Prompts
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="tieBreaking">Tie Breaking</Label>
-                    <Textarea
-                      id="tieBreaking"
-                      value={config.systemPrompts.tieBreaking}
-                      onChange={(e) => setConfig({
-                        ...config,
-                        systemPrompts: {...config.systemPrompts, tieBreaking: e.target.value}
-                      })}
-                      rows={3}
-                    />
+                  {/* Prompt Selector */}
+                  <div className="grid grid-cols-2 gap-2">
+                    {Object.keys(DEFAULT_SYSTEM_PROMPTS).map((key) => (
+                      <Button
+                        key={key}
+                        variant={selectedPrompt === key ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setSelectedPrompt(key as keyof typeof DEFAULT_SYSTEM_PROMPTS)}
+                        className="text-xs"
+                      >
+                        {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
+                      </Button>
+                    ))}
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="insightGeneration">Insight Generation</Label>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <Label className="text-sm font-medium">
+                        {selectedPrompt.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
+                      </Label>
+                      <div className="flex gap-2">
+                        <Button
+                          onClick={copyPrompt}
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 p-0"
+                        >
+                          <Copy className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          onClick={resetPrompt}
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 px-2 text-xs"
+                        >
+                          Reset
+                        </Button>
+                      </div>
+                    </div>
                     <Textarea
-                      id="insightGeneration"
-                      value={config.systemPrompts.insightGeneration}
+                      value={config.systemPrompts[selectedPrompt]}
                       onChange={(e) => setConfig({
                         ...config,
-                        systemPrompts: {...config.systemPrompts, insightGeneration: e.target.value}
+                        systemPrompts: {
+                          ...config.systemPrompts,
+                          [selectedPrompt]: e.target.value
+                        }
                       })}
-                      rows={3}
+                      className="min-h-[400px] font-mono text-xs leading-relaxed resize-none"
                     />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="careerGuidance">Career Guidance</Label>
-                    <Textarea
-                      id="careerGuidance"
-                      value={config.systemPrompts.careerGuidance}
-                      onChange={(e) => setConfig({
-                        ...config,
-                        systemPrompts: {...config.systemPrompts, careerGuidance: e.target.value}
-                      })}
-                      rows={3}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="developmentPlanning">Development Planning</Label>
-                    <Textarea
-                      id="developmentPlanning"
-                      value={config.systemPrompts.developmentPlanning}
-                      onChange={(e) => setConfig({
-                        ...config,
-                        systemPrompts: {...config.systemPrompts, developmentPlanning: e.target.value}
-                      })}
-                      rows={3}
-                    />
+                    <div className="flex justify-between text-xs text-muted-foreground">
+                      <span>{config.systemPrompts[selectedPrompt].length} characters</span>
+                      <span>{Math.ceil(config.systemPrompts[selectedPrompt].length / 4)} tokens (est.)</span>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
