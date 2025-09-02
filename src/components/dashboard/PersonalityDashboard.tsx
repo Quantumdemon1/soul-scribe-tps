@@ -10,6 +10,7 @@ import { DomainCard } from './DomainCard';
 import { PersonalityTypes } from './PersonalityTypes';
 import { CoreInsights } from './CoreInsights';
 import { PersonalDevelopment } from './PersonalDevelopment';
+import { AIInsightsPanel } from './AIInsightsPanel';
 import { CareerLifestyle } from './CareerLifestyle';
 import { 
   Brain, 
@@ -19,7 +20,8 @@ import {
   User,
   Target,
   Briefcase,
-  TrendingUp
+  TrendingUp,
+  Sparkles
 } from 'lucide-react';
 
 interface DashboardProps {
@@ -151,7 +153,7 @@ export const PersonalityDashboard: React.FC<DashboardProps> = ({ profile }) => {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-6 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-5 mb-8">
+          <TabsList className="grid w-full grid-cols-6 mb-8">
             <TabsTrigger value="overview" className="flex items-center gap-2">
               <User className="w-4 h-4" />
               Overview
@@ -159,6 +161,10 @@ export const PersonalityDashboard: React.FC<DashboardProps> = ({ profile }) => {
             <TabsTrigger value="insights" className="flex items-center gap-2">
               <Brain className="w-4 h-4" />
               Core Insights
+            </TabsTrigger>
+            <TabsTrigger value="ai-insights" className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4" />
+              AI Insights
             </TabsTrigger>
             <TabsTrigger value="types" className="flex items-center gap-2">
               <Target className="w-4 h-4" />
@@ -295,6 +301,10 @@ export const PersonalityDashboard: React.FC<DashboardProps> = ({ profile }) => {
 
           <TabsContent value="insights">
             <CoreInsights profile={profile} />
+          </TabsContent>
+
+          <TabsContent value="ai-insights">
+            <AIInsightsPanel profile={profile} />
           </TabsContent>
 
           <TabsContent value="types">

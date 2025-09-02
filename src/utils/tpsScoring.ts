@@ -154,6 +154,30 @@ export class TPSScoring {
     };
   }
 
+  static generateFullProfileWithAdjustedScores(responses: number[], adjustedScores: any): PersonalityProfile {
+    const baseTraitScores = this.calculateTraitScores(responses);
+    
+    // Apply adjustments from Socratic clarification
+    const finalTraitScores = { ...baseTraitScores };
+    Object.entries(adjustedScores).forEach(([trait, adjustment]) => {
+      if (finalTraitScores[trait] !== undefined) {
+        finalTraitScores[trait] = Math.max(1, Math.min(10, finalTraitScores[trait] + (adjustment as number)));
+      }
+    });
+    
+    const dominantTraits = this.calculateDominantTraits(finalTraitScores);
+    const domainScores = this.calculateDomainScores(finalTraitScores);
+    const mappings = this.mapToOtherFrameworks(dominantTraits, finalTraitScores);
+
+    return {
+      dominantTraits,
+      traitScores: finalTraitScores,
+      domainScores,
+      mappings,
+      timestamp: new Date().toISOString()
+    };
+  }
+
   private static mapToOtherFrameworks(dominantTraits: DominantTraits, traitScores: TPSScores) {
     const mbti = this.calculateMBTI(traitScores);
     const enneagramDetails = this.calculateEnneagramDetails(traitScores);

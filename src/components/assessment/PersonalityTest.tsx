@@ -129,7 +129,7 @@ export const PersonalityTest: React.FC<PersonalityTestProps> = ({ assessmentType
       : AssessmentVariations.adjustScoring(responses, assessmentConfig);
     
     // Generate personality profile with final scores
-    const personalityProfile = TPSScoring.generateFullProfile(fullResponses);
+    const personalityProfile = TPSScoring.generateFullProfileWithAdjustedScores(fullResponses, finalScores);
     setProfile(personalityProfile);
     setIsComplete(true);
     setShowClarification(false);

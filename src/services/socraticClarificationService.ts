@@ -4,7 +4,7 @@ import { LLMService } from './llmService';
 import { TPSScoring } from '@/utils/tpsScoring';
 
 export class SocraticClarificationService {
-  private readonly CUSP_THRESHOLD = 1.0; // Traits within 1.0 points are cusps
+  private readonly CUSP_THRESHOLD = 2.5; // Traits within 2.5 points are cusps
   private readonly llmService = new LLMService();
   
   async analyzeCusps(traitScores: TPSScores): Promise<CuspAnalysis[]> {
