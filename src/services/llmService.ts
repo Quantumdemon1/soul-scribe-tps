@@ -9,11 +9,12 @@ export class LLMService {
       const { data, error } = await supabase
         .from('llm_config')
         .select('config')
+        .eq('id', '00000000-0000-0000-0000-000000000000')
         .maybeSingle();
       
       if (error) {
         console.error('Error loading LLM configuration:', error);
-        throw new Error('Failed to load LLM configuration');
+        throw new Error(`Failed to load LLM configuration: ${error.message}`);
       }
       
       if (!data) {
