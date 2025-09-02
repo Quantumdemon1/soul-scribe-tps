@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { errorLogger } from '@/services/errorLoggingService';
 
 // Performance monitoring hook

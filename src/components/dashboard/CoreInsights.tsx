@@ -141,7 +141,7 @@ export const CoreInsights: React.FC<CoreInsightsProps> = ({ profile }) => {
           <CollapsibleContent>
             <CardContent>
               <div className="grid grid-cols-1 gap-6">
-                {Object.entries(coreInsights.domainAnalysis).map(([domain, analysis]) => (
+                {Object.entries(coreInsights.domainAnalysis || {}).map(([domain, analysis]) => (
                   <div key={domain} className="space-y-4 p-4 rounded-lg bg-muted/30">
                     <div className="flex items-center justify-between">
                       <h3 className="font-semibold text-foreground">{domain}</h3>
@@ -155,7 +155,7 @@ export const CoreInsights: React.FC<CoreInsightsProps> = ({ profile }) => {
                     <div className="space-y-2">
                       <h4 className="text-sm font-medium text-foreground">Contributing Traits:</h4>
                       <div className="flex flex-wrap gap-1">
-                        {analysis.contributingTraits.map((trait, idx) => (
+                        {(analysis.contributingTraits || []).map((trait, idx) => (
                           <Badge key={idx} variant="outline" className="text-xs">
                             {trait}
                           </Badge>
@@ -166,7 +166,7 @@ export const CoreInsights: React.FC<CoreInsightsProps> = ({ profile }) => {
                     <div className="space-y-2">
                       <h4 className="text-sm font-medium text-foreground">Implications:</h4>
                       <ul className="text-sm text-foreground/80 space-y-1">
-                        {analysis.implications.map((implication, idx) => (
+                        {(analysis.implications || []).map((implication, idx) => (
                           <li key={idx} className="flex items-start gap-2">
                             <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0" />
                             {implication}
@@ -202,14 +202,14 @@ export const CoreInsights: React.FC<CoreInsightsProps> = ({ profile }) => {
                 <div>
                   <h4 className="font-semibold text-foreground mb-3">Primary Strengths</h4>
                   <div className="space-y-4">
-                    {coreInsights.strengthsAnalysis.primary.map((strength, idx) => (
+                    {(coreInsights.strengthsAnalysis?.primary || []).map((strength, idx) => (
                       <div key={idx} className="p-4 rounded-lg bg-primary/5 border border-primary/20">
                         <h5 className="font-medium text-foreground mb-2">{strength.trait}</h5>
                         <p className="text-sm text-foreground/80 mb-3">{strength.description}</p>
                         <div className="space-y-1">
                           <h6 className="text-xs font-medium text-foreground/60">Applications:</h6>
                           <ul className="text-xs text-foreground/70 space-y-1">
-                            {strength.applications.map((app, appIdx) => (
+                            {(strength.applications || []).map((app, appIdx) => (
                               <li key={appIdx} className="flex items-start gap-2">
                                 <span className="w-1 h-1 rounded-full bg-primary mt-1.5 flex-shrink-0" />
                                 {app}
@@ -225,14 +225,14 @@ export const CoreInsights: React.FC<CoreInsightsProps> = ({ profile }) => {
                 <div>
                   <h4 className="font-semibold text-foreground mb-3">Secondary Strengths</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {coreInsights.strengthsAnalysis.secondary.map((strength, idx) => (
+                    {(coreInsights.strengthsAnalysis?.secondary || []).map((strength, idx) => (
                       <div key={idx} className="p-3 rounded-lg bg-muted/50">
                         <h5 className="font-medium text-foreground mb-1">{strength.trait}</h5>
                         <p className="text-sm text-foreground/80 mb-2">{strength.description}</p>
                         <div className="space-y-1">
                           <h6 className="text-xs font-medium text-foreground/60">Applications:</h6>
                           <ul className="text-xs text-foreground/70 space-y-0.5">
-                            {strength.applications.slice(0, 2).map((app, appIdx) => (
+                            {(strength.applications || []).slice(0, 2).map((app, appIdx) => (
                               <li key={appIdx} className="flex items-start gap-1.5">
                                 <span className="w-0.5 h-0.5 rounded-full bg-foreground/50 mt-1.5 flex-shrink-0" />
                                 {app}
@@ -247,7 +247,7 @@ export const CoreInsights: React.FC<CoreInsightsProps> = ({ profile }) => {
 
                 <div className="p-4 rounded-lg bg-gradient-to-r from-primary/5 to-secondary/5 border border-primary/10">
                   <h4 className="font-semibold text-foreground mb-2">Strength Interactions</h4>
-                  <p className="text-sm text-foreground/80">{coreInsights.strengthsAnalysis.interactions}</p>
+                  <p className="text-sm text-foreground/80">{coreInsights.strengthsAnalysis?.interactions || 'No interaction analysis available.'}</p>
                 </div>
               </div>
             </CardContent>
