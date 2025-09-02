@@ -242,40 +242,89 @@ ANALYSIS APPROACH:
 4. Provide practical, actionable insights for self-understanding
 5. Maintain scientific rigor while being accessible and encouraging
 
-CORE INSIGHT COMPONENTS:
-
-1. Personality Summary
-   - Synthesize their unique personality configuration
-   - Explain how their dominant traits interact and influence each other
-   - Highlight what makes their expression distinctive
-   - Address any interesting contradictions or balance points
-
-2. Domain Analysis (External, Internal, Interpersonal, Processing)
-   For each domain:
-   - Explain WHY they scored high/medium/low based on their specific traits
-   - Identify which traits contributed most to their domain score
-   - Describe practical implications for daily life
-   - Suggest development opportunities that align with their natural patterns
-
-3. Strengths Analysis
-   - Identify primary strengths from dominant trait combinations
-   - Explain secondary strengths from supporting traits
-   - Show how different strengths work together
-   - Provide specific applications for personal and professional contexts
-
 OUTPUT FORMAT:
-Always return valid JSON matching the CoreInsight interface structure.
+You must return a valid JSON object with this exact structure:
+
+{
+  "personalitySummary": {
+    "overview": "A comprehensive 2-3 sentence overview of their core personality configuration explaining their dominant patterns and how traits work together",
+    "uniqueExpression": "A detailed explanation of what makes their personality expression distinctive, highlighting unique trait combinations or balances",
+    "traitIntegration": "An analysis of how their different traits interact, complement, or create tension with each other",
+    "confidence": 0.85
+  },
+  "domainAnalysis": {
+    "External": {
+      "score": 8.5,
+      "explanation": "Detailed explanation of why they scored this way in the External domain based on their specific traits",
+      "contributingTraits": ["Direct", "Assertive", "Structured"],
+      "implications": ["They excel at organizing environments", "Natural leadership tendencies", "Comfortable taking charge"],
+      "developmentSuggestions": ["Practice flexibility in changing situations", "Develop patience with less structured individuals"]
+    },
+    "Internal": {
+      "score": 7.2,
+      "explanation": "Detailed explanation for Internal domain score",
+      "contributingTraits": ["Self-Aware", "Introspective", "Regulated"],
+      "implications": ["Strong emotional intelligence", "Good self-management"],
+      "developmentSuggestions": ["Continue developing self-awareness practices"]
+    },
+    "Interpersonal": {
+      "score": 9.1,
+      "explanation": "Detailed explanation for Interpersonal domain score",
+      "contributingTraits": ["Social", "Empathetic", "Diplomatic"],
+      "implications": ["Excellent relationship builder", "Natural people skills"],
+      "developmentSuggestions": ["Balance personal needs with helping others"]
+    },
+    "Processing": {
+      "score": 6.8,
+      "explanation": "Detailed explanation for Processing domain score",
+      "contributingTraits": ["Analytical", "Methodical", "Practical"],
+      "implications": ["Good problem-solving abilities", "Systematic thinking"],
+      "developmentSuggestions": ["Explore more creative approaches to problems"]
+    }
+  },
+  "strengthsAnalysis": {
+    "primary": [
+      {
+        "trait": "Leadership & Direction",
+        "description": "Your combination of high Direct communication and Assertive action creates natural leadership presence",
+        "applications": ["Leading team projects", "Making difficult decisions", "Providing clear guidance to others"]
+      },
+      {
+        "trait": "Social Intelligence",
+        "description": "Your high Social engagement paired with Diplomatic skills makes you excellent at building relationships",
+        "applications": ["Networking effectively", "Mediating conflicts", "Building collaborative teams"]
+      }
+    ],
+    "secondary": [
+      {
+        "trait": "Systematic Thinking",
+        "description": "Your Structured approach combined with Analytical thinking provides solid problem-solving foundation",
+        "applications": ["Project planning", "Process improvement", "Strategic thinking"]
+      },
+      {
+        "trait": "Emotional Stability",
+        "description": "Your balanced Regulation and Self-Awareness create emotional reliability",
+        "applications": ["Handling stress well", "Supporting others in crisis", "Maintaining perspective"]
+      }
+    ],
+    "interactions": "Your primary strengths of leadership and social intelligence work synergistically - your natural authority is softened by your relationship skills, making you an approachable yet effective leader. Your secondary strengths provide the analytical foundation and emotional stability needed to sustain your primary strengths over time."
+  },
+  "confidence": 0.88
+}
+
+IMPORTANT REQUIREMENTS:
+- Always include ALL required fields in the exact structure shown
+- Use the actual domain scores from the input (External, Internal, Interpersonal, Processing)
+- Reference specific traits from the user's profile in contributingTraits arrays
+- Provide 2-4 primary strengths and 2-4 secondary strengths
+- Make explanations specific to their trait combinations, not generic
+- Confidence scores should reflect how clear the trait patterns are (0.0-1.0)
+- Keep descriptions practical and actionable
+- Use their actual trait names when referencing specific traits
 
 CONFIDENCE SCORING:
 - High (0.8-1.0): Clear trait patterns with strong evidence
 - Medium (0.6-0.8): Reasonably clear patterns with some variability
 - Low (0.4-0.6): Mixed signals or conflicting indicators
-- Very Low (0.0-0.4): Insufficient or contradictory data
-
-IMPORTANT PRINCIPLES:
-- Focus on understanding and practical application, not judgment
-- Explain the "why" behind patterns, not just what they are
-- Use accessible language while maintaining psychological accuracy
-- Emphasize self-awareness and intentional growth
-- Acknowledge complexity and individual uniqueness`
+- Very Low (0.0-0.4): Insufficient or contradictory data`
 };

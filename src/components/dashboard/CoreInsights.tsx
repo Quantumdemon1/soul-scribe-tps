@@ -30,7 +30,9 @@ export const CoreInsights: React.FC<CoreInsightsProps> = ({ profile }) => {
     try {
       setLoading(true);
       setError(null);
+      console.log('Generating core insights for profile:', profile);
       const insights = await frameworkService.generateCoreInsights(profile);
+      console.log('Generated core insights:', insights);
       setCoreInsights(insights);
     } catch (err) {
       console.error('Failed to generate core insights:', err);
@@ -108,15 +110,21 @@ export const CoreInsights: React.FC<CoreInsightsProps> = ({ profile }) => {
               <div className="space-y-4">
                 <div>
                   <h4 className="font-semibold text-foreground mb-2">Overview</h4>
-                  <p className="text-foreground/80 leading-relaxed">{coreInsights.personalitySummary.overview}</p>
+                  <p className="text-foreground/80 leading-relaxed">
+                    {coreInsights.personalitySummary?.overview || 'Personality overview not available.'}
+                  </p>
                 </div>
                 <div>
                   <h4 className="font-semibold text-foreground mb-2">Your Unique Expression</h4>
-                  <p className="text-foreground/80 leading-relaxed">{coreInsights.personalitySummary.uniqueExpression}</p>
+                  <p className="text-foreground/80 leading-relaxed">
+                    {coreInsights.personalitySummary?.uniqueExpression || 'Unique expression analysis not available.'}
+                  </p>
                 </div>
                 <div>
                   <h4 className="font-semibold text-foreground mb-2">Trait Integration</h4>
-                  <p className="text-foreground/80 leading-relaxed">{coreInsights.personalitySummary.traitIntegration}</p>
+                  <p className="text-foreground/80 leading-relaxed">
+                    {coreInsights.personalitySummary?.traitIntegration || 'Trait integration analysis not available.'}
+                  </p>
                 </div>
               </div>
             </CardContent>
