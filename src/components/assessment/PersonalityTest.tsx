@@ -8,12 +8,17 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { PersonalityDashboard } from '../dashboard/PersonalityDashboard';
 import { ChevronLeft, ChevronRight, Brain } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
+import { useAssessments } from '@/hooks/useAssessments';
+import { toast } from '@/hooks/use-toast';
 
 export const PersonalityTest: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(0);
   const [responses, setResponses] = useState<number[]>(Array(108).fill(5));
   const [isComplete, setIsComplete] = useState(false);
   const [profile, setProfile] = useState<PersonalityProfile | null>(null);
+  const { user } = useAuth();
+  const { saveAssessment } = useAssessments();
 
   const questionsPerPage = 6;
   const totalPages = Math.ceil(TPS_QUESTIONS.length / questionsPerPage);
@@ -58,15 +63,30 @@ export const PersonalityTest: React.FC = () => {
     }
   };
 
-  const calculateResults = () => {
+  const calculateResults = async () => {
     const personalityProfile = TPSScoring.generateFullProfile(responses);
     setProfile(personalityProfile);
     setIsComplete(true);
     
-    // Save to localStorage
+    // Save to localStorage for immediate access
     localStorage.setItem('tps-profile', JSON.stringify(personalityProfile));
     localStorage.removeItem('tps-responses');
     localStorage.removeItem('tps-current-page');
+
+    // Save to Supabase if user is authenticated
+    if (user) {
+      try {
+        await saveAssessment(personalityProfile, responses, 'full');
+      } catch (error) {
+        // Error handling is done in useAssessments hook
+        console.log('Assessment not saved to cloud, but available locally');
+      }
+    } else {
+      toast({
+        title: "Profile Complete",
+        description: "Sign in to save your profile and access it from any device."
+      });
+    }
   };
 
   const currentQuestions = TPS_QUESTIONS.slice(

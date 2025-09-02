@@ -4,11 +4,13 @@ import { AssessmentVariations } from '../../utils/assessmentVariations';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Clock, Target, Zap, Star } from 'lucide-react';
+import { Clock, Target, Zap, Star, User, LogOut } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 
 const AssessmentSelection: React.FC = () => {
   const [selectedAssessment, setSelectedAssessment] = useState<string | null>(null);
   const assessmentOptions = AssessmentVariations.getAssessmentOptions();
+  const { user, signOut } = useAuth();
 
   if (selectedAssessment) {
     // For now, always return the standard PersonalityTest
@@ -21,6 +23,28 @@ const AssessmentSelection: React.FC = () => {
       <div className="max-w-6xl mx-auto px-6 py-12">
         {/* Header */}
         <div className="text-center mb-12">
+          <div className="flex justify-between items-start mb-6">
+            <div></div>
+            <div className="flex items-center gap-4">
+              {user ? (
+                <>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <User className="w-4 h-4" />
+                    {user.email}
+                  </div>
+                  <Button variant="outline" size="sm" onClick={signOut}>
+                    <LogOut className="w-4 h-4 mr-1" />
+                    Sign Out
+                  </Button>
+                </>
+              ) : (
+                <Button variant="outline" onClick={() => window.location.href = '/auth'}>
+                  <User className="w-4 h-4 mr-2" />
+                  Sign In
+                </Button>
+              )}
+            </div>
+          </div>
           <h1 className="text-4xl font-bold text-foreground mb-4">
             Triadic Personality System Assessment
           </h1>
