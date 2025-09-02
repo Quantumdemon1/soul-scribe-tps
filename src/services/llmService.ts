@@ -28,7 +28,8 @@ export class LLMService {
             tieBreaking: 'You are a skilled personality psychologist conducting Socratic clarification for the TPS assessment.',
             insightGeneration: 'You are an expert personality psychologist providing comprehensive insights based on TPS assessment results.',
             careerGuidance: 'You are a career counselor specializing in personality-career alignment using TPS assessment data.',
-            developmentPlanning: 'You are a personal development coach creating customized growth plans based on TPS personality profiles.'
+            developmentPlanning: 'You are a personal development coach creating customized growth plans based on TPS personality profiles.',
+            frameworkAnalysis: 'You are an expert personality psychologist specializing in framework correlation analysis for the Triadic Personality System (TPS).'
           }
         };
       } else {

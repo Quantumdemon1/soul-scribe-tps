@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RadarChart } from '../charts/RadarChart';
 import { CircularProgress } from '../charts/CircularProgress';
 import { DomainCard } from './DomainCard';
-import { PersonalityTypes } from './PersonalityTypes';
+import { FrameworkCorrelations } from './FrameworkCorrelations';
 import { CoreInsights } from './CoreInsights';
 import { PersonalDevelopment } from './PersonalDevelopment';
 import { AIInsightsPanel } from './AIInsightsPanel';
@@ -310,7 +310,7 @@ export const PersonalityDashboard: React.FC<DashboardProps> = ({ profile }) => {
           </TabsContent>
 
           <TabsContent value="types">
-            <PersonalityTypes profile={profile} />
+            <FrameworkCorrelations profile={profile} />
           </TabsContent>
 
           <TabsContent value="development">

@@ -38,6 +38,7 @@ export interface PersonalityProfile {
     hollandCode: string;
     personalityMatches: PersonalityArchetype[];
   };
+  frameworkInsights?: import('./llm.types').FrameworkInsights;
   timestamp: string;
 }
 

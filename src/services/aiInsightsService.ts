@@ -1,10 +1,12 @@
 import { PersonalityProfile } from '@/types/tps.types';
 import { AIInsights } from '@/types/llm.types';
 import { LLMService } from './llmService';
+import { FrameworkInsightsService } from './frameworkInsightsService';
 import { supabase } from '@/integrations/supabase/client';
 
 export class AIInsightsService {
   private llmService = new LLMService();
+  private frameworkInsightsService = new FrameworkInsightsService();
 
   async generateInsights(profile: PersonalityProfile, userId?: string): Promise<AIInsights> {
     try {
@@ -25,6 +27,18 @@ export class AIInsightsService {
       };
 
       console.log('Successfully generated AI insights');
+
+      // Generate framework insights if not already present
+      if (!profile.frameworkInsights) {
+        try {
+          const frameworkInsights = await this.frameworkInsightsService.generateFrameworkInsights(profile, profile.traitScores);
+          profile.frameworkInsights = frameworkInsights;
+          console.log('Successfully generated framework insights');
+        } catch (error) {
+          console.error('Error generating framework insights:', error);
+          // Continue without framework insights rather than failing entirely
+        }
+      }
 
       // Save insights to database if user is provided
       if (userId) {

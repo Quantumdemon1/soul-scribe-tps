@@ -8,6 +8,7 @@ export interface LLMConfig {
     insightGeneration: string;
     careerGuidance: string;
     developmentPlanning: string;
+    frameworkAnalysis: string;
   };
 }
 
@@ -52,6 +53,92 @@ export interface AIInsights {
   career: string;
   development: string;
   relationship: string;
+}
+
+// Framework-specific insight interfaces
+export interface MBTIInsight {
+  summary: string;
+  breakdown: {
+    E_or_I: { letter: string; reason: string; score: number; };
+    S_or_N: { letter: string; reason: string; score: number; };
+    T_or_F: { letter: string; reason: string; score: number; };
+    J_or_P: { letter: string; reason: string; score: number; };
+  };
+  uniqueExpression: string;
+  keyStrengths: string[];
+  growthAreas: string[];
+  confidence: number;
+}
+
+export interface EnneagramInsight {
+  summary: string;
+  coreType: {
+    description: string;
+    motivation: string;
+    fear: string;
+    contributingTraits: string[];
+  };
+  wing: {
+    influence: string;
+    balance: string;
+  };
+  levels: {
+    healthy: string;
+    average: string;
+    unhealthy: string;
+  };
+  growthPath: string;
+  confidence: number;
+}
+
+export interface BigFiveInsight {
+  summary: string;
+  dimensions: {
+    [key: string]: {
+      score: number;
+      description: string;
+      contributingTraits: string[];
+      implications: string[];
+    };
+  };
+  interactions: string;
+  confidence: number;
+}
+
+export interface AlignmentInsight {
+  summary: string;
+  ethicalAxis: {
+    position: string;
+    reasoning: string;
+    manifestations: string[];
+  };
+  moralAxis: {
+    position: string;
+    reasoning: string;
+    manifestations: string[];
+  };
+  decisionMaking: string;
+  confidence: number;
+}
+
+export interface FrameworkInsights {
+  mbti: MBTIInsight;
+  enneagram: EnneagramInsight;
+  bigFive: BigFiveInsight;
+  alignment: AlignmentInsight;
+  hollandCode: {
+    summary: string;
+    primaryTypes: string[];
+    reasoning: string;
+    confidence: number;
+  };
+  socionics: {
+    summary: string;
+    reasoning: string;
+    confidence: number;
+  };
+  synthesis: string;
+  overallConfidence: number;
 }
 
 export interface MappingWeights {
