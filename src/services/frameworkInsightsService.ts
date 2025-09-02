@@ -251,7 +251,9 @@ Write in second person, be specific and insightful. Focus on the interconnection
   async generateCoreInsights(profile: PersonalityProfile): Promise<CoreInsight> {
     const { DEFAULT_SYSTEM_PROMPTS } = await import('@/config/systemPrompts');
     
-    const profileSummary = `
+    const profileData = `
+PERSONALITY PROFILE TO ANALYZE:
+
 TRAIT SCORES:
 ${Object.entries(profile.traitScores)
   .map(([trait, score]) => `- ${trait}: ${score.toFixed(1)}`)
@@ -262,6 +264,11 @@ ${Object.entries(profile.domainScores)
   .map(([domain, score]) => `- ${domain}: ${(score * 10).toFixed(1)}/10`)
   .join('\n')}
 
+DOMINANT TRAITS:
+${Object.entries(profile.dominantTraits || {})
+  .map(([triad, trait]) => `- ${triad}: ${trait}`)
+  .join('\n')}
+
 FRAMEWORK MAPPINGS:
 - MBTI: ${profile.mappings.mbti}
 - Enneagram: ${profile.mappings.enneagram}
@@ -270,14 +277,17 @@ FRAMEWORK MAPPINGS:
 - Holland Code: ${profile.mappings.hollandCode}
     `.trim();
 
-    console.log('Generating core insights for profile:', profileSummary);
+    // Create a complete prompt that includes both the system instructions and the specific profile data
+    const fullPrompt = `${DEFAULT_SYSTEM_PROMPTS.coreInsights}
 
-    const prompt = DEFAULT_SYSTEM_PROMPTS.coreInsights
-      .replace('{profile}', profileSummary)
-      .replace('Focus on:', 'Focus on providing practical, personalized insights that help them understand their unique personality configuration.');
+${profileData}
+
+Please analyze this specific personality profile and return the JSON object with personalized core insights as specified above. Focus on their actual trait scores and combinations to provide truly personalized explanations.`;
+
+    console.log('Generating core insights for profile data:', profileData);
 
     try {
-      const response = await this.llmService.callLLM(prompt, 'coreInsights');
+      const response = await this.llmService.callLLM(fullPrompt, 'coreInsights');
       console.log('Raw LLM response for core insights:', response);
       
       // Clean and parse the JSON response
