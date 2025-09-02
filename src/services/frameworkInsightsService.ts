@@ -1,6 +1,7 @@
 import { PersonalityProfile, TPSScores } from '@/types/tps.types';
 import { FrameworkInsights, MBTIInsight, EnneagramInsight, BigFiveInsight, AlignmentInsight } from '@/types/llm.types';
 import { LLMService } from './llmService';
+import { parseLLMJson } from '@/utils/jsonUtils';
 
 export class FrameworkInsightsService {
   private llmService = new LLMService();
@@ -83,7 +84,7 @@ Format as JSON: {
 }`;
     
     const response = await this.llmService.callLLM(prompt, 'frameworkAnalysis');
-    return JSON.parse(response);
+    return parseLLMJson<MBTIInsight>(response);
   }
 
   private async generateEnneagramInsight(
@@ -130,7 +131,7 @@ Format as JSON: {
 }`;
     
     const response = await this.llmService.callLLM(prompt, 'frameworkAnalysis');
-    return JSON.parse(response);
+    return parseLLMJson<EnneagramInsight>(response);
   }
 
   private async generateBigFiveInsight(
@@ -175,7 +176,7 @@ Format as JSON: {
 }`;
     
     const response = await this.llmService.callLLM(prompt, 'frameworkAnalysis');
-    return JSON.parse(response);
+    return parseLLMJson<BigFiveInsight>(response);
   }
 
   private async generateAlignmentInsight(
@@ -214,7 +215,7 @@ Format as JSON: {
 }`;
     
     const response = await this.llmService.callLLM(prompt, 'frameworkAnalysis');
-    return JSON.parse(response);
+    return parseLLMJson<AlignmentInsight>(response);
   }
 
   private async generateSynthesisInsight(profile: PersonalityProfile): Promise<string> {
