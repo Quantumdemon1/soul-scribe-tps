@@ -178,6 +178,14 @@ export class PDFReportGenerator {
                 <h4>D&D Alignment</h4>
                 <strong>${profile.mappings.dndAlignment}</strong>
             </div>
+            <div class="framework-card">
+                <h4>Holland Code</h4>
+                <strong>${profile.mappings.hollandCode}</strong>
+            </div>
+            <div class="framework-card">
+                <h4>Socionics</h4>
+                <strong>${profile.mappings.socionics}</strong>
+            </div>
         </div>
         
         <h4>Big Five Traits</h4>
@@ -186,6 +194,43 @@ export class PDFReportGenerator {
                 <div><strong>${trait}:</strong> ${score.toFixed(1)}/10</div>
             `).join('')}
         </div>
+        
+        ${profile.frameworkInsights ? `
+            <div class="page-break">
+                <h3>Framework Insights & Explanations</h3>
+                
+                ${profile.frameworkInsights.mbti ? `
+                <div class="section">
+                    <h4>MBTI Analysis: ${profile.mappings.mbti}</h4>
+                    <p>${profile.frameworkInsights.mbti.summary}</p>
+                    <div class="insight-grid">
+                        <div><strong>E/I:</strong> ${profile.frameworkInsights.mbti.breakdown.E_or_I.reason}</div>
+                        <div><strong>S/N:</strong> ${profile.frameworkInsights.mbti.breakdown.S_or_N.reason}</div>
+                        <div><strong>T/F:</strong> ${profile.frameworkInsights.mbti.breakdown.T_or_F.reason}</div>
+                        <div><strong>J/P:</strong> ${profile.frameworkInsights.mbti.breakdown.J_or_P.reason}</div>
+                    </div>
+                    <p><strong>Unique Expression:</strong> ${profile.frameworkInsights.mbti.uniqueExpression}</p>
+                </div>
+                ` : ''}
+                
+                ${profile.frameworkInsights.enneagram ? `
+                <div class="section">
+                    <h4>Enneagram Analysis: Type ${profile.mappings.enneagramDetails.type}w${profile.mappings.enneagramDetails.wing}</h4>
+                    <p>${profile.frameworkInsights.enneagram.summary}</p>
+                    <p><strong>Core Motivation:</strong> ${profile.frameworkInsights.enneagram.coreType.motivation}</p>
+                    <p><strong>Core Fear:</strong> ${profile.frameworkInsights.enneagram.coreType.fear}</p>
+                    <p><strong>Wing Influence:</strong> ${profile.frameworkInsights.enneagram.wing.influence}</p>
+                </div>
+                ` : ''}
+                
+                ${profile.frameworkInsights.synthesis ? `
+                <div class="section">
+                    <h4>Integrated Personality Synthesis</h4>
+                    <p>${profile.frameworkInsights.synthesis}</p>
+                </div>
+                ` : ''}
+            </div>
+        ` : ''}
     </div>
 
     <div class="section page-break">

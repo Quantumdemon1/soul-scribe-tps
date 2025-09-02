@@ -16,9 +16,10 @@ import { toast } from '@/hooks/use-toast';
 
 interface PersonalityTestProps {
   assessmentType?: string;
+  onComplete?: (profile: PersonalityProfile) => void;
 }
 
-export const PersonalityTest: React.FC<PersonalityTestProps> = ({ assessmentType = 'full' }) => {
+export const PersonalityTest: React.FC<PersonalityTestProps> = ({ assessmentType = 'full', onComplete }) => {
   const [currentPage, setCurrentPage] = useState(0);
   const [responses, setResponses] = useState<number[]>([]);
   const [isComplete, setIsComplete] = useState(false);
@@ -169,7 +170,13 @@ export const PersonalityTest: React.FC<PersonalityTestProps> = ({ assessmentType
     );
   }
 
-  if (isComplete && profile) {
+  useEffect(() => {
+    if (isComplete && profile && onComplete) {
+      onComplete(profile);
+    }
+  }, [isComplete, profile, onComplete]);
+
+  if (isComplete && profile && !onComplete) {
     return <PersonalityDashboard profile={profile} />;
   }
 

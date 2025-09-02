@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { PersonalityTest } from './PersonalityTest';
+import { AssessmentResults } from './AssessmentResults';
 import { AssessmentVariations } from '../../utils/assessmentVariations';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,12 +12,31 @@ import { useNavigate } from 'react-router-dom';
 
 const AssessmentSelection: React.FC = () => {
   const [selectedAssessment, setSelectedAssessment] = useState<string | null>(null);
+  const [completedProfile, setCompletedProfile] = useState<any>(null);
   const assessmentOptions = AssessmentVariations.getAssessmentOptions();
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
 
+  if (completedProfile) {
+    return (
+      <AssessmentResults 
+        profile={completedProfile}
+        onSave={(profile) => {
+          console.log('Saving enhanced profile:', profile);
+          setCompletedProfile(null);
+          setSelectedAssessment(null);
+        }}
+      />
+    );
+  }
+
   if (selectedAssessment) {
-    return <PersonalityTest assessmentType={selectedAssessment} />;
+    return (
+      <PersonalityTest 
+        assessmentType={selectedAssessment} 
+        onComplete={(profile) => setCompletedProfile(profile)}
+      />
+    );
   }
 
   return (

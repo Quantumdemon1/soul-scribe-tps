@@ -199,6 +199,11 @@ const AssessmentHistory: React.FC = () => {
                                 <div>
                                   MBTI: {assessment.profile.mappings.mbti} | 
                                   Enneagram: {assessment.profile.mappings.enneagram}
+                                  {assessment.profile.frameworkInsights && (
+                                    <span className="ml-2 text-xs">
+                                      <Badge variant="secondary" className="text-xs">Enhanced Insights</Badge>
+                                    </span>
+                                  )}
                                 </div>
                               )}
                             </div>
