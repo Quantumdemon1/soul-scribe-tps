@@ -249,12 +249,9 @@ Write in second person, be specific and insightful. Focus on the interconnection
   }
 
   async generateCoreInsights(profile: PersonalityProfile): Promise<CoreInsight> {
-    const topTraits = Object.entries(profile.traitScores)
-      .sort(([,a], [,b]) => b - a)
-      .slice(0, 8);
-
-    const prompt = `Generate personalized core insights for this TPS personality profile:
-
+    const { DEFAULT_SYSTEM_PROMPTS } = await import('@/config/systemPrompts');
+    
+    const profileSummary = `
 TRAIT SCORES:
 ${Object.entries(profile.traitScores)
   .map(([trait, score]) => `- ${trait}: ${score.toFixed(1)}`)
@@ -265,22 +262,40 @@ ${Object.entries(profile.domainScores)
   .map(([domain, score]) => `- ${domain}: ${(score * 10).toFixed(1)}/10`)
   .join('\n')}
 
-TOP TRAITS:
-${topTraits.map(([trait, score]) => `- ${trait}: ${score.toFixed(1)}`).join('\n')}
-
 FRAMEWORK MAPPINGS:
 - MBTI: ${profile.mappings.mbti}
 - Enneagram: ${profile.mappings.enneagram}
 - Big Five: ${JSON.stringify(profile.mappings.bigFive)}
+- Alignment: ${profile.mappings.dndAlignment}
+- Holland Code: ${profile.mappings.hollandCode}
+    `.trim();
 
-Return a JSON object matching the CoreInsight interface that provides:
-1. A personalized personality summary explaining their unique trait configuration
-2. Detailed domain analysis explaining WHY each domain scored as it did
-3. Comprehensive strengths analysis based on trait combinations
+    console.log('Generating core insights for profile:', profileSummary);
 
-Focus on practical insights that help them understand their patterns and apply this knowledge.`;
+    const prompt = DEFAULT_SYSTEM_PROMPTS.coreInsights
+      .replace('{profile}', profileSummary)
+      .replace('Focus on:', 'Focus on providing practical, personalized insights that help them understand their unique personality configuration.');
 
-    const response = await this.llmService.callLLM(prompt, 'coreInsights');
-    return parseLLMJson<CoreInsight>(response);
+    try {
+      const response = await this.llmService.callLLM(prompt, 'coreInsights');
+      console.log('Raw LLM response for core insights:', response);
+      
+      // Clean and parse the JSON response
+      let cleanResponse = response.trim();
+      if (cleanResponse.startsWith('```json')) {
+        cleanResponse = cleanResponse.replace(/```json\s*/, '').replace(/```\s*$/, '');
+      }
+      if (cleanResponse.startsWith('```')) {
+        cleanResponse = cleanResponse.replace(/```\s*/, '').replace(/```\s*$/, '');
+      }
+      
+      const insights = parseLLMJson<CoreInsight>(cleanResponse);
+      console.log('Parsed core insights:', insights);
+      
+      return insights;
+    } catch (error) {
+      console.error('Error generating core insights:', error);
+      throw new Error('Failed to generate core insights');
+    }
   }
 }
