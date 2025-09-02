@@ -74,13 +74,27 @@ export const AdminPanel: React.FC = () => {
       const { data, error } = await supabase
         .from('llm_config')
         .select('config')
-        .single();
+        .order('updated_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
       
       if (data && !error) {
         setConfig(data.config as unknown as LLMConfig);
+      } else if (error) {
+        console.error('Error loading config:', error);
+        toast({
+          title: "Configuration Error",
+          description: "Failed to load LLM configuration. Using default settings.",
+          variant: "destructive"
+        });
       }
     } catch (error) {
-      console.log('Using default config');
+      console.log('Using default config:', error);
+      toast({
+        title: "Configuration Warning",
+        description: "Using default LLM configuration.",
+        variant: "default"
+      });
     }
   };
 

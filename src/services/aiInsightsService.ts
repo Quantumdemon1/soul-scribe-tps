@@ -92,7 +92,7 @@ Keep it practical, empathetic, and actionable for building better relationships.
         .eq('user_id', userId)
         .order('created_at', { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
 
       await supabase
         .from('ai_insights')
@@ -121,7 +121,7 @@ Keep it practical, empathetic, and actionable for building better relationships.
         query = query.eq('assessment_id', assessmentId);
       }
 
-      const { data, error } = await query.limit(1).single();
+      const { data, error } = await query.limit(1).maybeSingle();
 
       if (error || !data) {
         return null;
