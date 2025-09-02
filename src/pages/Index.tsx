@@ -1,4 +1,4 @@
-import { PersonalityTest } from '../components/assessment/PersonalityTest';
+import AssessmentSelection from "../components/assessment/AssessmentSelection";
 
 const Index = () => {
   return <AssessmentSelection />;

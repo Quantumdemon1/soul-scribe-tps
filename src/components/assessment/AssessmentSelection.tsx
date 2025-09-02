@@ -11,7 +11,9 @@ const AssessmentSelection: React.FC = () => {
   const assessmentOptions = AssessmentVariations.getAssessmentOptions();
 
   if (selectedAssessment) {
-    return <PersonalityTest assessmentType={selectedAssessment} />;
+    // For now, always return the standard PersonalityTest
+    // In the future, we could pass the assessment type to modify behavior
+    return <PersonalityTest />;
   }
 
   return (

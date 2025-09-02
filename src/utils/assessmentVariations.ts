@@ -1,4 +1,4 @@
-import { questions } from '../data/questions';
+import { TPS_QUESTIONS } from '../data/questions';
 
 export interface QuickAssessmentConfig {
   name: string;
@@ -74,7 +74,7 @@ export class AssessmentVariations {
   }
 
   static getQuestions(config: QuickAssessmentConfig): string[] {
-    return config.questions.map(index => questions[index - 1]);
+    return config.questions.map(index => TPS_QUESTIONS[index - 1]);
   }
 
   static adjustScoring(responses: number[], config: QuickAssessmentConfig): number[] {
