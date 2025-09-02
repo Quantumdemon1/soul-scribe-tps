@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger } from '@/components/ui/navigation-menu';
-import { Settings, User, Home, History, BookOpen, HelpCircle } from 'lucide-react';
+import { Settings, User, Home, History, BookOpen, HelpCircle, LogOut } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { GuidedTour } from '@/components/help/GuidedTour';
+import { useAuth } from '@/hooks/useAuth';
 
 export const Header: React.FC = () => {
   const location = useLocation();
   const [showTour, setShowTour] = useState(false);
+  const { user, signOut } = useAuth();
   
   const isActive = (path: string) => location.pathname === path;
   
@@ -57,25 +59,49 @@ export const Header: React.FC = () => {
               </NavigationMenuTrigger>
               <NavigationMenuContent className="bg-popover border border-border shadow-lg rounded-md p-2 min-w-[200px]">
                 <div className="grid gap-1">
-                  <Link to="/auth">
-                    <NavigationMenuLink className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
-                      <User className="w-4 h-4 mb-1" />
-                      <div className="text-sm font-medium leading-none">User Account</div>
-                      <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-                        Login or create an account
-                      </p>
-                    </NavigationMenuLink>
-                  </Link>
-                  
-                  <Link to="/admin">
-                    <NavigationMenuLink className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
-                      <Settings className="w-4 h-4 mb-1" />
-                      <div className="text-sm font-medium leading-none">Admin Panel</div>
-                      <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-                        Configure assessment settings
-                      </p>
-                    </NavigationMenuLink>
-                  </Link>
+                  {user ? (
+                    <>
+                      <Link to="/profile">
+                        <NavigationMenuLink className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
+                          <User className="w-4 h-4 mb-1" />
+                          <div className="text-sm font-medium leading-none">Profile</div>
+                          <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                            Manage your account settings
+                          </p>
+                        </NavigationMenuLink>
+                      </Link>
+                      
+                      <Link to="/admin">
+                        <NavigationMenuLink className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
+                          <Settings className="w-4 h-4 mb-1" />
+                          <div className="text-sm font-medium leading-none">Admin Panel</div>
+                          <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                            Configure assessment settings
+                          </p>
+                        </NavigationMenuLink>
+                      </Link>
+
+                      <button onClick={signOut} className="w-full">
+                        <NavigationMenuLink className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
+                          <LogOut className="w-4 h-4 mb-1" />
+                          <div className="text-sm font-medium leading-none">Sign Out</div>
+                          <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                            Sign out of your account
+                          </p>
+                        </NavigationMenuLink>
+                      </button>
+                    </>
+                  ) : (
+                    <Link to="/auth">
+                      <NavigationMenuLink className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
+                        <User className="w-4 h-4 mb-1" />
+                        <div className="text-sm font-medium leading-none">Sign In</div>
+                        <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                          Login or create an account
+                        </p>
+                      </NavigationMenuLink>
+                    </Link>
+                  )}
                 </div>
               </NavigationMenuContent>
             </NavigationMenuItem>

@@ -5,29 +5,26 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
-import Index from "./pages/Index";
-import Auth from "./pages/Auth";
-import Admin from "./pages/Admin";
-import AssessmentHistory from "./pages/AssessmentHistory";
-import Profile from "./pages/Profile";
-import NotFound from "./pages/NotFound";
+import { usePerformanceOptimization } from "@/hooks/usePerformanceOptimization";
+import { LazyIndex, LazyAuth, LazyAdmin, LazyAssessmentHistory, LazyProfile, LazyNotFound, PageWrapper } from './components/layout/LazyPages';
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <ErrorBoundary>
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
+const AppContent = () => {
+  usePerformanceOptimization(); // Initialize performance monitoring
+  
+  return (
+    <TooltipProvider>
+      <Toaster />
+      <Sonner />
+      <BrowserRouter>
+        <Routes>
+            <Route path="/" element={<PageWrapper><LazyIndex /></PageWrapper>} />
             <Route 
               path="/auth" 
               element={
                 <ProtectedRoute requireAuth={false}>
-                  <Auth />
+                  <PageWrapper><LazyAuth /></PageWrapper>
                 </ProtectedRoute>
               } 
             />
@@ -35,7 +32,7 @@ const App = () => (
               path="/profile" 
               element={
                 <ProtectedRoute>
-                  <Profile />
+                  <PageWrapper><LazyProfile /></PageWrapper>
                 </ProtectedRoute>
               } 
             />
@@ -43,7 +40,7 @@ const App = () => (
               path="/admin" 
               element={
                 <ProtectedRoute>
-                  <Admin />
+                  <PageWrapper><LazyAdmin /></PageWrapper>
                 </ProtectedRoute>
               } 
             />
@@ -51,15 +48,22 @@ const App = () => (
               path="/history" 
               element={
                 <ProtectedRoute>
-                  <AssessmentHistory />
+                  <PageWrapper><LazyAssessmentHistory /></PageWrapper>
                 </ProtectedRoute>
               } 
             />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
+            <Route path="*" element={<PageWrapper><LazyNotFound /></PageWrapper>} />
+        </Routes>
+      </BrowserRouter>
+    </TooltipProvider>
+  );
+};
+
+const App = () => (
+  <ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <AppContent />
     </QueryClientProvider>
   </ErrorBoundary>
 );
