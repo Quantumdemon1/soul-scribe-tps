@@ -14,6 +14,44 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_insights: {
+        Row: {
+          assessment_id: string | null
+          content: Json
+          created_at: string
+          id: string
+          insight_type: string
+          model_used: string | null
+          user_id: string | null
+        }
+        Insert: {
+          assessment_id?: string | null
+          content: Json
+          created_at?: string
+          id?: string
+          insight_type: string
+          model_used?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          assessment_id?: string | null
+          content?: Json
+          created_at?: string
+          id?: string
+          insight_type?: string
+          model_used?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_insights_assessment_id_fkey"
+            columns: ["assessment_id"]
+            isOneToOne: false
+            referencedRelation: "assessments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       assessments: {
         Row: {
           created_at: string
@@ -41,6 +79,60 @@ export type Database = {
           updated_at?: string
           user_id?: string
           variant?: string
+        }
+        Relationships: []
+      }
+      llm_config: {
+        Row: {
+          config: Json
+          created_at: string
+          id: string
+          mapping_weights: Json
+          updated_at: string
+        }
+        Insert: {
+          config?: Json
+          created_at?: string
+          id?: string
+          mapping_weights?: Json
+          updated_at?: string
+        }
+        Update: {
+          config?: Json
+          created_at?: string
+          id?: string
+          mapping_weights?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      socratic_sessions: {
+        Row: {
+          conversations: Json
+          created_at: string
+          cusps: Json
+          final_scores: Json
+          id: string
+          initial_scores: Json
+          user_id: string | null
+        }
+        Insert: {
+          conversations?: Json
+          created_at?: string
+          cusps: Json
+          final_scores: Json
+          id?: string
+          initial_scores: Json
+          user_id?: string | null
+        }
+        Update: {
+          conversations?: Json
+          created_at?: string
+          cusps?: Json
+          final_scores?: Json
+          id?: string
+          initial_scores?: Json
+          user_id?: string | null
         }
         Relationships: []
       }
