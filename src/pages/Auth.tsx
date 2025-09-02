@@ -10,6 +10,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Mail, Lock, User } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { PasswordReset } from '@/components/auth/PasswordReset';
 
 const Auth: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -17,6 +18,7 @@ const Auth: React.FC = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showPasswordReset, setShowPasswordReset] = useState(false);
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -104,6 +106,20 @@ const Auth: React.FC = () => {
     navigate('/');
   };
 
+  if (showPasswordReset) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 flex items-center justify-center p-4">
+        <div className="w-full max-w-md space-y-6">
+          <div className="text-center space-y-2">
+            <h1 className="text-3xl font-bold text-foreground">TPS Assessment</h1>
+            <p className="text-muted-foreground">Reset your password</p>
+          </div>
+          <PasswordReset onBack={() => setShowPasswordReset(false)} />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 flex items-center justify-center p-4">
       <div className="w-full max-w-md space-y-6">
@@ -171,6 +187,15 @@ const Auth: React.FC = () => {
                     ) : (
                       'Sign In'
                     )}
+                  </Button>
+
+                  <Button
+                    type="button"
+                    variant="link"
+                    onClick={() => setShowPasswordReset(true)}
+                    className="w-full text-sm"
+                  >
+                    Forgot your password?
                   </Button>
                 </form>
               </TabsContent>
