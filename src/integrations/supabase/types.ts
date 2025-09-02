@@ -82,6 +82,45 @@ export type Database = {
         }
         Relationships: []
       }
+      error_logs: {
+        Row: {
+          context: Json | null
+          error_message: string
+          error_stack: string | null
+          error_type: string
+          id: string
+          severity: string
+          timestamp: string
+          url: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          context?: Json | null
+          error_message: string
+          error_stack?: string | null
+          error_type: string
+          id?: string
+          severity: string
+          timestamp?: string
+          url?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          context?: Json | null
+          error_message?: string
+          error_stack?: string | null
+          error_type?: string
+          id?: string
+          severity?: string
+          timestamp?: string
+          url?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       llm_config: {
         Row: {
           config: Json

@@ -73,7 +73,7 @@ class ErrorLoggingService {
 
     try {
       const { error } = await supabase
-        .from('error_logs')
+        .from('error_logs' as any)
         .insert([enhancedError]);
 
       if (error) {
@@ -109,7 +109,7 @@ class ErrorLoggingService {
       if (offlineErrors.length === 0) return;
 
       const { error } = await supabase
-        .from('error_logs')
+        .from('error_logs' as any)
         .insert(offlineErrors);
 
       if (!error) {
