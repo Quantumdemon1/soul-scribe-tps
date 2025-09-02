@@ -1,15 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { PersonalityProfile } from '@/types/tps.types';
 import { AIInsights } from '@/types/llm.types';
-import { AIInsightsService } from '@/services/aiInsightsService';
+import { FrameworkInsightsService } from '@/services/frameworkInsightsService';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { HelpTooltip } from '@/components/ui/help-tooltip';
-import { Brain, Briefcase, TrendingUp, Heart, Sparkles } from 'lucide-react';
+import { Brain, Briefcase, TrendingUp, Heart, Sparkles, ChevronDown, RefreshCw, Target } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/hooks/use-toast';
 
@@ -21,8 +20,15 @@ export const AIInsightsPanel: React.FC<AIInsightsPanelProps> = ({ profile }) => 
   const [insights, setInsights] = useState<AIInsights | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({
+    general: true,
+    career: false,
+    development: false,
+    relationships: false
+  });
+  
   const { user } = useAuth();
-  const aiInsightsService = new AIInsightsService();
+  const frameworkService = new FrameworkInsightsService();
 
   useEffect(() => {
     if (user) {
@@ -34,7 +40,7 @@ export const AIInsightsPanel: React.FC<AIInsightsPanelProps> = ({ profile }) => 
     if (!user) return;
     
     try {
-      const existingInsights = await aiInsightsService.getInsights(user.id);
+      const existingInsights = await frameworkService.getExistingInsights(user.id);
       if (existingInsights) {
         setInsights(existingInsights);
       }
@@ -48,8 +54,7 @@ export const AIInsightsPanel: React.FC<AIInsightsPanelProps> = ({ profile }) => 
     setError(null);
     
     try {
-      // Generate insights without requiring authentication
-      const newInsights = await aiInsightsService.generateInsights(profile);
+      const newInsights = await frameworkService.generateComprehensiveInsights(profile, user?.id);
       setInsights(newInsights);
       
       toast({
@@ -71,48 +76,61 @@ export const AIInsightsPanel: React.FC<AIInsightsPanelProps> = ({ profile }) => 
     }
   };
 
-  const InsightCard = ({ title, content, icon: Icon, color }: { 
+  const toggleSection = (section: string) => {
+    setOpenSections(prev => ({ ...prev, [section]: !prev[section] }));
+  };
+
+  const InsightSection = ({ 
+    title, 
+    content, 
+    icon: Icon, 
+    sectionKey,
+    integrationNote,
+    children 
+  }: { 
     title: string; 
     content: string; 
     icon: React.ComponentType<any>; 
-    color: string;
+    sectionKey: string;
+    integrationNote?: string;
+    children?: React.ReactNode;
   }) => (
-    <Card className="h-full">
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-lg">
-          <div className={`p-2 rounded-lg ${color}`}>
-            <Icon className="w-5 h-5 text-white" />
-          </div>
-          {title}
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="prose prose-sm max-w-none text-foreground">
-          {content.split('\n').map((paragraph, index) => (
-            paragraph.trim() && (
-              <p key={index} className="mb-3 last:mb-0">
-                {paragraph.trim()}
-              </p>
-            )
-          ))}
-        </div>
-      </CardContent>
-    </Card>
-  );
-
-  const LoadingSkeleton = () => (
-    <div className="space-y-6">
+    <Collapsible open={openSections[sectionKey]} onOpenChange={() => toggleSection(sectionKey)}>
       <Card>
-        <CardHeader>
-          <Skeleton className="h-6 w-48" />
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <Skeleton className="h-4 w-full" />
-          <Skeleton className="h-4 w-full" />
-          <Skeleton className="h-4 w-3/4" />
-        </CardContent>
+        <CollapsibleTrigger asChild>
+          <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
+            <CardTitle className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="p-2 rounded-lg bg-primary">
+                  <Icon className="w-4 h-4 text-primary-foreground" />
+                </div>
+                {title}
+                {integrationNote && (
+                  <HelpTooltip content={integrationNote} />
+                )}
+              </div>
+              <ChevronDown className={`w-4 h-4 transition-transform ${openSections[sectionKey] ? 'rotate-180' : ''}`} />
+            </CardTitle>
+          </CardHeader>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <CardContent>
+            <div className="border-t border-border pt-6">
+              <div className="prose prose-sm max-w-none text-foreground space-y-4">
+                {content.split('\n\n').map((paragraph, index) => (
+                  paragraph.trim() && (
+                    <p key={index} className="leading-relaxed">
+                      {paragraph.trim()}
+                    </p>
+                  )
+                ))}
+              </div>
+              {children}
+            </div>
+          </CardContent>
+        </CollapsibleContent>
       </Card>
-    </div>
+    </Collapsible>
   );
 
   if (!insights && !loading) {
@@ -123,9 +141,9 @@ export const AIInsightsPanel: React.FC<AIInsightsPanelProps> = ({ profile }) => 
             <div className="p-4 bg-primary/10 rounded-full mb-4">
               <Sparkles className="w-8 h-8 text-primary" />
             </div>
-            <h3 className="text-xl font-semibold mb-2">Generate AI Insights</h3>
+            <h3 className="text-xl font-semibold mb-2">Generate Comprehensive AI Insights</h3>
             <p className="text-muted-foreground mb-6 max-w-md">
-              Get personalized insights about your personality, career guidance, and development recommendations powered by AI.
+              Get personalized insights about your personality, career guidance, development recommendations, and relationship patterns powered by advanced AI analysis.
             </p>
             <Button onClick={generateInsights} disabled={loading} size="lg">
               <Brain className="w-4 h-4 mr-2" />
@@ -141,7 +159,7 @@ export const AIInsightsPanel: React.FC<AIInsightsPanelProps> = ({ profile }) => 
     return (
       <Card>
         <CardContent className="p-8 text-center">
-          <LoadingSpinner size="lg" text="Generating AI insights..." />
+          <LoadingSpinner size="lg" text="Generating comprehensive AI insights..." />
         </CardContent>
       </Card>
     );
@@ -164,62 +182,71 @@ export const AIInsightsPanel: React.FC<AIInsightsPanelProps> = ({ profile }) => 
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <h2 className="text-2xl font-bold">AI Insights</h2>
+          <h2 className="text-2xl font-bold">Comprehensive AI Insights</h2>
           <Badge variant="secondary" className="flex items-center gap-1">
             <Sparkles className="w-3 h-3" />
             AI Generated
           </Badge>
-          <HelpTooltip content="These insights are generated using advanced AI analysis of your personality profile across multiple frameworks." />
+          <HelpTooltip content="These insights integrate your personality framework correlations and core insights to provide comprehensive, personalized guidance." />
         </div>
         <Button onClick={generateInsights} disabled={loading} variant="outline" size="sm">
+          <RefreshCw className="w-4 h-4 mr-2" />
           Regenerate
         </Button>
       </div>
 
-      <Tabs defaultValue="general" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="general">General</TabsTrigger>
-          <TabsTrigger value="career">Career</TabsTrigger>
-          <TabsTrigger value="development">Development</TabsTrigger>
-          <TabsTrigger value="relationships">Relationships</TabsTrigger>
-        </TabsList>
+      <div className="space-y-4">
+        <InsightSection
+          title="General Personality Insights"
+          content={insights?.general || ''}
+          icon={Brain}
+          sectionKey="general"
+          integrationNote="Integrates with your core personality summary and framework correlations"
+        />
 
-        <TabsContent value="general" className="space-y-6">
-          <InsightCard
-            title="Personality Overview"
-            content={insights?.general || ''}
-            icon={Brain}
-            color="bg-primary"
-          />
-        </TabsContent>
+        <InsightSection
+          title="Career Guidance"
+          content={insights?.career || ''}
+          icon={Briefcase}
+          sectionKey="career"
+          integrationNote="Based on your Holland Code, MBTI type, and domain strengths"
+        />
 
-        <TabsContent value="career" className="space-y-6">
-          <InsightCard
-            title="Career Guidance"
-            content={insights?.career || ''}
-            icon={Briefcase}
-            color="bg-blue-500"
-          />
-        </TabsContent>
+        <InsightSection
+          title="Personal Development"
+          content={insights?.development || ''}
+          icon={TrendingUp}
+          sectionKey="development"
+          integrationNote="Tailored to your specific trait combinations and growth opportunities"
+        />
 
-        <TabsContent value="development" className="space-y-6">
-          <InsightCard
-            title="Personal Development"
-            content={insights?.development || ''}
-            icon={TrendingUp}
-            color="bg-green-500"
-          />
-        </TabsContent>
+        <InsightSection
+          title="Relationship Insights"
+          content={insights?.relationship || ''}
+          icon={Heart}
+          sectionKey="relationships"
+          integrationNote="Based on your communication style, emotional patterns, and interpersonal traits"
+        />
+      </div>
 
-        <TabsContent value="relationships" className="space-y-6">
-          <InsightCard
-            title="Relationship Insights"
-            content={insights?.relationship || ''}
-            icon={Heart}
-            color="bg-pink-500"
-          />
-        </TabsContent>
-      </Tabs>
+      {/* Integration Summary */}
+      <div className="mt-8 bg-gradient-to-r from-primary/10 to-secondary/10 border border-primary/20 rounded-xl p-6">
+        <h3 className="text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
+          <Sparkles className="w-5 h-5 text-primary" />
+          Integrated Analysis Overview
+        </h3>
+        <div className="text-muted-foreground space-y-2 text-sm">
+          <p>
+            These insights combine data from multiple sources to provide you with comprehensive, personalized guidance:
+          </p>
+          <ul className="space-y-1 ml-4">
+            <li>• Your unique trait combinations and domain scores</li>
+            <li>• Framework correlations across MBTI, Enneagram, Big Five, and more</li>
+            <li>• Core personality strengths and development areas</li>
+            <li>• Advanced AI analysis for practical applications</li>
+          </ul>
+        </div>
+      </div>
     </div>
   );
 };

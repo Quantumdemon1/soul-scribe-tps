@@ -306,7 +306,7 @@ export const PersonalityDashboard: React.FC<DashboardProps> = ({ profile }) => {
           </TabsContent>
 
           <TabsContent value="ai-insights">
-            <AIInsightsPanel profile={profile} />
+          <AIInsightsPanel profile={profile} />
           </TabsContent>
 
           <TabsContent value="types">
