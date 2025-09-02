@@ -52,44 +52,66 @@ export class LLMService {
   }
 
   private async callOpenAI(prompt: string, systemPrompt: string, config: LLMConfig): Promise<string> {
-    const response = await supabase.functions.invoke('llm-proxy', {
-      body: {
-        provider: 'openai',
-        model: config.model,
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: prompt }
-        ],
-        max_completion_tokens: config.maxTokens
+    try {
+      const response = await supabase.functions.invoke('llm-proxy', {
+        body: {
+          provider: 'openai',
+          model: config.model,
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: prompt }
+          ],
+          max_completion_tokens: config.maxTokens
+        }
+      });
+
+      if (response.error) {
+        console.error('LLM Proxy Error:', response.error);
+        throw new Error(`OpenAI API error: ${response.error.message || 'Unknown error'}`);
       }
-    });
 
-    if (response.error) {
-      throw new Error(`OpenAI API error: ${response.error.message}`);
+      if (!response.data || !response.data.choices || !response.data.choices[0]) {
+        console.error('Invalid response structure:', response.data);
+        throw new Error('Invalid response from OpenAI API');
+      }
+
+      return response.data.choices[0].message.content;
+    } catch (error) {
+      console.error('Error calling OpenAI:', error);
+      throw error;
     }
-
-    return response.data.choices[0].message.content;
   }
 
   private async callClaude(prompt: string, systemPrompt: string, config: LLMConfig): Promise<string> {
-    const response = await supabase.functions.invoke('llm-proxy', {
-      body: {
-        provider: 'anthropic',
-        model: config.model,
-        system: systemPrompt,
-        messages: [
-          { role: 'user', content: prompt }
-        ],
-        max_tokens: config.maxTokens,
-        temperature: config.temperature
+    try {
+      const response = await supabase.functions.invoke('llm-proxy', {
+        body: {
+          provider: 'anthropic',
+          model: config.model,
+          system: systemPrompt,
+          messages: [
+            { role: 'user', content: prompt }
+          ],
+          max_tokens: config.maxTokens,
+          temperature: config.temperature
+        }
+      });
+
+      if (response.error) {
+        console.error('LLM Proxy Error:', response.error);
+        throw new Error(`Claude API error: ${response.error.message || 'Unknown error'}`);
       }
-    });
 
-    if (response.error) {
-      throw new Error(`Claude API error: ${response.error.message}`);
+      if (!response.data || !response.data.content || !response.data.content[0]) {
+        console.error('Invalid response structure:', response.data);
+        throw new Error('Invalid response from Claude API');
+      }
+
+      return response.data.content[0].text;
+    } catch (error) {
+      console.error('Error calling Claude:', error);
+      throw error;
     }
-
-    return response.data.content[0].text;
   }
 
   async generateInsight(

@@ -8,6 +8,8 @@ export class AIInsightsService {
 
   async generateInsights(profile: PersonalityProfile, userId?: string): Promise<AIInsights> {
     try {
+      console.log('Starting AI insights generation for profile:', profile);
+      
       // Generate insights in parallel for better performance
       const [general, career, development] = await Promise.all([
         this.llmService.generateInsight(profile, 'insightGeneration'),
@@ -22,6 +24,8 @@ export class AIInsightsService {
         relationship: await this.generateRelationshipInsight(profile)
       };
 
+      console.log('Successfully generated AI insights');
+
       // Save insights to database if user is provided
       if (userId) {
         await this.saveInsights(insights, userId, profile);
@@ -30,7 +34,11 @@ export class AIInsightsService {
       return insights;
     } catch (error) {
       console.error('Error generating AI insights:', error);
-      throw new Error('Failed to generate AI insights');
+      // Provide more specific error message
+      if (error instanceof Error) {
+        throw new Error(`Failed to generate AI insights: ${error.message}`);
+      }
+      throw new Error('Failed to generate AI insights: Unknown error occurred');
     }
   }
 
