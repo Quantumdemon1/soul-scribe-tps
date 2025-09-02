@@ -5,6 +5,16 @@
 /* TPS Personality Assessment Design System */
 
 @layer base {
+  /* Fix dropdown transparency issues */
+  [data-radix-navigation-menu-content],
+  [data-radix-dropdown-menu-content],
+  [data-radix-popover-content] {
+    background: hsl(var(--popover)) !important;
+    border: 1px solid hsl(var(--border)) !important;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1) !important;
+    z-index: 50 !important;
+  }
+
   :root {
     --background: 240 10% 3.9%;
     --foreground: 0 0% 98%;
@@ -12,7 +22,7 @@
     --card: 240 10% 3.9%;
     --card-foreground: 0 0% 98%;
 
-    --popover: 240 10% 3.9%;
+    --popover: 240 3.7% 15.9%;
     --popover-foreground: 0 0% 98%;
 
     --primary: 263 70% 50%;
@@ -88,7 +98,7 @@
     --card: 222.2 84% 4.9%;
     --card-foreground: 210 40% 98%;
 
-    --popover: 222.2 84% 4.9%;
+    --popover: 217.2 32.6% 17.5%;
     --popover-foreground: 210 40% 98%;
 
     --primary: 210 40% 98%;

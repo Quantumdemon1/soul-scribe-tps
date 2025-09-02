@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Clock, Target, Zap, Star, User, LogOut, History } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { Header } from '@/components/layout/Header';
 
 const AssessmentSelection: React.FC = () => {
   const [selectedAssessment, setSelectedAssessment] = useState<string | null>(null);
@@ -18,35 +19,10 @@ const AssessmentSelection: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <Header />
       <div className="max-w-6xl mx-auto px-6 py-12">
         {/* Header */}
         <div className="text-center mb-12">
-          <div className="flex justify-between items-start mb-6">
-            <div></div>
-            <div className="flex items-center gap-4">
-              {user ? (
-                <>
-                  <Button variant="outline" size="sm" onClick={() => window.location.href = '/history'}>
-                    <History className="w-4 h-4 mr-1" />
-                    History
-                  </Button>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <User className="w-4 h-4" />
-                    {user.email}
-                  </div>
-                  <Button variant="outline" size="sm" onClick={signOut}>
-                    <LogOut className="w-4 h-4 mr-1" />
-                    Sign Out
-                  </Button>
-                </>
-              ) : (
-                <Button variant="outline" onClick={() => window.location.href = '/auth'}>
-                  <User className="w-4 h-4 mr-2" />
-                  Sign In
-                </Button>
-              )}
-            </div>
-          </div>
           <h1 className="text-4xl font-bold text-foreground mb-4">
             Triadic Personality System Assessment
           </h1>

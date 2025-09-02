@@ -46,7 +46,8 @@ export const AIInsightsPanel: React.FC<AIInsightsPanelProps> = ({ profile }) => 
     setError(null);
     
     try {
-      const newInsights = await aiInsightsService.generateInsights(profile, user?.id);
+      // Generate insights without requiring authentication
+      const newInsights = await aiInsightsService.generateInsights(profile);
       setInsights(newInsights);
       
       toast({
@@ -55,11 +56,12 @@ export const AIInsightsPanel: React.FC<AIInsightsPanelProps> = ({ profile }) => 
       });
     } catch (error) {
       console.error('Error generating insights:', error);
-      setError('Failed to generate insights. Please try again.');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to generate insights';
+      setError(`Failed to generate insights: ${errorMessage}. Please check your internet connection and try again.`);
       
       toast({
         title: "Error",
-        description: "Failed to generate AI insights. Please try again.",
+        description: `Failed to generate AI insights: ${errorMessage}`,
         variant: "destructive"
       });
     } finally {

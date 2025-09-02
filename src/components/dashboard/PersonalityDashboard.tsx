@@ -12,6 +12,7 @@ import { CoreInsights } from './CoreInsights';
 import { PersonalDevelopment } from './PersonalDevelopment';
 import { AIInsightsPanel } from './AIInsightsPanel';
 import { CareerLifestyle } from './CareerLifestyle';
+import { Header } from '@/components/layout/Header';
 import { 
   Brain, 
   Download, 
@@ -66,6 +67,7 @@ export const PersonalityDashboard: React.FC<DashboardProps> = ({ profile }) => {
 
   return (
     <div className="min-h-screen bg-background">
+      <Header />
       {/* Hero Section */}
       <div className="bg-gradient-to-r from-primary via-primary/90 to-primary/80 text-primary-foreground">
         <div className="max-w-7xl mx-auto px-6 py-12">
