@@ -30,14 +30,13 @@ export const PersonalityDashboard: React.FC<DashboardProps> = ({ profile }) => {
   const [activeTab, setActiveTab] = useState('overview');
 
   const handleExportJSON = () => {
-    const dataStr = JSON.stringify(profile, null, 2);
-    const dataBlob = new Blob([dataStr], { type: 'application/json' });
-    const url = URL.createObjectURL(dataBlob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `tps-personality-profile-${new Date().toISOString().split('T')[0]}.json`;
-    link.click();
-    URL.revokeObjectURL(url);
+    const { PDFReportGenerator } = require('../../utils/pdfGenerator');
+    PDFReportGenerator.exportAsJSON(profile);
+  };
+
+  const handleGeneratePDF = () => {
+    const { PDFReportGenerator } = require('../../utils/pdfGenerator');
+    PDFReportGenerator.generatePDFReport(profile);
   };
 
   const handleRetakeTest = () => {
@@ -119,7 +118,15 @@ export const PersonalityDashboard: React.FC<DashboardProps> = ({ profile }) => {
               className="bg-white/10 border-white/20 hover:bg-white/20"
             >
               <Download className="w-4 h-4 mr-2" />
-              Export Data
+              Export JSON
+            </Button>
+            <Button 
+              onClick={handleGeneratePDF}
+              variant="secondary"
+              className="bg-white/10 border-white/20 hover:bg-white/20"
+            >
+              <Download className="w-4 h-4 mr-2" />
+              Generate PDF
             </Button>
             <Button 
               onClick={handleShare}
