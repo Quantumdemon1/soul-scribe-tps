@@ -40,7 +40,7 @@ export class TPSScoring {
     "Universal": [78, 84, 90, 96, 102, 108]
   };
 
-  private static readonly DOMAINS = {
+  static readonly DOMAINS = {
     "External": {
       "Control": ["Structured", "Ambivalent", "Independent"],
       "Will": ["Passive", "Diplomatic", "Assertive"],

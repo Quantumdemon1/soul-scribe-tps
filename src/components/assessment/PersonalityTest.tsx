@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { PersonalityDashboard } from '../dashboard/PersonalityDashboard';
+import { SocraticClarification } from './SocraticClarification';
 import { ChevronLeft, ChevronRight, Brain } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useAssessments } from '@/hooks/useAssessments';
@@ -22,6 +23,8 @@ export const PersonalityTest: React.FC<PersonalityTestProps> = ({ assessmentType
   const [responses, setResponses] = useState<number[]>([]);
   const [isComplete, setIsComplete] = useState(false);
   const [profile, setProfile] = useState<PersonalityProfile | null>(null);
+  const [showClarification, setShowClarification] = useState(false);
+  const [initialScores, setInitialScores] = useState<any>(null);
   const { user } = useAuth();
   const { saveAssessment } = useAssessments();
 
@@ -112,10 +115,24 @@ export const PersonalityTest: React.FC<PersonalityTestProps> = ({ assessmentType
     const fullResponses = assessmentType === 'full' 
       ? responses 
       : AssessmentVariations.adjustScoring(responses, assessmentConfig);
+
+    // Calculate initial trait scores for cusp detection
+    const scores = TPSScoring.calculateTraitScores(fullResponses);
+    setInitialScores(scores);
+    setShowClarification(true);
+  };
+
+  const handleClarificationComplete = async (finalScores: any) => {
+    // Adjust responses for shortened assessments
+    const fullResponses = assessmentType === 'full' 
+      ? responses 
+      : AssessmentVariations.adjustScoring(responses, assessmentConfig);
     
+    // Generate personality profile with final scores
     const personalityProfile = TPSScoring.generateFullProfile(fullResponses);
     setProfile(personalityProfile);
     setIsComplete(true);
+    setShowClarification(false);
     
     // Save to localStorage for immediate access
     localStorage.setItem('tps-profile', JSON.stringify(personalityProfile));
@@ -142,6 +159,15 @@ export const PersonalityTest: React.FC<PersonalityTestProps> = ({ assessmentType
     currentPage * questionsPerPage,
     (currentPage + 1) * questionsPerPage
   );
+
+  if (showClarification && initialScores) {
+    return (
+      <SocraticClarification 
+        initialScores={initialScores}
+        onComplete={handleClarificationComplete}
+      />
+    );
+  }
 
   if (isComplete && profile) {
     return <PersonalityDashboard profile={profile} />;
