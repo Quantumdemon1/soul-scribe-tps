@@ -1,7 +1,7 @@
 import { PersonalityTest } from '../components/assessment/PersonalityTest';
 
 const Index = () => {
-  return <PersonalityTest />;
+  return <AssessmentSelection />;
 };
 
 export default Index;
