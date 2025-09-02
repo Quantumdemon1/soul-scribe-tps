@@ -381,6 +381,135 @@ Write in second person, be specific and insightful. Focus on the interconnection
     return await this.llmService.callLLM(prompt, 'frameworkAnalysis');
   }
 
+  // Personal Development Methods
+  async generatePersonalizedGrowthAreas(profile: PersonalityProfile): Promise<any> {
+    const prompt = `
+Based on this TPS personality profile, identify personalized growth areas:
+
+PERSONALITY PROFILE:
+${this.buildProfileSummary(profile)}
+
+Analyze their trait configuration and identify 3-4 specific areas where development would be most beneficial. For each area, provide:
+
+1. The specific challenge or opportunity
+2. Why this matters given their traits
+3. How their existing strengths can support growth
+4. Specific developmental focus
+
+Format as JSON: {
+  "growthAreas": [
+    {
+      "area": "Area name",
+      "challenge": "Specific challenge they face",
+      "reasoning": "Why this is important for their traits",
+      "leverageStrengths": "How their strengths support this",
+      "focusPoints": ["point1", "point2", "point3"]
+    }
+  ]
+}`;
+
+    const response = await this.llmService.callLLM(prompt, 'developmentPlanning');
+    return parseLLMJson(response);
+  }
+
+  async generateDevelopmentActivities(profile: PersonalityProfile): Promise<any> {
+    const prompt = `
+Create personalized development activities based on this TPS profile:
+
+PERSONALITY PROFILE:
+${this.buildProfileSummary(profile)}
+
+Design 4-5 development areas with specific activities. Each should include:
+- Area name and description  
+- 4-5 specific activities tailored to their traits
+- Timeframe for development
+- Success indicators
+
+Consider their learning style based on traits:
+- High Structured: Goal-oriented, systematic approaches
+- High Intuitive: Exploratory, pattern-based learning
+- High Communal: Group activities, social learning
+- High Independent: Self-directed activities
+- High Analytical: Data-driven, logical frameworks
+
+Format as JSON: {
+  "developmentAreas": [
+    {
+      "area": "Area name",
+      "description": "What this involves",
+      "activities": ["activity1", "activity2", "activity3", "activity4"],
+      "timeframe": "Short-term/Medium-term/Long-term",
+      "successIndicators": ["indicator1", "indicator2"]
+    }
+  ]
+}`;
+
+    const response = await this.llmService.callLLM(prompt, 'developmentPlanning');
+    return parseLLMJson(response);
+  }
+
+  async generateProgressTracking(profile: PersonalityProfile): Promise<any> {
+    const prompt = `
+Design progress tracking methods tailored to this TPS profile:
+
+PERSONALITY PROFILE:
+${this.buildProfileSummary(profile)}
+
+Create tracking methods that align with their personality traits. Consider:
+- High Analytical: Data-driven metrics, quantifiable measures
+- High Intuitive: Reflection-based, qualitative insights
+- High Structured: Regular check-ins, systematic progress
+- High Flexible: Adaptive milestones, emergent tracking
+- High Self-Mastery: Challenge-based goals, achievement focus
+- High Responsive: Feedback-based, relational measures
+
+Format as JSON: {
+  "trackingMethods": [
+    {
+      "method": "Method name",
+      "description": "How this works",
+      "frequency": "How often to use",
+      "metrics": ["metric1", "metric2"],
+      "suitedFor": "Which traits this serves"
+    }
+  ],
+  "milestones": [
+    {
+      "timeframe": "30 days/90 days/6 months",
+      "goals": ["goal1", "goal2"],
+      "assessmentMethod": "How to evaluate progress"
+    }
+  ]
+}`;
+
+    const response = await this.llmService.callLLM(prompt, 'developmentPlanning');
+    return parseLLMJson(response);
+  }
+
+  private buildProfileSummary(profile: PersonalityProfile): string {
+    return `
+TRAIT SCORES:
+${Object.entries(profile.traitScores)
+  .map(([trait, score]) => `- ${trait}: ${score.toFixed(1)}`)
+  .join('\n')}
+
+DOMAIN SCORES:
+${Object.entries(profile.domainScores)
+  .map(([domain, score]) => `- ${domain}: ${(score * 10).toFixed(1)}/10`)
+  .join('\n')}
+
+DOMINANT TRAITS:
+${Object.entries(profile.dominantTraits || {})
+  .map(([triad, trait]) => `- ${triad}: ${trait}`)
+  .join('\n')}
+
+FRAMEWORK MAPPINGS:
+- MBTI: ${profile.mappings.mbti}
+- Enneagram: ${profile.mappings.enneagram}
+- Big Five: ${JSON.stringify(profile.mappings.bigFive)}
+`.trim();
+  }
+
   async generateCoreInsights(profile: PersonalityProfile): Promise<CoreInsight> {
     const { DEFAULT_SYSTEM_PROMPTS } = await import('@/config/systemPrompts');
     
