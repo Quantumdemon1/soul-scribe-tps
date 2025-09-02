@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { HelpTooltip } from '@/components/ui/help-tooltip';
 import { Brain, Briefcase, TrendingUp, Heart, Sparkles } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/hooks/use-toast';
@@ -136,7 +138,13 @@ export const AIInsightsPanel: React.FC<AIInsightsPanelProps> = ({ profile }) => 
   }
 
   if (loading) {
-    return <LoadingSkeleton />;
+    return (
+      <Card>
+        <CardContent className="p-8 text-center">
+          <LoadingSpinner size="lg" text="Generating AI insights..." />
+        </CardContent>
+      </Card>
+    );
   }
 
   if (error) {
@@ -161,6 +169,7 @@ export const AIInsightsPanel: React.FC<AIInsightsPanelProps> = ({ profile }) => 
             <Sparkles className="w-3 h-3" />
             AI Generated
           </Badge>
+          <HelpTooltip content="These insights are generated using advanced AI analysis of your personality profile across multiple frameworks." />
         </div>
         <Button onClick={generateInsights} disabled={loading} variant="outline" size="sm">
           Regenerate

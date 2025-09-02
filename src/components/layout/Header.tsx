@@ -1,12 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger } from '@/components/ui/navigation-menu';
-import { Settings, User, Home, History, BookOpen } from 'lucide-react';
+import { Settings, User, Home, History, BookOpen, HelpCircle } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
+import { GuidedTour } from '@/components/help/GuidedTour';
 
 export const Header: React.FC = () => {
   const location = useLocation();
+  const [showTour, setShowTour] = useState(false);
   
   const isActive = (path: string) => location.pathname === path;
   
@@ -79,7 +81,21 @@ export const Header: React.FC = () => {
             </NavigationMenuItem>
           </NavigationMenuList>
         </NavigationMenu>
+        
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setShowTour(true)}
+          className="ml-2"
+        >
+          <HelpCircle className="w-4 h-4" />
+        </Button>
       </div>
+      
+      <GuidedTour 
+        isOpen={showTour} 
+        onClose={() => setShowTour(false)} 
+      />
     </header>
   );
 };
