@@ -3,15 +3,43 @@ import { AIInsights } from '@/types/llm.types';
 import { LLMService } from './llmService';
 import { FrameworkInsightsService } from './frameworkInsightsService';
 import { supabase } from '@/integrations/supabase/client';
+import { stableHash } from '@/utils/hash';
 
 export class AIInsightsService {
   private llmService = new LLMService();
   private frameworkInsightsService = new FrameworkInsightsService();
+  private memoryCache = new Map<string, { insights: AIInsights; timestamp: number }>();
+  private readonly CACHE_TTL = 1000 * 60 * 30; // 30 minutes
 
   async generateInsights(profile: PersonalityProfile, userId?: string): Promise<AIInsights> {
     try {
       console.log('Starting AI insights generation for profile:', profile);
       
+      // Create cache key based on profile traits and scores
+      const cacheKey = stableHash({
+        type: 'comprehensive_insights',
+        traitScores: profile.traitScores,
+        dominantTraits: profile.dominantTraits,
+        domainScores: profile.domainScores
+      });
+
+      // Check memory cache first
+      const cachedResult = this.getFromMemoryCache(cacheKey);
+      if (cachedResult) {
+        console.log('Using cached comprehensive insights');
+        return cachedResult;
+      }
+
+      // Check database cache if user is provided
+      if (userId) {
+        const dbCached = await this.getFromDatabaseCache(userId, 'comprehensive', cacheKey);
+        if (dbCached) {
+          console.log('Using database cached comprehensive insights');
+          this.setMemoryCache(cacheKey, dbCached);
+          return dbCached;
+        }
+      }
+
       // Generate insights in parallel for better performance
       const [general, career, development] = await Promise.all([
         this.llmService.generateInsight(profile, 'insightGeneration'),
@@ -40,9 +68,10 @@ export class AIInsightsService {
         }
       }
 
-      // Save insights to database if user is provided
+      // Cache and save insights
+      this.setMemoryCache(cacheKey, insights);
       if (userId) {
-        await this.saveInsights(insights, userId, profile);
+        await this.saveInsights(insights, userId, profile, cacheKey);
       }
 
       return insights;
@@ -96,7 +125,8 @@ Keep it practical, empathetic, and actionable for building better relationships.
   private async saveInsights(
     insights: AIInsights, 
     userId: string, 
-    profile: PersonalityProfile
+    profile: PersonalityProfile,
+    cacheKey?: string
   ): Promise<void> {
     try {
       // Find associated assessment
@@ -115,7 +145,9 @@ Keep it practical, empathetic, and actionable for building better relationships.
           assessment_id: assessment?.id,
           insight_type: 'comprehensive',
           content: insights as any,
-          model_used: 'gpt-5-2025-08-07' // This should come from config
+          model_used: 'gpt-5-2025-08-07', // This should come from config
+          cache_key: cacheKey,
+          version: 1
         });
     } catch (error) {
       console.error('Error saving insights:', error);
@@ -129,6 +161,7 @@ Keep it practical, empathetic, and actionable for building better relationships.
         .from('ai_insights')
         .select('content')
         .eq('user_id', userId)
+        .eq('insight_type', 'comprehensive')
         .order('created_at', { ascending: false });
 
       if (assessmentId) {
@@ -144,6 +177,53 @@ Keep it practical, empathetic, and actionable for building better relationships.
       return data.content as unknown as AIInsights;
     } catch (error) {
       console.error('Error retrieving insights:', error);
+      return null;
+    }
+  }
+
+  private getFromMemoryCache(cacheKey: string): AIInsights | null {
+    const cached = this.memoryCache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < this.CACHE_TTL) {
+      return cached.insights;
+    }
+    if (cached) {
+      this.memoryCache.delete(cacheKey); // Remove expired
+    }
+    return null;
+  }
+
+  private setMemoryCache(cacheKey: string, insights: AIInsights): void {
+    this.memoryCache.set(cacheKey, {
+      insights,
+      timestamp: Date.now()
+    });
+
+    // Cleanup old entries
+    if (this.memoryCache.size > 50) {
+      const oldestKey = this.memoryCache.keys().next().value;
+      this.memoryCache.delete(oldestKey);
+    }
+  }
+
+  private async getFromDatabaseCache(userId: string, insightType: string, cacheKey: string): Promise<AIInsights | null> {
+    try {
+      const { data, error } = await supabase
+        .from('ai_insights')
+        .select('content')
+        .eq('user_id', userId)
+        .eq('insight_type', insightType)
+        .eq('cache_key', cacheKey)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (error || !data) {
+        return null;
+      }
+
+      return data.content as unknown as AIInsights;
+    } catch (error) {
+      console.error('Error retrieving cached insights from database:', error);
       return null;
     }
   }

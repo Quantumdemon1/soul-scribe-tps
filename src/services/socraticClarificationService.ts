@@ -2,10 +2,14 @@ import { TPSScores } from '@/types/tps.types';
 import { CuspAnalysis, ConversationTurn } from '@/types/llm.types';
 import { LLMService } from './llmService';
 import { TPSScoring } from '@/utils/tpsScoring';
+import { supabase } from '@/integrations/supabase/client';
+import { stableHash } from '@/utils/hash';
 
 export class SocraticClarificationService {
   private readonly CUSP_THRESHOLD = 2.5; // Traits within 2.5 points are cusps
   private readonly llmService = new LLMService();
+  private memoryCache = new Map<string, { data: any; timestamp: number }>();
+  private readonly CACHE_TTL = 1000 * 60 * 60; // 1 hour for clarification questions
   
   async analyzeCusps(traitScores: TPSScores): Promise<CuspAnalysis[]> {
     const cusps: CuspAnalysis[] = [];
@@ -40,6 +44,20 @@ export class SocraticClarificationService {
   }
   
   async generateClarificationQuestions(cusp: CuspAnalysis): Promise<string[]> {
+    const cacheKey = stableHash({
+      type: 'clarification_questions',
+      triad: cusp.triad,
+      traits: cusp.traits,
+      scores: cusp.scores
+    });
+
+    // Check memory cache first
+    const cached = this.getFromMemoryCache(cacheKey);
+    if (cached) {
+      console.log('Using cached clarification questions');
+      return cached;
+    }
+
     const traitDescriptions = this.getTraitDescriptions();
     
     const prompt = `
@@ -60,7 +78,12 @@ Format: Return only the questions, one per line, without numbering.
 `;
     
     const response = await this.llmService.callLLM(prompt, 'tieBreaking');
-    return response.split('\n').filter(q => q.trim()).slice(0, 3);
+    const questions = response.split('\n').filter(q => q.trim()).slice(0, 3);
+    
+    // Cache the result
+    this.setMemoryCache(cacheKey, questions);
+    
+    return questions;
   }
   
   async processClarificationResponse(
@@ -153,5 +176,49 @@ Return only a valid JSON object with trait names as keys and adjustment values a
       'Varied': 'Enjoys diversity and change in experiences',
       'Realistic': 'Practical and grounded in concrete reality'
     };
+  }
+
+  private getFromMemoryCache(cacheKey: string): any | null {
+    const cached = this.memoryCache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < this.CACHE_TTL) {
+      return cached.data;
+    }
+    if (cached) {
+      this.memoryCache.delete(cacheKey); // Remove expired
+    }
+    return null;
+  }
+
+  private setMemoryCache(cacheKey: string, data: any): void {
+    this.memoryCache.set(cacheKey, {
+      data,
+      timestamp: Date.now()
+    });
+
+    // Cleanup old entries
+    if (this.memoryCache.size > 30) {
+      const oldestKey = this.memoryCache.keys().next().value;
+      this.memoryCache.delete(oldestKey);
+    }
+  }
+
+  async saveClarificationSession(
+    userId: string,
+    cuspAnalysis: CuspAnalysis[],
+    conversations: ConversationTurn[]
+  ): Promise<void> {
+    try {
+      await supabase
+        .from('socratic_sessions')
+        .insert({
+          user_id: userId,
+          cusps: cuspAnalysis as any,
+          conversations: conversations as any,
+          initial_scores: {},
+          final_scores: {}
+        });
+    } catch (error) {
+      console.error('Error saving clarification session:', error);
+    }
   }
 }
