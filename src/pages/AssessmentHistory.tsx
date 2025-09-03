@@ -9,15 +9,20 @@ import { useAssessments } from '@/hooks/useAssessments';
 import { useAuth } from '@/hooks/useAuth';
 import { PersonalityDashboard } from '@/components/dashboard/PersonalityDashboard';
 import { AssessmentComparison } from '@/components/analytics/AssessmentComparison';
-import { ArrowLeft, Calendar, Trash2, Eye, History, User, TrendingUp, LogIn, Download, GitCompare } from 'lucide-react';
+import { ArrowLeft, Calendar, Trash2, Eye, History, User, TrendingUp, LogIn, Download, GitCompare, RefreshCw } from 'lucide-react';
 import { format } from 'date-fns';
 import { PDFReportGenerator } from '@/utils/pdfGenerator';
+import { supabase } from '@/integrations/supabase/client';
+import { TPSScoring } from '@/utils/tpsScoring';
+import { useToast } from '@/hooks/use-toast';
 
 const AssessmentHistory: React.FC = () => {
   const { assessments, loading, deleteAssessment } = useAssessments();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [selectedProfile, setSelectedProfile] = useState(null);
+  const [recalcLoading, setRecalcLoading] = useState(false);
+  const { toast } = useToast();
 
   if (!user) {
     return (
@@ -76,6 +81,32 @@ const AssessmentHistory: React.FC = () => {
     }
   };
 
+  const handleRecalculateMappings = async () => {
+    if (!assessments || assessments.length === 0) return;
+    setRecalcLoading(true);
+    try {
+      await Promise.all(
+        assessments.map(async (a: any) => {
+          const responses: number[] | undefined = a.responses;
+          if (!responses || !Array.isArray(responses) || responses.length === 0) return null;
+          const newProfile = TPSScoring.generateFullProfile(responses);
+          const { error } = await supabase
+            .from('assessments')
+            .update({ profile: newProfile as any })
+            .eq('id', a.id);
+          if (error) throw error;
+          return a.id;
+        })
+      );
+      toast({ title: 'Recalculation complete', description: 'Mappings recalculated. Refresh to see updates.' });
+    } catch (err: any) {
+      console.error('Recalculation error', err);
+      toast({ title: 'Recalculation failed', description: err?.message || 'Please try again later.', variant: 'destructive' });
+    } finally {
+      setRecalcLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-6xl mx-auto p-6">
@@ -89,9 +120,21 @@ const AssessmentHistory: React.FC = () => {
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Home
             </Button>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <User className="w-4 h-4" />
-              {user.email}
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <User className="w-4 h-4" />
+                {user.email}
+              </div>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={handleRecalculateMappings}
+                disabled={recalcLoading}
+                title="Recompute MBTI, Enneagram, Big Five, Alignment using fixed mappings"
+              >
+                <RefreshCw className="w-4 h-4 mr-2" />
+                {recalcLoading ? 'Recalculating...' : 'Recalculate mappings'}
+              </Button>
             </div>
           </div>
           

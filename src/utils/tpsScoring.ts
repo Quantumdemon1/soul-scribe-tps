@@ -201,7 +201,7 @@ export class TPSScoring {
       (traitScores['Dynamic'] * 0.35) +
       (traitScores['Assertive'] * 0.15) +
       (traitScores['Direct'] * 0.15)
-    ) / 10;
+    );
     
     const mbti_E_I = extraversion > 5 ? 'E' : 'I';
     
@@ -211,7 +211,7 @@ export class TPSScoring {
       (traitScores['Universal'] * 0.30) +
       (traitScores['Varied'] * 0.15) +
       (traitScores['Self-Aware'] * 0.15)
-    ) / 10;
+    );
     
     const mbti_S_N = intuition > 5 ? 'N' : 'S';
     
@@ -221,7 +221,7 @@ export class TPSScoring {
       (traitScores['Stoic'] * 0.25) +
       (traitScores['Direct'] * 0.20) +
       (traitScores['Pragmatic'] * 0.20)
-    ) / 10;
+    );
     
     const mbti_T_F = thinking > 5 ? 'T' : 'F';
     
@@ -231,7 +231,7 @@ export class TPSScoring {
       (traitScores['Lawful'] * 0.25) +
       (traitScores['Self-Mastery'] * 0.20) +
       (traitScores['Assertive'] * 0.20)
-    ) / 10;
+    );
     
     const mbti_J_P = judging > 5 ? 'J' : 'P';
     
@@ -353,7 +353,7 @@ export class TPSScoring {
         (traitScores['Independent'] * 0.10) +
         (traitScores['Self-Principled'] * 0.10) +
         (traitScores['Dynamic'] * 0.05)
-      ) / 7,
+      ),
       
       Conscientiousness: (
         (traitScores['Structured'] * 0.25) +
@@ -362,7 +362,7 @@ export class TPSScoring {
         (traitScores['Pragmatic'] * 0.10) +
         (traitScores['Assertive'] * 0.10) +
         (traitScores['Realistic'] * 0.10)
-      ) / 6,
+      ),
       
       Extraversion: (
         (traitScores['Assertive'] * 0.20) +
@@ -371,7 +371,7 @@ export class TPSScoring {
         (traitScores['Direct'] * 0.15) +
         (traitScores['Optimistic'] * 0.15) +
         (traitScores['Extrinsic'] * 0.10)
-      ) / 6,
+      ),
       
       Agreeableness: (
         (traitScores['Diplomatic'] * 0.25) +
@@ -380,7 +380,7 @@ export class TPSScoring {
         (traitScores['Communal Navigate'] * 0.15) +
         (traitScores['Mixed Communication'] * 0.15) +
         (traitScores['Social'] * 0.10)
-      ) / 6,
+      ),
       
       Neuroticism: (
         (traitScores['Turbulent'] * 0.30) +
@@ -389,7 +389,7 @@ export class TPSScoring {
         (traitScores['Passive'] * 0.10) +
         (traitScores['Ambivalent'] * 0.10) +
         ((10 - traitScores['Stoic']) * 0.10)
-      ) / 6
+      )
     };
   }
 
@@ -400,14 +400,14 @@ export class TPSScoring {
       (traitScores['Structured'] * 0.30) +
       (traitScores['Diplomatic'] * 0.15) +
       (traitScores['Self-Mastery'] * 0.15)
-    ) / 4;
+    );
     
     const chaos = (
       (traitScores['Self-Principled'] * 0.35) +
       (traitScores['Independent'] * 0.35) +
       (traitScores['Dynamic'] * 0.15) +
       (traitScores['Intuitive'] * 0.15)
-    ) / 4;
+    );
     
     let ethical: string;
     if (lawfulness > 6.5) ethical = 'Lawful';
@@ -421,14 +421,14 @@ export class TPSScoring {
       (traitScores['Optimistic'] * 0.20) +
       (traitScores['Responsive'] * 0.15) +
       (traitScores['Social'] * 0.10)
-    ) / 5;
+    );
     
     const selfishness = (
       (traitScores['Self-Indulgent'] * 0.40) +
       (traitScores['Independent Navigate'] * 0.20) +
       (traitScores['Assertive'] * 0.20) +
       (traitScores['Pessimistic'] * 0.20)
-    ) / 4;
+    );
     
     let moral: string;
     if (goodness > 6.5) moral = 'Good';
@@ -468,42 +468,42 @@ export class TPSScoring {
         (traitScores['Pragmatic'] * 0.30) +
         (traitScores['Independent Navigate'] * 0.20) +
         (traitScores['Stoic'] * 0.10)
-      ) / 4,
+      ),
       
       I: ( // Investigative
         (traitScores['Analytical'] * 0.40) +
         (traitScores['Intrinsic'] * 0.25) +
         (traitScores['Independent'] * 0.20) +
         (traitScores['Universal'] * 0.15)
-      ) / 4,
+      ),
       
       A: ( // Artistic
         (traitScores['Intuitive'] * 0.35) +
         (traitScores['Self-Aware'] * 0.25) +
         (traitScores['Self-Principled'] * 0.20) +
         (traitScores['Dynamic'] * 0.20)
-      ) / 4,
+      ),
       
       S: ( // Social
         (traitScores['Communal Navigate'] * 0.35) +
         (traitScores['Social'] * 0.30) +
         (traitScores['Diplomatic'] * 0.20) +
         (traitScores['Responsive'] * 0.15)
-      ) / 4,
+      ),
       
       E: ( // Enterprising
         (traitScores['Assertive'] * 0.35) +
         (traitScores['Extrinsic'] * 0.25) +
         (traitScores['Direct'] * 0.20) +
         (traitScores['Optimistic'] * 0.20)
-      ) / 4,
+      ),
       
       C: ( // Conventional
         (traitScores['Structured'] * 0.35) +
         (traitScores['Lawful'] * 0.30) +
         (traitScores['Passive'] * 0.20) +
         (traitScores['Realistic'] * 0.15)
-      ) / 4
+      )
     };
     
     // Return top 3 codes
