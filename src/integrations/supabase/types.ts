@@ -17,30 +17,36 @@ export type Database = {
       ai_insights: {
         Row: {
           assessment_id: string | null
+          cache_key: string | null
           content: Json
           created_at: string
           id: string
           insight_type: string
           model_used: string | null
           user_id: string | null
+          version: number
         }
         Insert: {
           assessment_id?: string | null
+          cache_key?: string | null
           content: Json
           created_at?: string
           id?: string
           insight_type: string
           model_used?: string | null
           user_id?: string | null
+          version?: number
         }
         Update: {
           assessment_id?: string | null
+          cache_key?: string | null
           content?: Json
           created_at?: string
           id?: string
           insight_type?: string
           model_used?: string | null
           user_id?: string | null
+          version?: number
         }
         Relationships: [
           {
