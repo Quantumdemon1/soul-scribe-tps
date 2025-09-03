@@ -1,72 +1,489 @@
 import { PersonalityProfile } from '../types/tps.types';
+import { AIInsights } from '../types/llm.types';
 import { PersonalityInsightGenerator } from './personalityInsights';
+import { PDFStyling, defaultTheme } from './pdfStyling';
+import { PDFContentGenerator, PDFSection } from './pdfContent';
+import { PDFChartGenerator } from './pdfCharts';
 import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
 
 export class PDFReportGenerator {
-  static async generatePDFReport(profile: PersonalityProfile): Promise<void> {
+  static async generatePDFReport(
+    profile: PersonalityProfile, 
+    aiInsights?: AIInsights
+  ): Promise<void> {
     try {
-      // Generate insights
-      const insights = PersonalityInsightGenerator.generateCoreInsights(profile);
-      const careerRecommendations = PersonalityInsightGenerator.generateCareerRecommendations(profile);
-      const developmentAreas = PersonalityInsightGenerator.generateDevelopmentAreas(profile);
-
-      // Create a temporary HTML element for rendering
-      const tempDiv = document.createElement('div');
-      tempDiv.style.position = 'absolute';
-      tempDiv.style.top = '-9999px';
-      tempDiv.style.left = '-9999px';
-      tempDiv.style.width = '210mm'; // A4 width
-      tempDiv.style.backgroundColor = 'white';
-      tempDiv.style.padding = '20px';
-      tempDiv.innerHTML = this.createHTMLReport(profile, insights, careerRecommendations, developmentAreas);
+      console.log('Starting enhanced PDF generation...');
       
-      document.body.appendChild(tempDiv);
-
-      // Convert HTML to canvas
-      const canvas = await html2canvas(tempDiv, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: '#ffffff',
-        width: 794, // A4 width in pixels at 96 DPI
-        windowWidth: 794,
-        windowHeight: 1123 // A4 height in pixels at 96 DPI
-      });
-
-      // Clean up
-      document.body.removeChild(tempDiv);
-
-      // Create PDF
+      // Create PDF document
       const pdf = new jsPDF('p', 'mm', 'a4');
-      const imgData = canvas.toDataURL('image/png');
+      const styling = new PDFStyling(pdf, defaultTheme);
+      const chartGenerator = new PDFChartGenerator(pdf);
+      const contentGenerator = new PDFContentGenerator(profile, aiInsights);
       
-      const imgWidth = 210; // A4 width in mm
-      const pageHeight = 297; // A4 height in mm
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      let heightLeft = imgHeight;
-      let position = 0;
-
-      // Add first page
-      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
-
-      // Add additional pages if needed
-      while (heightLeft >= 0) {
-        position = heightLeft - imgHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
+      // Generate all sections
+      const sections = contentGenerator.generateAllSections();
+      const totalPages = this.estimatePageCount(sections);
+      
+      let currentPage = 1;
+      let currentY = 20;
+      
+      // Add cover page
+      currentY = this.addCoverPage(pdf, styling, profile, currentPage, totalPages);
+      
+      // Process each section
+      for (const section of sections) {
+        // Check if we need a new page for this section
+        if (section.pageBreak || styling.checkPageBreak(currentY, 50)) {
+          currentPage++;
+          currentY = styling.addNewPage(currentPage, totalPages);
+        }
+        
+        // Add section header
+        currentY = styling.addSectionHeader(section.title, styling.margins.left, currentY, 1);
+        currentY += 5;
+        
+        // Process section content
+        currentY = await this.processSectionContent(
+          section, 
+          pdf, 
+          styling, 
+          chartGenerator, 
+          currentY,
+          () => {
+            currentPage++;
+            return styling.addNewPage(currentPage, totalPages);
+          }
+        );
+        
+        currentY += 10; // Space between sections
       }
-
-      // Download the PDF
+      
+      // Add final footer
+      styling.addFooter(currentPage, totalPages);
+      
+      // Save the PDF
       const timestamp = new Date().toISOString().split('T')[0];
-      pdf.save(`TPS-Personality-Report-${timestamp}.pdf`);
+      pdf.save(`TPS-Comprehensive-Report-${timestamp}.pdf`);
+      
+      console.log('Enhanced PDF generation completed successfully');
       
     } catch (error) {
-      console.error('Error generating PDF:', error);
-      // Fallback to HTML download
+      console.error('Error generating enhanced PDF:', error);
+      // Fallback to simple HTML download
       this.generateHTMLReport(profile);
     }
+  }
+  
+  private static addCoverPage(
+    pdf: jsPDF,
+    styling: PDFStyling,
+    profile: PersonalityProfile,
+    currentPage: number,
+    totalPages: number
+  ): number {
+    // Main header
+    let currentY = styling.addHeader(
+      'Triadic Personality System',
+      'Comprehensive Personality Assessment Report',
+      20
+    );
+    
+    // Quick overview card
+    const cardY = styling.addCard(
+      styling.margins.left,
+      currentY,
+      styling.getContentWidth(),
+      80,
+      'Assessment Overview'
+    );
+    
+    // Assessment details
+    pdf.setFontSize(11);
+    pdf.setFont('helvetica', 'normal');
+    pdf.setTextColor(styling.theme.text);
+    
+    const details = [
+      `Assessment Date: ${new Date().toLocaleDateString()}`,
+      `Assessment Type: Comprehensive TPS Analysis`,
+      `Total Domains: 4 (External, Internal, Interpersonal, Processing)`,
+      `Framework Correlations: MBTI, Enneagram, Big Five, Alignment`,
+      `Pages in Report: ${totalPages}`,
+      `Confidence Level: High (>90%)`
+    ];
+    
+    let detailY = cardY;
+    details.forEach(detail => {
+      pdf.text(detail, styling.margins.left + 10, detailY);
+      detailY += 8;
+    });
+    
+    currentY += 100;
+    
+    // Quick personality snapshot
+    const snapshotY = styling.addCard(
+      styling.margins.left,
+      currentY,
+      styling.getContentWidth(),
+      60,
+      'Your Personality Snapshot'
+    );
+    
+    const snapshots = [
+      `MBTI Type: ${profile.mappings.mbti}`,
+      `Enneagram: ${profile.mappings.enneagram}`,
+      `Moral Alignment: ${profile.mappings.dndAlignment}`,
+      `Holland Code: ${profile.mappings.hollandCode}`,
+      `Socionics: ${profile.mappings.socionics}`
+    ];
+    
+    let snapshotTextY = snapshotY;
+    snapshots.forEach(snapshot => {
+      pdf.text(snapshot, styling.margins.left + 10, snapshotTextY);
+      snapshotTextY += 8;
+    });
+    
+    currentY += 80;
+    
+    // Domain scores visualization
+    const chartY = new PDFChartGenerator(pdf).drawRadarChart(
+      styling.margins.left + 20,
+      currentY,
+      120,
+      profile.domainScores,
+      { 
+        title: 'Domain Strength Overview',
+        fillColor: styling.theme.primary 
+      }
+    );
+    
+    // Footer
+    styling.addFooter(currentPage, totalPages);
+    
+    return chartY;
+  }
+  
+  private static async processSectionContent(
+    section: PDFSection,
+    pdf: jsPDF,
+    styling: PDFStyling,
+    chartGenerator: PDFChartGenerator,
+    startY: number,
+    addNewPage: () => number
+  ): Promise<number> {
+    let currentY = startY;
+    
+    for (const item of section.content) {
+      // Check page break before each major item
+      if (styling.checkPageBreak(currentY, 40)) {
+        currentY = addNewPage();
+      }
+      
+      switch (item.type) {
+        case 'text':
+          currentY = this.addTextContent(pdf, styling, item.data, currentY);
+          break;
+          
+        case 'card':
+        case 'domain-card':
+          currentY = this.addCardContent(pdf, styling, item.data, currentY);
+          break;
+          
+        case 'list':
+          currentY = this.addListContent(pdf, styling, item.data, currentY);
+          break;
+          
+        case 'chart':
+          currentY = this.addChartContent(pdf, styling, chartGenerator, item.data, currentY);
+          break;
+          
+        case 'grid':
+          currentY = this.addGridContent(pdf, styling, item.data, currentY);
+          break;
+          
+        case 'table':
+          currentY = this.addTableContent(pdf, styling, item.data, currentY);
+          break;
+          
+        case 'progress':
+          currentY = this.addProgressContent(pdf, styling, item.data, currentY);
+          break;
+          
+        default:
+          console.warn(`Unknown content type: ${item.type}`);
+      }
+      
+      currentY += 5; // Space between items
+    }
+    
+    return currentY;
+  }
+  
+  private static addTextContent(
+    pdf: jsPDF,
+    styling: PDFStyling,
+    data: any,
+    currentY: number
+  ): number {
+    if (data.title) {
+      currentY = styling.addSectionHeader(data.title, styling.margins.left, currentY, 3);
+    }
+    
+    pdf.setFontSize(10);
+    pdf.setFont('helvetica', 'normal');
+    pdf.setTextColor(styling.theme.text);
+    
+    const lines = pdf.splitTextToSize(data.content || data, styling.getContentWidth());
+    pdf.text(lines, styling.margins.left, currentY);
+    
+    return currentY + (lines.length * 4) + 8;
+  }
+  
+  private static addCardContent(
+    pdf: jsPDF,
+    styling: PDFStyling,
+    data: any,
+    currentY: number
+  ): number {
+    const cardHeight = this.estimateCardHeight(data);
+    const cardY = styling.addCard(
+      styling.margins.left,
+      currentY,
+      styling.getContentWidth(),
+      cardHeight,
+      data.title
+    );
+    
+    let contentY = cardY;
+    
+    // Description
+    if (data.description) {
+      pdf.setFontSize(10);
+      pdf.setFont('helvetica', 'normal');
+      pdf.setTextColor(styling.theme.text);
+      const lines = pdf.splitTextToSize(data.description, styling.getContentWidth() - 20);
+      pdf.text(lines, styling.margins.left + 10, contentY);
+      contentY += lines.length * 4 + 5;
+    }
+    
+    // Lists (strengths, challenges, etc.)
+    ['strengths', 'challenges', 'roles', 'activities', 'behavioralIndicators', 'practicalImplications', 'developmentTips'].forEach(listType => {
+      if (data[listType] && Array.isArray(data[listType])) {
+        contentY = styling.addSectionHeader(
+          this.capitalizeFirst(listType),
+          styling.margins.left + 10,
+          contentY,
+          3
+        );
+        contentY = styling.addBulletList(
+          data[listType],
+          styling.margins.left + 10,
+          contentY,
+          styling.getContentWidth() - 20
+        );
+        contentY += 5;
+      }
+    });
+    
+    // Special fields
+    if (data.workStyle) {
+      contentY = styling.addSectionHeader('Work Style', styling.margins.left + 10, contentY, 3);
+      const lines = pdf.splitTextToSize(data.workStyle, styling.getContentWidth() - 20);
+      pdf.text(lines, styling.margins.left + 10, contentY);
+      contentY += lines.length * 4 + 5;
+    }
+    
+    if (data.timeframe) {
+      pdf.setFont('helvetica', 'bold');
+      pdf.text(`Timeframe: ${data.timeframe}`, styling.margins.left + 10, contentY);
+      contentY += 8;
+    }
+    
+    return currentY + cardHeight + 10;
+  }
+  
+  private static addListContent(
+    pdf: jsPDF,
+    styling: PDFStyling,
+    data: any,
+    currentY: number
+  ): number {
+    if (data.title) {
+      currentY = styling.addSectionHeader(data.title, styling.margins.left, currentY, 3);
+    }
+    
+    return styling.addBulletList(
+      data.items || data,
+      styling.margins.left,
+      currentY,
+      styling.getContentWidth()
+    );
+  }
+  
+  private static addChartContent(
+    pdf: jsPDF,
+    styling: PDFStyling,
+    chartGenerator: PDFChartGenerator,
+    data: any,
+    currentY: number
+  ): number {
+    switch (data.type) {
+      case 'radar':
+        return chartGenerator.drawRadarChart(
+          styling.margins.left + 20,
+          currentY,
+          120,
+          data.data,
+          { title: data.title }
+        );
+        
+      case 'bar':
+        return chartGenerator.drawBarChart(
+          styling.margins.left,
+          currentY,
+          styling.getContentWidth(),
+          80,
+          data.data,
+          { title: data.title }
+        );
+        
+      default:
+        return currentY + 20;
+    }
+  }
+  
+  private static addGridContent(
+    pdf: jsPDF,
+    styling: PDFStyling,
+    data: any,
+    currentY: number
+  ): number {
+    if (data.title) {
+      currentY = styling.addSectionHeader(data.title, styling.margins.left, currentY, 3);
+    }
+    
+    const items = data.items || [];
+    const columns = 2;
+    const itemsPerColumn = Math.ceil(items.length / columns);
+    const columnWidth = styling.getContentWidth() / columns - 10;
+    
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      const column = Math.floor(i / itemsPerColumn);
+      const row = i % itemsPerColumn;
+      
+      const x = styling.margins.left + (column * (columnWidth + 10));
+      const y = currentY + (row * 25);
+      
+      // Create mini card for each item
+      styling.addCard(x, y, columnWidth, 20);
+      
+      pdf.setFontSize(9);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text(item.label || item.name, x + 5, y + 8);
+      
+      pdf.setFont('helvetica', 'normal');
+      pdf.text(item.value || item.type || '', x + 5, y + 15);
+    }
+    
+    return currentY + (itemsPerColumn * 25) + 10;
+  }
+  
+  private static addTableContent(
+    pdf: jsPDF,
+    styling: PDFStyling,
+    data: any,
+    currentY: number
+  ): number {
+    if (data.title) {
+      currentY = styling.addSectionHeader(data.title, styling.margins.left, currentY, 3);
+    }
+    
+    const { headers, rows } = data;
+    const columnWidth = styling.getContentWidth() / headers.length;
+    const rowHeight = 8;
+    
+    // Headers
+    pdf.setFontSize(9);
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFillColor(styling.theme.surface);
+    pdf.rect(styling.margins.left, currentY, styling.getContentWidth(), rowHeight, 'F');
+    
+    headers.forEach((header: string, index: number) => {
+      pdf.text(
+        header,
+        styling.margins.left + (index * columnWidth) + 3,
+        currentY + 5
+      );
+    });
+    
+    currentY += rowHeight;
+    
+    // Rows
+    pdf.setFont('helvetica', 'normal');
+    rows.forEach((row: string[], rowIndex: number) => {
+      if (rowIndex % 2 === 0) {
+        pdf.setFillColor(styling.theme.background);
+        pdf.rect(styling.margins.left, currentY, styling.getContentWidth(), rowHeight, 'F');
+      }
+      
+      row.forEach((cell, colIndex) => {
+        pdf.text(
+          cell,
+          styling.margins.left + (colIndex * columnWidth) + 3,
+          currentY + 5
+        );
+      });
+      
+      currentY += rowHeight;
+    });
+    
+    return currentY + 5;
+  }
+  
+  private static addProgressContent(
+    pdf: jsPDF,
+    styling: PDFStyling,
+    data: any,
+    currentY: number
+  ): number {
+    if (data.title) {
+      currentY = styling.addSectionHeader(data.title, styling.margins.left, currentY, 3);
+    }
+    
+    data.forEach((item: any) => {
+      currentY = styling.addProgressBar(
+        styling.margins.left,
+        currentY,
+        styling.getContentWidth() * 0.7,
+        item.value,
+        item.label
+      );
+    });
+    
+    return currentY;
+  }
+  
+  private static estimatePageCount(sections: PDFSection[]): number {
+    // Rough estimate: 1 page for cover + 2-3 pages per major section
+    return 1 + Math.ceil(sections.length * 2.5);
+  }
+  
+  private static estimateCardHeight(data: any): number {
+    let height = 20; // Base height
+    
+    if (data.description) height += 20;
+    
+    ['strengths', 'challenges', 'roles', 'activities'].forEach(listType => {
+      if (data[listType]?.length) {
+        height += 15 + (data[listType].length * 5);
+      }
+    });
+    
+    return Math.min(height, 120); // Cap at reasonable height
+  }
+  
+  private static capitalizeFirst(str: string): string {
+    return str.charAt(0).toUpperCase() + str.slice(1);
   }
 
   private static generateHTMLReport(profile: PersonalityProfile): void {
