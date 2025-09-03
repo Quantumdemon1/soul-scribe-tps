@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { PersonalityProfile } from '../../types/tps.types';
+import { PDFReportGenerator } from '../../utils/pdfGenerator';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -33,13 +34,15 @@ export const PersonalityDashboard: React.FC<DashboardProps> = ({ profile }) => {
   const [activeTab, setActiveTab] = useState('overview');
 
   const handleExportJSON = () => {
-    const { PDFReportGenerator } = require('../../utils/pdfGenerator');
     PDFReportGenerator.exportAsJSON(profile);
   };
 
-  const handleGeneratePDF = () => {
-    const { PDFReportGenerator } = require('../../utils/pdfGenerator');
-    PDFReportGenerator.generatePDFReport(profile);
+  const handleGeneratePDF = async () => {
+    try {
+      await PDFReportGenerator.generatePDFReport(profile);
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+    }
   };
 
   const handleRetakeTest = () => {

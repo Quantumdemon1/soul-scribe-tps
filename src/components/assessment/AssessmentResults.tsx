@@ -75,12 +75,21 @@ export const AssessmentResults: React.FC<AssessmentResultsProps> = ({
     }
   };
 
-  const handleDownloadPDF = () => {
-    PDFReportGenerator.generatePDFReport(enhancedProfile);
-    toast({
-      title: "PDF Generated",
-      description: "Your personality report has been downloaded."
-    });
+  const handleDownloadPDF = async () => {
+    try {
+      await PDFReportGenerator.generatePDFReport(enhancedProfile);
+      toast({
+        title: "PDF Generated",
+        description: "Your personality report has been downloaded."
+      });
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      toast({
+        title: "PDF Generation Failed",
+        description: "There was an error generating your PDF. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleShare = async () => {

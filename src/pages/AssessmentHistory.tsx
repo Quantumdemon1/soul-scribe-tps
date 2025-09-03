@@ -223,7 +223,13 @@ const AssessmentHistory: React.FC = () => {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => PDFReportGenerator.generatePDFReport(assessment.profile)}
+                            onClick={async () => {
+                              try {
+                                await PDFReportGenerator.generatePDFReport(assessment.profile);
+                              } catch (error) {
+                                console.error('Error generating PDF:', error);
+                              }
+                            }}
                           >
                             <Download className="w-4 h-4" />
                           </Button>
