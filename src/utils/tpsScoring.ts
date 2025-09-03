@@ -410,8 +410,8 @@ export class TPSScoring {
     );
     
     let ethical: string;
-    if (lawfulness > 6.5) ethical = 'Lawful';
-    else if (chaos > 6.5) ethical = 'Chaotic';
+    if (lawfulness > 5.5) ethical = 'Lawful';
+    else if (chaos > 5.5) ethical = 'Chaotic';
     else ethical = 'Neutral';
     
     // Good-Evil Axis
@@ -431,8 +431,8 @@ export class TPSScoring {
     );
     
     let moral: string;
-    if (goodness > 6.5) moral = 'Good';
-    else if (selfishness > 6.5) moral = 'Evil';
+    if (goodness > 5.5) moral = 'Good';
+    else if (selfishness > 5.5) moral = 'Evil';
     else moral = 'Neutral';
     
     return `${ethical} ${moral}`;

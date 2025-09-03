@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Progress } from '@/components/ui/progress';
 import { RadarChart } from '../charts/RadarChart';
 import { CircularProgress } from '../charts/CircularProgress';
 import { DomainCard } from './DomainCard';
@@ -249,12 +250,15 @@ export const PersonalityDashboard: React.FC<DashboardProps> = ({ profile: initia
                     </Badge>
                   </div>
                   <div className="text-center p-6 bg-muted/50 rounded-lg">
-                    <h3 className="font-medium text-muted-foreground mb-2">Big Five</h3>
-                    <div className="space-y-1 text-sm">
+                    <h3 className="font-medium text-muted-foreground mb-4">Big Five</h3>
+                    <div className="space-y-3">
                       {Object.entries(profile.mappings.bigFive).map(([trait, score]) => (
-                        <div key={trait} className="flex justify-between">
-                          <span>{trait.charAt(0)}:</span>
-                          <span className="font-semibold">{score.toFixed(1)}</span>
+                        <div key={trait} className="space-y-1">
+                          <div className="flex justify-between text-sm">
+                            <span className="font-medium">{trait}</span>
+                            <span className="font-semibold">{score.toFixed(1)}</span>
+                          </div>
+                          <Progress value={score * 10} className="h-2" />
                         </div>
                       ))}
                     </div>
