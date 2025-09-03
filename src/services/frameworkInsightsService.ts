@@ -2,14 +2,28 @@ import { PersonalityProfile, TPSScores } from '@/types/tps.types';
 import { FrameworkInsights, MBTIInsight, EnneagramInsight, BigFiveInsight, AlignmentInsight, CoreInsight, AIInsights } from '@/types/llm.types';
 import { LLMService } from './llmService';
 import { parseLLMJson } from '@/utils/jsonUtils';
+import { stableHash } from '@/utils/hash';
 
 export class FrameworkInsightsService {
   private llmService = new LLMService();
+  private static readonly INSIGHTS_VERSION = 1;
 
-  // Consolidated AI Insights Methods (from AIInsightsService)
+  // Consolidated AI Insights Methods (from AIInsightsService) with caching
   async generateComprehensiveInsights(profile: PersonalityProfile, userId?: string): Promise<AIInsights> {
     try {
       console.log('Starting comprehensive AI insights generation for profile:', profile);
+
+      // Compute cache key (per-user cache due to RLS policies)
+      const cacheKey = this.makeCacheKey(profile, 'comprehensive');
+
+      // Try to fetch cached insight for this user
+      if (userId) {
+        const cached = await this.getCachedInsight(userId, 'comprehensive', cacheKey);
+        if (cached) {
+          console.log('Returning cached comprehensive AI insights');
+          return cached;
+        }
+      }
       
       // Generate insights in parallel for better performance
       const [general, career, development, relationship] = await Promise.all([
@@ -19,18 +33,13 @@ export class FrameworkInsightsService {
         this.generateRelationshipInsight(profile)
       ]);
 
-      const insights: AIInsights = {
-        general,
-        career,
-        development,
-        relationship
-      };
+      const insights: AIInsights = { general, career, development, relationship };
 
       console.log('Successfully generated comprehensive AI insights');
 
       // Save insights to database if user is provided
       if (userId) {
-        await this.saveInsights(insights, userId, profile);
+        await this.saveInsights(insights, userId, profile, cacheKey, FrameworkInsightsService.INSIGHTS_VERSION);
       }
 
       return insights;
@@ -81,9 +90,11 @@ Keep it practical, empathetic, and actionable for building better relationships.
   }
 
   private async saveInsights(
-    insights: AIInsights, 
-    userId: string, 
-    profile: PersonalityProfile
+    insights: AIInsights,
+    userId: string,
+    profile: PersonalityProfile,
+    cacheKey?: string,
+    version: number = FrameworkInsightsService.INSIGHTS_VERSION
   ): Promise<void> {
     try {
       const { supabase } = await import('@/integrations/supabase/client');
@@ -104,7 +115,9 @@ Keep it practical, empathetic, and actionable for building better relationships.
           assessment_id: assessment?.id,
           insight_type: 'comprehensive',
           content: insights as any,
-          model_used: 'gpt-5-2025-08-07'
+          model_used: 'gpt-5-2025-08-07',
+          cache_key: cacheKey,
+          version
         });
     } catch (error) {
       console.error('Error saving insights:', error);
@@ -135,6 +148,41 @@ Keep it practical, empathetic, and actionable for building better relationships.
       return data.content as unknown as AIInsights;
     } catch (error) {
       console.error('Error retrieving insights:', error);
+      return null;
+    }
+  }
+
+  private makeCacheKey(profile: PersonalityProfile, type: string): string {
+    // Use a subset of profile that affects insight generation to keep key stable
+    const basis = {
+      type,
+      version: FrameworkInsightsService.INSIGHTS_VERSION,
+      mappings: profile.mappings,
+      domainScores: profile.domainScores,
+      traitScores: profile.traitScores,
+      dominantTraits: profile.dominantTraits,
+    };
+    return stableHash(basis);
+  }
+
+  private async getCachedInsight(userId: string, insightType: string, cacheKey: string): Promise<AIInsights | null> {
+    try {
+      const { supabase } = await import('@/integrations/supabase/client');
+      const { data, error } = await supabase
+        .from('ai_insights')
+        .select('content, version')
+        .eq('user_id', userId)
+        .eq('insight_type', insightType)
+        .eq('cache_key', cacheKey)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (error || !data) return null;
+      if (data.version !== FrameworkInsightsService.INSIGHTS_VERSION) return null; // ignore older cache
+      return data.content as unknown as AIInsights;
+    } catch (e) {
+      console.warn('Cache lookup failed, proceeding without cache:', e);
       return null;
     }
   }
