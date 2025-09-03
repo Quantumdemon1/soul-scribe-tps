@@ -11,10 +11,11 @@ import { Slider } from '@/components/ui/slider';
 import { LLMService } from '@/services/llmService';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
-import { Settings, Database, Brain, BarChart3, Save, RefreshCw, CheckCircle, AlertCircle, Copy, Upload, Download } from 'lucide-react';
+import { Settings, Database, Brain, BarChart3, Save, RefreshCw, CheckCircle, AlertCircle, Copy, Upload, Download, Activity } from 'lucide-react';
 import { AnalyticsOverview } from '@/components/analytics/AnalyticsOverview';
 import { SystemHealth } from '@/components/analytics/SystemHealth';
 import { CacheIntegrationTest } from '@/components/test/CacheIntegrationTest';
+import { PerformanceMonitor } from '@/components/ui/performance-monitor';
 import { DEFAULT_SYSTEM_PROMPTS } from '@/config/systemPrompts';
 
 interface LLMConfig {
@@ -242,7 +243,7 @@ export const AdminPanel: React.FC = () => {
         </div>
 
         <Tabs defaultValue="llm" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="llm" className="flex items-center gap-2">
               <Brain className="w-4 h-4" />
               LLM Configuration
@@ -258,6 +259,10 @@ export const AdminPanel: React.FC = () => {
             <TabsTrigger value="testing" className="flex items-center gap-2">
               <CheckCircle className="w-4 h-4" />
               Cache Testing
+            </TabsTrigger>
+            <TabsTrigger value="performance" className="flex items-center gap-2">
+              <Activity className="w-4 h-4" />
+              Performance
             </TabsTrigger>
           </TabsList>
 
@@ -522,6 +527,10 @@ export const AdminPanel: React.FC = () => {
 
           <TabsContent value="testing" className="space-y-6">
             <CacheIntegrationTest />
+          </TabsContent>
+
+          <TabsContent value="performance" className="space-y-6">
+            <PerformanceMonitor />
           </TabsContent>
         </Tabs>
       </div>

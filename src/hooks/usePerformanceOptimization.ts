@@ -1,8 +1,53 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useCallback, useRef } from 'react';
 import { errorLogger } from '@/services/errorLoggingService';
 
-// Performance monitoring hook
+// Enhanced performance monitoring and optimization hook
 export function usePerformanceOptimization() {
+  const performanceMetrics = useRef<Map<string, number>>(new Map());
+  const componentRenderStart = useRef<number>(0);
+
+  // Component performance tracking
+  const trackComponentRender = useCallback((componentName: string) => {
+    componentRenderStart.current = performance.now();
+    
+    return () => {
+      const renderTime = performance.now() - componentRenderStart.current;
+      performanceMetrics.current.set(componentName, renderTime);
+      
+      if (renderTime > 100) { // Slow component render
+        errorLogger.logError({
+          error_type: 'javascript',
+          error_message: `Slow component render: ${componentName} took ${renderTime.toFixed(2)}ms`,
+          severity: 'medium',
+          context: { 
+            component: componentName,
+            renderTime,
+            metric: 'component_render'
+          }
+        });
+      }
+    };
+  }, []);
+
+  // API call performance tracking
+  const trackApiCall = useCallback((apiName: string, startTime: number) => {
+    const duration = performance.now() - startTime;
+    
+    if (duration > 5000) { // Slow API call
+      errorLogger.logError({
+        error_type: 'network',
+        error_message: `Slow API call: ${apiName} took ${duration.toFixed(2)}ms`,
+        severity: 'medium',
+        context: { 
+          api: apiName,
+          duration,
+          metric: 'api_call'
+        }
+      });
+    }
+    
+    return duration;
+  }, []);
   useEffect(() => {
     // Monitor Core Web Vitals
     const observePerformance = () => {
@@ -119,5 +164,68 @@ export function usePerformanceOptimization() {
     }
   }), []);
 
-  return { memoizedUtils };
+  // Enhanced performance utilities
+  const performanceUtils = useMemo(() => ({
+    ...memoizedUtils,
+    
+    // Track long-running operations
+    trackOperation: <T>(name: string, operation: () => T): T => {
+      const start = performance.now();
+      const result = operation();
+      const duration = performance.now() - start;
+      
+      if (duration > 1000) {
+        errorLogger.logError({
+          error_type: 'javascript',
+          error_message: `Long operation: ${name} took ${duration.toFixed(2)}ms`,
+          severity: 'medium',
+          context: { operation: name, duration }
+        });
+      }
+      
+      return result;
+    },
+    
+    // Batch API calls to reduce network overhead
+    batchApiCalls: async <T>(calls: Array<() => Promise<T>>, batchSize = 3): Promise<T[]> => {
+      const results: T[] = [];
+      
+      for (let i = 0; i < calls.length; i += batchSize) {
+        const batch = calls.slice(i, i + batchSize);
+        const batchResults = await Promise.allSettled(batch.map(call => call()));
+        
+        batchResults.forEach((result, index) => {
+          if (result.status === 'fulfilled') {
+            results[i + index] = result.value;
+          } else {
+            errorLogger.logError({
+              error_type: 'network',
+              error_message: `Batch API call failed: ${result.reason}`,
+              severity: 'medium',
+              context: { batchIndex: i + index, reason: result.reason }
+            });
+          }
+        });
+      }
+      
+      return results;
+    },
+    
+    // Optimize image loading
+    preloadImage: (src: string): Promise<void> => {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve();
+        img.onerror = reject;
+        img.src = src;
+      });
+    }
+  }), [memoizedUtils]);
+
+  return { 
+    performanceUtils,
+    trackComponentRender,
+    trackApiCall,
+    getMetrics: () => Object.fromEntries(performanceMetrics.current)
+  };
 }
