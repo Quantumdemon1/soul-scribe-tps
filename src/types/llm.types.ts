@@ -19,6 +19,7 @@ export interface CuspAnalysis {
   scores: number[];
   requiresClarification: boolean;
   clarificationQuestions?: string[];
+  importanceScore?: number;
 }
 
 export interface SocraticSession {

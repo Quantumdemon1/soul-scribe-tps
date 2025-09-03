@@ -7,6 +7,7 @@ import { stableHash } from '@/utils/hash';
 
 export class SocraticClarificationService {
   private readonly CUSP_THRESHOLD = 2.5; // Traits within 2.5 points are cusps
+  private readonly MAX_CUSPS = 5; // Limit to most important cusps
   private readonly llmService = new LLMService();
   private memoryCache = new Map<string, { data: any; timestamp: number }>();
   private readonly CACHE_TTL = 1000 * 60 * 60; // 1 hour for clarification questions
@@ -25,22 +26,34 @@ export class SocraticClarificationService {
           (sortedScores[1] - sortedScores[2] < this.CUSP_THRESHOLD);
         
         if (requiresClarification) {
+          // Calculate importance score based on how close the scores are
+          const importanceScore = Math.max(
+            this.CUSP_THRESHOLD - (sortedScores[0] - sortedScores[1]),
+            this.CUSP_THRESHOLD - (sortedScores[1] - sortedScores[2])
+          );
+          
           cusps.push({
             triad: `${domain} - ${triadName}`,
             traits,
             scores,
-            requiresClarification: true
+            requiresClarification: true,
+            importanceScore
           });
         }
       });
     });
     
-    // Generate clarification questions for each cusp
-    for (const cusp of cusps) {
+    // Sort by importance and limit to top cusps
+    const sortedCusps = cusps
+      .sort((a, b) => (b.importanceScore || 0) - (a.importanceScore || 0))
+      .slice(0, this.MAX_CUSPS);
+    
+    // Generate only one clarification question per cusp (instead of 3)
+    for (const cusp of sortedCusps) {
       cusp.clarificationQuestions = await this.generateClarificationQuestions(cusp);
     }
     
-    return cusps;
+    return sortedCusps;
   }
   
   async generateClarificationQuestions(cusp: CuspAnalysis): Promise<string[]> {
@@ -61,29 +74,28 @@ export class SocraticClarificationService {
     const traitDescriptions = this.getTraitDescriptions();
     
     const prompt = `
-Generate 3 Socratic clarification questions to distinguish between these personality traits:
+Generate 1 focused Socratic clarification question to distinguish between these personality traits:
 
 Triad: ${cusp.triad}
 Traits and current scores:
 ${cusp.traits.map((t, i) => `- ${t}: ${cusp.scores[i].toFixed(1)} - ${traitDescriptions[t] || 'No description available'}`).join('\n')}
 
-Create questions that:
-1. Present realistic scenarios where these traits would manifest differently
-2. Ask about preferences in specific situations  
-3. Explore underlying motivations and values
-4. Are conversational and easy to understand
-5. Help clarify which trait is most dominant for this person
+Create one question that:
+1. Presents a realistic scenario where these traits would manifest differently
+2. Asks about preferences in a specific situation that clearly differentiates the traits
+3. Is conversational and easy to understand
+4. Helps clarify which trait is most dominant for this person
 
-Format: Return only the questions, one per line, without numbering.
+CRITICAL: Return ONLY the single question as plain text, no formatting, numbering, or extra content.
 `;
     
     const response = await this.llmService.callLLM(prompt, 'tieBreaking');
-    const questions = response.split('\n').filter(q => q.trim()).slice(0, 3);
+    const question = response.split('\n')[0].trim();
     
     // Cache the result
-    this.setMemoryCache(cacheKey, questions);
+    this.setMemoryCache(cacheKey, [question]);
     
-    return questions;
+    return [question];
   }
   
   async processClarificationResponse(
@@ -110,27 +122,43 @@ Consider:
 - Decision-making patterns
 - Emotional responses described
 
-Return only a valid JSON object with trait names as keys and adjustment values as numbers:
-{"${cusp.traits[0]}": 0.0, "${cusp.traits[1]}": 0.0, "${cusp.traits[2]}": 0.0}
+CRITICAL: Return ONLY valid JSON without any markdown formatting or extra text. 
+Do not use any + symbols, special characters, or markdown code blocks.
+Use this exact format: {"${cusp.traits[0]}": 0.0, "${cusp.traits[1]}": 0.0, "${cusp.traits[2]}": 0.0}
 `;
     
     const llmResponse = await this.llmService.callLLM(prompt, 'tieBreaking');
     
     try {
-      // Extract JSON from response
-      const jsonMatch = llmResponse.match(/\{[^}]+\}/);
+      // Clean the response to handle various formats
+      let cleanedResponse = llmResponse.trim();
+      
+      // Remove markdown code blocks if present
+      cleanedResponse = cleanedResponse.replace(/```json\s*|\s*```/g, '');
+      cleanedResponse = cleanedResponse.replace(/```\s*|\s*```/g, '');
+      
+      // Remove any plus signs that might cause parsing issues
+      cleanedResponse = cleanedResponse.replace(/\+/g, '');
+      
+      // Extract JSON from response - look for the first complete JSON object
+      const jsonMatch = cleanedResponse.match(/\{[^{}]*\}/);
       if (jsonMatch) {
-        return JSON.parse(jsonMatch[0]);
+        const parsed = JSON.parse(jsonMatch[0]);
+        
+        // Validate that all traits are present
+        const validatedAdjustments: Record<string, number> = {};
+        cusp.traits.forEach(trait => {
+          validatedAdjustments[trait] = typeof parsed[trait] === 'number' ? parsed[trait] : 0;
+        });
+        
+        return validatedAdjustments;
       }
       
-      // Fallback: return neutral adjustments
-      const neutralAdjustments: Record<string, number> = {};
-      cusp.traits.forEach(trait => {
-        neutralAdjustments[trait] = 0;
-      });
-      return neutralAdjustments;
+      throw new Error('No valid JSON found in LLM response');
+      
     } catch (error) {
-      console.error('Error parsing LLM response:', error);
+      console.error('Error parsing LLM response:', error, 'Response was:', llmResponse);
+      
       // Return neutral adjustments as fallback
       const neutralAdjustments: Record<string, number> = {};
       cusp.traits.forEach(trait => {

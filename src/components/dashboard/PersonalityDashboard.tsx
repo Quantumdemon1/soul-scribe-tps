@@ -13,6 +13,7 @@ import { CoreInsights } from './CoreInsights';
 import { PersonalDevelopment } from './PersonalDevelopment';
 import { AIInsightsPanel } from './AIInsightsPanel';
 import { CareerLifestyle } from './CareerLifestyle';
+import { RefinementModal } from './RefinementModal';
 import { Header } from '@/components/layout/Header';
 import { 
   Brain, 
@@ -23,15 +24,19 @@ import {
   Target,
   Briefcase,
   TrendingUp,
-  Sparkles
+  Sparkles,
+  Settings
 } from 'lucide-react';
 
 interface DashboardProps {
   profile: PersonalityProfile;
+  onRetakeAssessment?: () => void;
 }
 
-export const PersonalityDashboard: React.FC<DashboardProps> = ({ profile }) => {
+export const PersonalityDashboard: React.FC<DashboardProps> = ({ profile: initialProfile, onRetakeAssessment }) => {
   const [activeTab, setActiveTab] = useState('overview');
+  const [profile, setProfile] = useState(initialProfile);
+  const [isRefinementOpen, setIsRefinementOpen] = useState(false);
 
   const handleExportJSON = () => {
     PDFReportGenerator.exportAsJSON(profile);
@@ -46,8 +51,12 @@ export const PersonalityDashboard: React.FC<DashboardProps> = ({ profile }) => {
   };
 
   const handleRetakeTest = () => {
-    localStorage.removeItem('tps-profile');
-    window.location.reload();
+    if (onRetakeAssessment) {
+      onRetakeAssessment();
+    } else {
+      localStorage.removeItem('tps-profile');
+      window.location.reload();
+    }
   };
 
   const handleShare = async () => {
@@ -144,6 +153,14 @@ export const PersonalityDashboard: React.FC<DashboardProps> = ({ profile }) => {
             >
               <Share2 className="w-4 h-4 mr-2" />
               Share Results
+            </Button>
+            <Button 
+              onClick={() => setIsRefinementOpen(true)}
+              variant="outline"
+              className="border-white/40 text-white hover:bg-white/10"
+            >
+              <Settings className="w-4 h-4 mr-2" />
+              Refine Results
             </Button>
             <Button 
               onClick={handleRetakeTest}
@@ -327,6 +344,13 @@ export const PersonalityDashboard: React.FC<DashboardProps> = ({ profile }) => {
           </TabsContent>
         </Tabs>
       </div>
+      
+      <RefinementModal
+        isOpen={isRefinementOpen}
+        onClose={() => setIsRefinementOpen(false)}
+        profile={profile}
+        onProfileUpdate={setProfile}
+      />
     </div>
   );
 };
