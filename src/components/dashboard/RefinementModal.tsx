@@ -6,9 +6,8 @@ import { Progress } from '@/components/ui/progress';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { TPSScores, PersonalityProfile } from '@/types/tps.types';
-import { CuspAnalysis, ConversationTurn } from '@/types/llm.types';
+import { SocraticSession, CuspAnalysis, ConversationTurn } from '@/types/llm.types';
 import { SocraticClarificationService } from '@/services/socraticClarificationService';
-import { useSocraticSession } from '@/hooks/useSocraticSession';
 import { Loader2, MessageCircle, SkipForward, Save } from 'lucide-react';
 
 interface Props {
@@ -33,7 +32,28 @@ export const RefinementModal: React.FC<Props> = ({
   
   const { toast } = useToast();
   const service = new SocraticClarificationService();
-  const { currentSession, createSession, updateSession } = useSocraticSession();
+  // Simple session management without provider
+  const [currentSession, setCurrentSession] = useState<SocraticSession | null>(null);
+  
+  const createSession = (initialScores: TPSScores, cusps: CuspAnalysis[]): SocraticSession => {
+    const session: SocraticSession = {
+      id: crypto.randomUUID(),
+      userId: 'local',
+      initialScores,
+      cusps,
+      conversations: [],
+      finalScores: initialScores,
+      timestamp: new Date()
+    };
+    setCurrentSession(session);
+    return session;
+  };
+  
+  const updateSession = async (sessionId: string, updates: Partial<SocraticSession>): Promise<void> => {
+    if (!currentSession || currentSession.id !== sessionId) return;
+    const updatedSession = { ...currentSession, ...updates };
+    setCurrentSession(updatedSession);
+  };
   
   const initializeRefinement = async () => {
     setIsLoading(true);
