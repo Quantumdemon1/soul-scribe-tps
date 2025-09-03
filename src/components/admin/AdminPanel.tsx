@@ -14,6 +14,7 @@ import { toast } from '@/hooks/use-toast';
 import { Settings, Database, Brain, BarChart3, Save, RefreshCw, CheckCircle, AlertCircle, Copy, Upload, Download } from 'lucide-react';
 import { AnalyticsOverview } from '@/components/analytics/AnalyticsOverview';
 import { SystemHealth } from '@/components/analytics/SystemHealth';
+import { CacheIntegrationTest } from '@/components/test/CacheIntegrationTest';
 import { DEFAULT_SYSTEM_PROMPTS } from '@/config/systemPrompts';
 
 interface LLMConfig {
@@ -241,7 +242,7 @@ export const AdminPanel: React.FC = () => {
         </div>
 
         <Tabs defaultValue="llm" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="llm" className="flex items-center gap-2">
               <Brain className="w-4 h-4" />
               LLM Configuration
@@ -253,6 +254,10 @@ export const AdminPanel: React.FC = () => {
             <TabsTrigger value="analytics" className="flex items-center gap-2">
               <BarChart3 className="w-4 h-4" />
               Analytics
+            </TabsTrigger>
+            <TabsTrigger value="testing" className="flex items-center gap-2">
+              <CheckCircle className="w-4 h-4" />
+              Cache Testing
             </TabsTrigger>
           </TabsList>
 
@@ -513,6 +518,10 @@ export const AdminPanel: React.FC = () => {
                 <SystemHealth />
               </TabsContent>
             </Tabs>
+          </TabsContent>
+
+          <TabsContent value="testing" className="space-y-6">
+            <CacheIntegrationTest />
           </TabsContent>
         </Tabs>
       </div>
