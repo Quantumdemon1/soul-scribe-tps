@@ -486,6 +486,152 @@ Format as JSON: {
     return parseLLMJson(response);
   }
 
+  // Career & Lifestyle Analysis Methods
+  async generateCareerPathways(profile: PersonalityProfile): Promise<any> {
+    const prompt = `
+Based on this TPS personality profile, generate personalized career pathway recommendations:
+
+PERSONALITY PROFILE:
+${this.buildProfileSummary(profile)}
+
+Analyze their trait configuration and provide comprehensive career guidance including:
+
+1. 4-5 ideal career fields with specific roles
+2. Work environment preferences based on their traits
+3. Industry-specific recommendations
+4. Leadership style and team preferences
+5. Factors that will drive job satisfaction
+
+Consider how different traits influence career fit:
+- External Domain traits → Work environment and organizational preferences
+- Internal Domain traits → Motivation and satisfaction factors  
+- Interpersonal Domain traits → Team dynamics and communication needs
+- Processing Domain traits → Problem-solving and cognitive requirements
+
+Format as JSON: {
+  "careerFields": [
+    {
+      "field": "Field name",
+      "roles": ["role1", "role2", "role3"],
+      "reasoning": "Why this field matches their traits",
+      "workEnvironment": "Ideal environment description",
+      "growthPath": "Career progression opportunities",
+      "satisfactionFactors": ["factor1", "factor2"]
+    }
+  ],
+  "overallGuidance": {
+    "idealWorkEnvironment": "General work environment preferences",
+    "leadershipStyle": "Their natural leadership approach",
+    "teamDynamics": "How they work best with others",
+    "decisionMaking": "Their approach to workplace decisions"
+  }
+}`;
+
+    const response = await this.llmService.callLLM(prompt, 'careerGuidance');
+    return parseLLMJson(response);
+  }
+
+  async generateWorkEnvironmentPreferences(profile: PersonalityProfile): Promise<any> {
+    const prompt = `
+Analyze work environment preferences based on this TPS profile:
+
+PERSONALITY PROFILE:
+${this.buildProfileSummary(profile)}
+
+Determine specific work environment factors that will support their success:
+
+1. Physical workspace preferences
+2. Team structure and collaboration style
+3. Communication patterns and needs
+4. Management and autonomy preferences
+5. Stress management and support needs
+6. Productivity optimization factors
+
+Format as JSON: {
+  "physicalWorkspace": {
+    "preferences": ["preference1", "preference2"],
+    "needsToAvoid": ["avoid1", "avoid2"],
+    "optimalConditions": "Description of ideal setup"
+  },
+  "teamCollaboration": {
+    "workingStyle": "How they collaborate best",
+    "idealTeamSize": "Preferred team size",
+    "communicationNeeds": "Communication preferences",
+    "conflictResolution": "How they handle workplace conflicts"
+  },
+  "managementStyle": {
+    "autonomyNeeds": "Level of independence required",
+    "feedbackPreferences": "How they prefer to receive feedback",
+    "goalSetting": "How they work best with goals and deadlines",
+    "supportNeeds": "What kind of management support helps them"
+  },
+  "stressFactors": {
+    "triggers": ["stressor1", "stressor2"],
+    "mitigationStrategies": ["strategy1", "strategy2"],
+    "warningSignsToWatch": ["sign1", "sign2"]
+  }
+}`;
+
+    const response = await this.llmService.callLLM(prompt, 'careerGuidance');
+    return parseLLMJson(response);
+  }
+
+  async generateLifestyleRecommendations(profile: PersonalityProfile): Promise<any> {
+    const prompt = `
+Generate comprehensive lifestyle recommendations based on this TPS profile:
+
+PERSONALITY PROFILE:
+${this.buildProfileSummary(profile)}
+
+Provide personalized guidance for:
+
+1. Social life and relationship patterns
+2. Living environment and organization
+3. Recreation and hobby preferences  
+4. Work-life balance strategies
+5. Personal development and growth activities
+6. Health and wellness approaches
+7. Financial and life planning style
+
+Consider how their traits influence lifestyle choices and what will support their wellbeing.
+
+Format as JSON: {
+  "socialLife": {
+    "socialNeeds": "Their social interaction preferences",
+    "relationshipStyle": "How they approach relationships",
+    "networkingApproach": "Best networking strategies for them",
+    "communityInvolvement": "Types of community activities that fit"
+  },
+  "livingEnvironment": {
+    "homeEnvironment": "Ideal home setup and organization",
+    "locationPreferences": "Urban/suburban/rural preferences and why",
+    "organizationStyle": "How they manage their physical space",
+    "personalSpace": "Privacy and personal space needs"
+  },
+  "recreation": {
+    "hobbies": ["hobby1", "hobby2", "hobby3"],
+    "recreationStyle": "Active vs passive recreation preferences",
+    "learningActivities": "Types of personal learning they enjoy",
+    "creativePursuits": "Creative outlets that match their traits"
+  },
+  "workLifeBalance": {
+    "balanceStrategy": "Their approach to balancing work and life",
+    "boundaryManagement": "How to set and maintain boundaries",
+    "energyManagement": "How to maintain energy and avoid burnout",
+    "recoveryNeeds": "What they need to recharge"
+  },
+  "healthWellness": {
+    "exercisePreferences": "Types of physical activity that appeal",
+    "stressManagement": "Stress relief strategies that work for them",
+    "sleepOptimization": "Sleep habits that support their personality",
+    "nutritionApproach": "Eating patterns that fit their lifestyle"
+  }
+}`;
+
+    const response = await this.llmService.callLLM(prompt, 'developmentPlanning');
+    return parseLLMJson(response);
+  }
+
   private buildProfileSummary(profile: PersonalityProfile): string {
     return `
 TRAIT SCORES:
