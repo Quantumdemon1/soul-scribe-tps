@@ -161,6 +161,13 @@ export const PersonalityTest: React.FC<PersonalityTestProps> = ({ assessmentType
     (currentPage + 1) * questionsPerPage
   );
 
+  // This useEffect must come before any early returns
+  useEffect(() => {
+    if (isComplete && profile && onComplete) {
+      onComplete(profile);
+    }
+  }, [isComplete, profile, onComplete]);
+
   if (showClarification && initialScores) {
     return (
       <SocraticClarification 
@@ -169,12 +176,6 @@ export const PersonalityTest: React.FC<PersonalityTestProps> = ({ assessmentType
       />
     );
   }
-
-  useEffect(() => {
-    if (isComplete && profile && onComplete) {
-      onComplete(profile);
-    }
-  }, [isComplete, profile, onComplete]);
 
   if (isComplete && profile && !onComplete) {
     return <PersonalityDashboard profile={profile} />;
