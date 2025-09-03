@@ -83,29 +83,31 @@ export const PersonalityDashboard: React.FC<DashboardProps> = ({ profile }) => {
               </div>
             </div>
             <p className="text-lg opacity-80 max-w-2xl mx-auto">
-              Comprehensive analysis based on 108 questions across 36 personality traits, 
-              organized into 12 triads and 4 core domains.
+              Deep insights into your personality across four core domains that shape how you experience and interact with the world.
             </p>
           </div>
 
           {/* Quick Stats */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
             {Object.entries(profile.domainScores).map(([domain, score]) => {
-              const colors = {
-                External: 'bg-domain-external',
-                Internal: 'bg-domain-internal', 
-                Interpersonal: 'bg-domain-interpersonal',
-                Processing: 'bg-domain-processing'
+              const domainDescriptions = {
+                External: "How we deal with our outside world",
+                Internal: "How we deal with our inner world",
+                Interpersonal: "How we deal with people",
+                Processing: "How we deal with information"
               };
               
               return (
                 <Card key={domain} className="bg-white/10 border-white/20 text-center">
                   <CardContent className="p-4">
                     <h3 className="font-semibold mb-2">{domain}</h3>
-                    <div className="text-3xl font-bold">
+                    <div className="text-3xl font-bold mb-2">
                       {(score * 10).toFixed(1)}
                     </div>
-                    <div className="w-full bg-white/20 rounded-full h-2 mt-3">
+                    <p className="text-sm opacity-80 mb-3">
+                      {domainDescriptions[domain as keyof typeof domainDescriptions]}
+                    </p>
+                    <div className="w-full bg-white/20 rounded-full h-2">
                       <div 
                         className="bg-white h-2 rounded-full transition-all duration-500"
                         style={{ width: `${score * 10}%` }}
