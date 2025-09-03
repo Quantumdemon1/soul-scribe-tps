@@ -105,7 +105,7 @@ export const PersonalDevelopment: React.FC<PersonalDevelopmentProps> = ({ profil
             <CardContent>
               <div className="space-y-4">
                 {aiGrowthAreas?.growthAreas?.map((area: any, index: number) => (
-                  <div key={index} className="p-4 rounded-lg border bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-950/20 dark:to-amber-950/20">
+                  <div key={index} className="p-4 rounded-lg border bg-card hover:bg-muted/50 transition-colors">
                     <div className="flex items-start gap-3">
                       <AlertCircle className="w-5 h-5 text-orange-600 mt-0.5 flex-shrink-0" />
                       <div className="space-y-2">
@@ -244,7 +244,7 @@ export const PersonalDevelopment: React.FC<PersonalDevelopmentProps> = ({ profil
                     <h4 className="font-semibold text-foreground mb-3">Tracking Methods</h4>
                     <div className="grid gap-3">
                       {aiTracking.trackingMethods.map((method: any, index: number) => (
-                        <div key={index} className="p-3 rounded-lg border bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20">
+                        <div key={index} className="p-3 rounded-lg border bg-card hover:bg-muted/50 transition-colors">
                           <div className="flex items-center justify-between mb-2">
                             <h5 className="font-medium text-foreground">{method.method}</h5>
                             <Badge variant="secondary" className="text-xs">
@@ -270,7 +270,7 @@ export const PersonalDevelopment: React.FC<PersonalDevelopmentProps> = ({ profil
                     <h4 className="font-semibold text-foreground mb-3">Development Milestones</h4>
                     <div className="space-y-3">
                       {aiTracking.milestones.map((milestone: any, index: number) => (
-                        <div key={index} className="p-3 rounded-lg border bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20">
+                        <div key={index} className="p-3 rounded-lg border bg-card hover:bg-muted/50 transition-colors">
                           <div className="flex items-center gap-2 mb-2">
                             <Calendar className="w-4 h-4 text-green-600" />
                             <span className="font-medium text-foreground">{milestone.timeframe}</span>
@@ -318,23 +318,23 @@ export const PersonalDevelopment: React.FC<PersonalDevelopmentProps> = ({ profil
           <CollapsibleContent>
             <CardContent>
               <div className="space-y-4">
-                <div className="p-4 rounded-lg bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-950/20 dark:to-cyan-950/20 border">
-                  <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-2">Remember: Growth is a Journey</h4>
-                  <p className="text-blue-800 dark:text-blue-200 text-sm">
+                <div className="p-4 rounded-lg bg-card border border-info/20 hover:bg-muted/50 transition-colors">
+                  <h4 className="font-medium text-info mb-2">Remember: Growth is a Journey</h4>
+                  <p className="text-foreground/80 text-sm">
                     Personal development is an ongoing process. Focus on one area at a time and celebrate small wins along the way.
                   </p>
                 </div>
                 
-                <div className="p-4 rounded-lg bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 border">
-                  <h4 className="font-medium text-green-900 dark:text-green-100 mb-2">Leverage Your Strengths</h4>
-                  <p className="text-green-800 dark:text-green-200 text-sm">
+                <div className="p-4 rounded-lg bg-card border border-success/20 hover:bg-muted/50 transition-colors">
+                  <h4 className="font-medium text-success mb-2">Leverage Your Strengths</h4>
+                  <p className="text-foreground/80 text-sm">
                     While working on growth areas, don't forget to continue developing and utilizing your natural strengths.
                   </p>
                 </div>
 
-                <div className="p-4 rounded-lg bg-gradient-to-r from-purple-50 to-violet-50 dark:from-purple-950/20 dark:to-violet-950/20 border">
-                  <h4 className="font-medium text-purple-900 dark:text-purple-100 mb-2">Personality-Aligned Growth</h4>
-                  <p className="text-purple-800 dark:text-purple-200 text-sm">
+                <div className="p-4 rounded-lg bg-card border border-primary/20 hover:bg-muted/50 transition-colors">
+                  <h4 className="font-medium text-primary mb-2">Personality-Aligned Growth</h4>
+                  <p className="text-foreground/80 text-sm">
                     These recommendations are tailored to your specific personality traits. Trust your natural inclinations while gently expanding your comfort zone.
                   </p>
                 </div>
