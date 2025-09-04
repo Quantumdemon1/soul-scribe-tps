@@ -16,35 +16,44 @@ export type Database = {
     Tables: {
       ai_insights: {
         Row: {
+          access_count: number | null
           assessment_id: string | null
           cache_key: string | null
           content: Json
           created_at: string
           id: string
           insight_type: string
+          last_accessed_at: string | null
           model_used: string | null
+          section_name: string | null
           user_id: string | null
           version: number
         }
         Insert: {
+          access_count?: number | null
           assessment_id?: string | null
           cache_key?: string | null
           content: Json
           created_at?: string
           id?: string
           insight_type: string
+          last_accessed_at?: string | null
           model_used?: string | null
+          section_name?: string | null
           user_id?: string | null
           version?: number
         }
         Update: {
+          access_count?: number | null
           assessment_id?: string | null
           cache_key?: string | null
           content?: Json
           created_at?: string
           id?: string
           insight_type?: string
+          last_accessed_at?: string | null
           model_used?: string | null
+          section_name?: string | null
           user_id?: string | null
           version?: number
         }

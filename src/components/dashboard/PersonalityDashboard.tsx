@@ -15,6 +15,7 @@ import { CoreInsights } from './CoreInsights';
 import { PersonalDevelopment } from './PersonalDevelopment';
 import { AIInsightsPanel } from './AIInsightsPanel';
 import { CareerLifestyle } from './CareerLifestyle';
+import { DashboardControls } from './DashboardControls';
 import { RefinementModal } from './RefinementModal';
 import { Header } from '@/components/layout/Header';
 import { 
@@ -197,7 +198,9 @@ const DashboardContent: React.FC<{ profile: PersonalityProfile; onRetakeAssessme
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-6 py-8">
-        <LazyTabs 
+        <DashboardControls profile={profile} currentSection={activeTab} />
+        
+        <LazyTabs
           value={activeTab} 
           onValueChange={setActiveTab} 
           onTabLoad={handleTabLoad}

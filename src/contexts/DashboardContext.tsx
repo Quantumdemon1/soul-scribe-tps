@@ -21,6 +21,8 @@ interface DashboardData {
   } | null;
 }
 
+export type { DashboardData };
+
 interface DashboardContextType {
   data: DashboardData;
   loading: Record<string, boolean>;
@@ -94,14 +96,44 @@ export const DashboardProvider: React.FC<DashboardProviderProps> = ({ children, 
     try {
       const cacheKey = getCacheKey(section);
       const timestamp = Date.now();
-      localStorage.setItem(cacheKey, JSON.stringify({
+      const cacheEntry = {
         data: sectionData,
         timestamp,
-        profileVersion: new Date(profile.timestamp).getTime() || 0
-      }));
+        profileVersion: new Date(profile.timestamp).getTime() || 0,
+        userId: user?.id
+      };
+      
+      localStorage.setItem(cacheKey, JSON.stringify(cacheEntry));
       setTimestamps(prev => ({ ...prev, [section]: timestamp }));
+      
+      // Also save to database for persistent cross-device access
+      if (user?.id) {
+        saveToDatabaseCache(section, sectionData, cacheKey);
+      }
     } catch (error) {
       console.error(`Error saving cache for ${section}:`, error);
+    }
+  };
+
+  const saveToDatabaseCache = async (section: string, sectionData: any, cacheKey: string) => {
+    try {
+      const { supabase } = await import('@/integrations/supabase/client');
+      
+      await supabase
+        .from('ai_insights')
+        .upsert({
+          user_id: user?.id,
+          insight_type: 'dashboard_cache',
+          section_name: section,
+          content: sectionData,
+          cache_key: cacheKey,
+          model_used: 'dashboard-cache',
+          version: 1
+        }, {
+          onConflict: 'user_id,section_name,cache_key'
+        });
+    } catch (error) {
+      console.warn(`Failed to save database cache for ${section}:`, error);
     }
   };
 
