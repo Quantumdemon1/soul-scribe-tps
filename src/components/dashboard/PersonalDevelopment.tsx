@@ -12,7 +12,7 @@ interface PersonalDevelopmentProps {
 }
 
 export const PersonalDevelopment: React.FC<PersonalDevelopmentProps> = ({ profile }) => {
-  const { data, loading, errors, generateSection } = useDashboard();
+  const { data, loading, errors, generateSection, refreshSection, getLastGenerated } = useDashboard();
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     growth: true,
     activities: false,

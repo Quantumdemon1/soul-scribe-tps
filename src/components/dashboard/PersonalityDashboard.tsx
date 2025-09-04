@@ -4,9 +4,9 @@ import { PDFReportGenerator } from '../../utils/pdfGenerator';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { LazyTabs } from '@/components/ui/lazy-tabs';
 import { Progress } from '@/components/ui/progress';
-import { DashboardProvider } from '@/contexts/DashboardContext';
+import { DashboardProvider, useDashboard } from '@/contexts/DashboardContext';
 import { RadarChart } from '../charts/RadarChart';
 import { CircularProgress } from '../charts/CircularProgress';
 import { DomainCard } from './DomainCard';
@@ -35,10 +35,14 @@ interface DashboardProps {
   onRetakeAssessment?: () => void;
 }
 
-export const PersonalityDashboard: React.FC<DashboardProps> = ({ profile: initialProfile, onRetakeAssessment }) => {
+const DashboardContent: React.FC<{ profile: PersonalityProfile; onRetakeAssessment?: () => void }> = ({ 
+  profile: initialProfile, 
+  onRetakeAssessment 
+}) => {
   const [activeTab, setActiveTab] = useState('overview');
   const [profile, setProfile] = useState(initialProfile);
   const [isRefinementOpen, setIsRefinementOpen] = useState(false);
+  const { preloadSection } = useDashboard();
 
   const handleExportJSON = () => {
     PDFReportGenerator.exportAsJSON(profile);
@@ -79,8 +83,22 @@ export const PersonalityDashboard: React.FC<DashboardProps> = ({ profile: initia
     }
   };
 
+  const handleTabLoad = (tabId: string) => {
+    // Preload data for specific tabs
+    const tabToSectionMap: Record<string, any> = {
+      'insights': 'coreInsights',
+      'ai-insights': 'aiInsights',
+      'development': 'personalDevelopment',
+      'career': 'careerLifestyle'
+    };
+
+    const section = tabToSectionMap[tabId];
+    if (section) {
+      preloadSection(section, profile);
+    }
+  };
+
   return (
-    <DashboardProvider profile={profile}>
       <div className="min-h-screen bg-background">
         <Header />
       {/* Hero Section */}
@@ -179,35 +197,41 @@ export const PersonalityDashboard: React.FC<DashboardProps> = ({ profile: initia
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-6 py-8">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-6 mb-8">
-            <TabsTrigger value="overview" className="flex items-center gap-2">
+        <LazyTabs 
+          value={activeTab} 
+          onValueChange={setActiveTab} 
+          onTabLoad={handleTabLoad}
+          className="w-full"
+          preloadNext={true}
+        >
+          <LazyTabs.List className="grid w-full grid-cols-6 mb-8">
+            <LazyTabs.Trigger value="overview" className="flex items-center gap-2">
               <User className="w-4 h-4" />
               Overview
-            </TabsTrigger>
-            <TabsTrigger value="insights" className="flex items-center gap-2">
+            </LazyTabs.Trigger>
+            <LazyTabs.Trigger value="insights" className="flex items-center gap-2">
               <Brain className="w-4 h-4" />
               Core Insights
-            </TabsTrigger>
-            <TabsTrigger value="ai-insights" className="flex items-center gap-2">
+            </LazyTabs.Trigger>
+            <LazyTabs.Trigger value="ai-insights" className="flex items-center gap-2">
               <Sparkles className="w-4 h-4" />
               AI Insights
-            </TabsTrigger>
-            <TabsTrigger value="types" className="flex items-center gap-2">
+            </LazyTabs.Trigger>
+            <LazyTabs.Trigger value="types" className="flex items-center gap-2">
               <Target className="w-4 h-4" />
               Personality Types
-            </TabsTrigger>
-            <TabsTrigger value="development" className="flex items-center gap-2">
+            </LazyTabs.Trigger>
+            <LazyTabs.Trigger value="development" className="flex items-center gap-2">
               <TrendingUp className="w-4 h-4" />
               Development
-            </TabsTrigger>
-            <TabsTrigger value="career" className="flex items-center gap-2">
+            </LazyTabs.Trigger>
+            <LazyTabs.Trigger value="career" className="flex items-center gap-2">
               <Briefcase className="w-4 h-4" />
               Career & Lifestyle
-            </TabsTrigger>
-          </TabsList>
+            </LazyTabs.Trigger>
+          </LazyTabs.List>
 
-          <TabsContent value="overview" className="space-y-8">
+          <LazyTabs.Content value="overview" className="space-y-8" eager={true}>
             {/* Framework Mappings */}
             <Card>
               <CardHeader>
@@ -327,28 +351,28 @@ export const PersonalityDashboard: React.FC<DashboardProps> = ({ profile: initia
                 />
               ))}
             </div>
-          </TabsContent>
+          </LazyTabs.Content>
 
-          <TabsContent value="insights">
+          <LazyTabs.Content value="insights">
             <CoreInsights profile={profile} />
-          </TabsContent>
+          </LazyTabs.Content>
 
-          <TabsContent value="ai-insights">
-          <AIInsightsPanel profile={profile} />
-          </TabsContent>
+          <LazyTabs.Content value="ai-insights">
+            <AIInsightsPanel profile={profile} />
+          </LazyTabs.Content>
 
-          <TabsContent value="types">
+          <LazyTabs.Content value="types">
             <FrameworkCorrelations profile={profile} />
-          </TabsContent>
+          </LazyTabs.Content>
 
-          <TabsContent value="development">
+          <LazyTabs.Content value="development">
             <PersonalDevelopment profile={profile} />
-          </TabsContent>
+          </LazyTabs.Content>
 
-          <TabsContent value="career">
+          <LazyTabs.Content value="career">
             <CareerLifestyle profile={profile} />
-          </TabsContent>
-        </Tabs>
+          </LazyTabs.Content>
+        </LazyTabs>
       </div>
       
       <RefinementModal
@@ -358,6 +382,13 @@ export const PersonalityDashboard: React.FC<DashboardProps> = ({ profile: initia
         onProfileUpdate={setProfile}
       />
       </div>
+  );
+};
+
+export const PersonalityDashboard: React.FC<DashboardProps> = (props) => {
+  return (
+    <DashboardProvider profile={props.profile}>
+      <DashboardContent {...props} />
     </DashboardProvider>
   );
 };

@@ -26,8 +26,11 @@ interface DashboardContextType {
   loading: Record<string, boolean>;
   errors: Record<string, string | null>;
   generateSection: (section: keyof DashboardData, profile: PersonalityProfile) => Promise<void>;
+  refreshSection: (section: keyof DashboardData, profile: PersonalityProfile) => Promise<void>;
   clearCache: () => void;
   isDataStale: (section: keyof DashboardData) => boolean;
+  getLastGenerated: (section: keyof DashboardData) => string | null;
+  preloadSection: (section: keyof DashboardData, profile: PersonalityProfile) => Promise<void>;
 }
 
 const DashboardContext = createContext<DashboardContextType | undefined>(undefined);
@@ -117,61 +120,108 @@ export const DashboardProvider: React.FC<DashboardProviderProps> = ({ children, 
   };
 
   const generateSection = async (section: keyof DashboardData, currentProfile: PersonalityProfile) => {
+    // Check if data already exists and is fresh
+    if (data[section] && !isDataStale(section)) {
+      return;
+    }
+
     if (loading[section]) return;
 
     setLoadingState(section, true);
     setErrorState(section, null);
 
     try {
-      switch (section) {
-        case 'coreInsights':
-          const coreInsights = await frameworkService.generateCoreInsights(currentProfile);
-          setData(prev => ({ ...prev, coreInsights }));
-          saveToCache(section, coreInsights);
-          break;
-
-        case 'aiInsights':
-          const aiInsights = await aiInsightsService.generateInsights(currentProfile, user?.id);
-          setData(prev => ({ ...prev, aiInsights }));
-          saveToCache(section, aiInsights);
-          break;
-
-        case 'frameworkInsights':
-          // Framework insights will be loaded from existing components for now
-          // This section can be implemented later when needed
-          break;
-
-        case 'personalDevelopment':
-          const [growthAreas, activities, tracking] = await Promise.all([
-            frameworkService.generatePersonalizedGrowthAreas(currentProfile),
-            frameworkService.generateDevelopmentActivities(currentProfile),
-            frameworkService.generateProgressTracking(currentProfile)
-          ]);
-          const personalDevelopment = { growthAreas, activities, tracking };
-          setData(prev => ({ ...prev, personalDevelopment }));
-          saveToCache(section, personalDevelopment);
-          break;
-
-        case 'careerLifestyle':
-          const [pathways, workEnvironment, lifestyle] = await Promise.all([
-            frameworkService.generateCareerPathways(currentProfile),
-            frameworkService.generateWorkEnvironmentPreferences(currentProfile),
-            frameworkService.generateLifestyleRecommendations(currentProfile)
-          ]);
-          const careerLifestyle = { pathways, workEnvironment, lifestyle };
-          setData(prev => ({ ...prev, careerLifestyle }));
-          saveToCache(section, careerLifestyle);
-          break;
-
-        default:
-          throw new Error(`Unknown section: ${section}`);
-      }
+      await _doGenerateSection(section, currentProfile);
     } catch (error) {
       console.error(`Error generating ${section}:`, error);
       setErrorState(section, `Failed to generate ${section.replace(/([A-Z])/g, ' $1').toLowerCase()}`);
     } finally {
       setLoadingState(section, false);
     }
+  };
+
+  const refreshSection = async (section: keyof DashboardData, currentProfile: PersonalityProfile) => {
+    if (loading[section]) return;
+
+    setLoadingState(section, true);
+    setErrorState(section, null);
+
+    try {
+      // Force regeneration by clearing cache first
+      const cacheKey = getCacheKey(section);
+      localStorage.removeItem(cacheKey);
+      
+      await _doGenerateSection(section, currentProfile);
+    } catch (error) {
+      console.error(`Error refreshing ${section}:`, error);
+      setErrorState(section, `Failed to refresh ${section.replace(/([A-Z])/g, ' $1').toLowerCase()}`);
+    } finally {
+      setLoadingState(section, false);
+    }
+  };
+
+  const preloadSection = async (section: keyof DashboardData, currentProfile: PersonalityProfile) => {
+    // Only preload if data doesn't exist and not currently loading
+    if (data[section] || loading[section]) return;
+
+    try {
+      await _doGenerateSection(section, currentProfile);
+    } catch (error) {
+      console.warn(`Error preloading ${section}:`, error);
+      // Don't set error state for preloading failures
+    }
+  };
+
+  const _doGenerateSection = async (section: keyof DashboardData, currentProfile: PersonalityProfile) => {
+    switch (section) {
+      case 'coreInsights':
+        const coreInsights = await frameworkService.generateCoreInsights(currentProfile);
+        setData(prev => ({ ...prev, coreInsights }));
+        saveToCache(section, coreInsights);
+        break;
+
+      case 'aiInsights':
+        const aiInsights = await aiInsightsService.generateInsights(currentProfile, user?.id);
+        setData(prev => ({ ...prev, aiInsights }));
+        saveToCache(section, aiInsights);
+        break;
+
+      case 'frameworkInsights':
+        // Framework insights will be loaded from existing components for now
+        // This section can be implemented later when needed
+        break;
+
+      case 'personalDevelopment':
+        const [growthAreas, activities, tracking] = await Promise.all([
+          frameworkService.generatePersonalizedGrowthAreas(currentProfile),
+          frameworkService.generateDevelopmentActivities(currentProfile),
+          frameworkService.generateProgressTracking(currentProfile)
+        ]);
+        const personalDevelopment = { growthAreas, activities, tracking };
+        setData(prev => ({ ...prev, personalDevelopment }));
+        saveToCache(section, personalDevelopment);
+        break;
+
+      case 'careerLifestyle':
+        const [pathways, workEnvironment, lifestyle] = await Promise.all([
+          frameworkService.generateCareerPathways(currentProfile),
+          frameworkService.generateWorkEnvironmentPreferences(currentProfile),
+          frameworkService.generateLifestyleRecommendations(currentProfile)
+        ]);
+        const careerLifestyle = { pathways, workEnvironment, lifestyle };
+        setData(prev => ({ ...prev, careerLifestyle }));
+        saveToCache(section, careerLifestyle);
+        break;
+
+      default:
+        throw new Error(`Unknown section: ${section}`);
+    }
+  };
+
+  const getLastGenerated = (section: keyof DashboardData): string | null => {
+    const timestamp = timestamps[section];
+    if (!timestamp) return null;
+    return new Date(timestamp).toLocaleString();
   };
 
   const clearCache = () => {
@@ -224,8 +274,11 @@ export const DashboardProvider: React.FC<DashboardProviderProps> = ({ children, 
         loading,
         errors,
         generateSection,
+        refreshSection,
         clearCache,
         isDataStale,
+        getLastGenerated,
+        preloadSection,
       }}
     >
       {children}

@@ -9,14 +9,15 @@ import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { FrameworkInsightsService } from '../../services/frameworkInsightsService';
-import { TrendingUp, Brain, Target, Lightbulb, ChevronDown, RefreshCw, Sparkles } from 'lucide-react';
+import { TrendingUp, Brain, Target, Lightbulb, ChevronDown, Sparkles, RefreshCw } from 'lucide-react';
+import { RefreshButton } from '@/components/ui/refresh-button';
 
 interface CoreInsightsProps {
   profile: PersonalityProfile;
 }
 
 export const CoreInsights: React.FC<CoreInsightsProps> = ({ profile }) => {
-  const { data, loading, errors, generateSection, isDataStale } = useDashboard();
+  const { data, loading, errors, generateSection, refreshSection, getLastGenerated } = useDashboard();
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     summary: true,
     domains: true,
@@ -76,10 +77,13 @@ export const CoreInsights: React.FC<CoreInsightsProps> = ({ profile }) => {
             AI-generated personalized insights (Confidence: {(coreInsights.confidence * 100).toFixed(0)}%)
           </span>
         </div>
-        <Button onClick={generateInsights} variant="ghost" size="sm">
-          <RefreshCw className="w-4 h-4 mr-2" />
-          Regenerate
-        </Button>
+        <RefreshButton
+          onRefresh={() => refreshSection('coreInsights', profile)}
+          isLoading={loading.coreInsights}
+          lastGenerated={getLastGenerated('coreInsights')}
+          variant="ghost"
+          size="sm"
+        />
       </div>
 
       {/* Personality Summary */}

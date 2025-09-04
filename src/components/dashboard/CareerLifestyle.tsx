@@ -12,7 +12,7 @@ interface CareerLifestyleProps {
 }
 
 export const CareerLifestyle: React.FC<CareerLifestyleProps> = ({ profile }) => {
-  const { data, loading, errors, generateSection } = useDashboard();
+  const { data, loading, errors, generateSection, refreshSection, getLastGenerated } = useDashboard();
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     career: true,
     workEnv: false,
