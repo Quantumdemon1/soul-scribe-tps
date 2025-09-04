@@ -97,6 +97,42 @@ export type Database = {
         }
         Relationships: []
       }
+      bookmarks: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          insight_content: Json
+          section_name: string
+          tags: string[] | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          insight_content: Json
+          section_name: string
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          insight_content?: Json
+          section_name?: string
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       error_logs: {
         Row: {
           context: Json | null
@@ -133,6 +169,39 @@ export type Database = {
           url?: string | null
           user_agent?: string | null
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      insight_comparisons: {
+        Row: {
+          baseline_assessment_id: string
+          changes_detected: Json
+          comparison_assessment_id: string
+          confidence_change: number | null
+          created_at: string
+          id: string
+          section_name: string
+          user_id: string
+        }
+        Insert: {
+          baseline_assessment_id: string
+          changes_detected: Json
+          comparison_assessment_id: string
+          confidence_change?: number | null
+          created_at?: string
+          id?: string
+          section_name: string
+          user_id: string
+        }
+        Update: {
+          baseline_assessment_id?: string
+          changes_detected?: Json
+          comparison_assessment_id?: string
+          confidence_change?: number | null
+          created_at?: string
+          id?: string
+          section_name?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -187,6 +256,42 @@ export type Database = {
           id?: string
           initial_scores?: Json
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      user_preferences: {
+        Row: {
+          created_at: string
+          dashboard_layout: Json | null
+          hidden_sections: string[] | null
+          id: string
+          insight_detail_level: string | null
+          notification_settings: Json | null
+          theme_preference: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          dashboard_layout?: Json | null
+          hidden_sections?: string[] | null
+          id?: string
+          insight_detail_level?: string | null
+          notification_settings?: Json | null
+          theme_preference?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          dashboard_layout?: Json | null
+          hidden_sections?: string[] | null
+          id?: string
+          insight_detail_level?: string | null
+          notification_settings?: Json | null
+          theme_preference?: string | null
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }

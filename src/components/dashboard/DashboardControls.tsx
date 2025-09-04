@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { DataStatusIndicator } from '@/components/ui/data-status-indicator';
 import { useDashboard, DashboardData } from '@/contexts/DashboardContext';
 import { PersonalityProfile } from '@/types/tps.types';
+import { BookmarkDialog } from '@/components/ui/bookmark-dialog';
 import { Settings, Save, Download, Share2, Bookmark } from 'lucide-react';
 import { 
   DropdownMenu, 
@@ -25,6 +26,7 @@ export const DashboardControls: React.FC<DashboardControlsProps> = ({
 }) => {
   const { data, loading, errors, clearCache, getLastGenerated } = useDashboard();
   const [isSaving, setIsSaving] = useState(false);
+  const [showBookmarkDialog, setShowBookmarkDialog] = useState(false);
 
   const handleExportSection = () => {
     const sectionData = data[currentSection as keyof typeof data];
@@ -41,18 +43,8 @@ export const DashboardControls: React.FC<DashboardControlsProps> = ({
     }
   };
 
-  const handleBookmarkSection = async () => {
-    setIsSaving(true);
-    try {
-      // Here you would implement saving to a favorites/bookmarks system
-      // For now, we'll just show a success message
-      console.log('Bookmarked section:', currentSection);
-      // toast({ title: "Section bookmarked!", description: "Added to your favorites." });
-    } catch (error) {
-      console.error('Failed to bookmark section:', error);
-    } finally {
-      setIsSaving(false);
-    }
+  const handleBookmarkSection = () => {
+    setShowBookmarkDialog(true);
   };
 
   const handleShareSection = async () => {
@@ -100,7 +92,7 @@ export const DashboardControls: React.FC<DashboardControlsProps> = ({
                   <Download className="w-4 h-4 mr-2" />
                   Export Section
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleBookmarkSection} disabled={isSaving || !currentSectionData}>
+                <DropdownMenuItem onClick={handleBookmarkSection} disabled={!currentSectionData}>
                   <Bookmark className="w-4 h-4 mr-2" />
                   Bookmark Section
                 </DropdownMenuItem>
@@ -133,6 +125,14 @@ export const DashboardControls: React.FC<DashboardControlsProps> = ({
           </div>
         </div>
       </CardContent>
+      
+      <BookmarkDialog
+        isOpen={showBookmarkDialog}
+        onClose={() => setShowBookmarkDialog(false)}
+        sectionName={currentSection}
+        insightContent={currentSectionData}
+        defaultTitle={`${currentSection} insights`}
+      />
     </Card>
   );
 };
