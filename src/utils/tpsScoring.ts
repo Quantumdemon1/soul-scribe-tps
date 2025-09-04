@@ -435,6 +435,9 @@ export class TPSScoring {
     else if (selfishness > 5.5) moral = 'Evil';
     else moral = 'Neutral';
     
+    // Standard DnD naming: 'True Neutral' instead of 'Neutral Neutral'
+    if (ethical === 'Neutral' && moral === 'Neutral') return 'True Neutral';
+    
     return `${ethical} ${moral}`;
   }
 
