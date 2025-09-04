@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
+import { DashboardProvider } from '@/contexts/DashboardContext';
 import { RadarChart } from '../charts/RadarChart';
 import { CircularProgress } from '../charts/CircularProgress';
 import { DomainCard } from './DomainCard';
@@ -79,8 +80,9 @@ export const PersonalityDashboard: React.FC<DashboardProps> = ({ profile: initia
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
+    <DashboardProvider profile={profile}>
+      <div className="min-h-screen bg-background">
+        <Header />
       {/* Hero Section */}
       <div className="bg-gradient-to-r from-primary via-primary/90 to-primary/80 text-primary-foreground">
         <div className="max-w-7xl mx-auto px-6 py-12">
@@ -355,6 +357,7 @@ export const PersonalityDashboard: React.FC<DashboardProps> = ({ profile: initia
         profile={profile}
         onProfileUpdate={setProfile}
       />
-    </div>
+      </div>
+    </DashboardProvider>
   );
 };

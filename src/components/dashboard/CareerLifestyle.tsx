@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { PersonalityProfile } from '../../types/tps.types';
+import { useDashboard } from '@/contexts/DashboardContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -11,11 +12,7 @@ interface CareerLifestyleProps {
 }
 
 export const CareerLifestyle: React.FC<CareerLifestyleProps> = ({ profile }) => {
-  const [careerPathways, setCareerPathways] = useState<any>(null);
-  const [workEnvironment, setWorkEnvironment] = useState<any>(null);
-  const [lifestyleRecs, setLifestyleRecs] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { data, loading, errors, generateSection } = useDashboard();
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     career: true,
     workEnv: false,
@@ -23,37 +20,25 @@ export const CareerLifestyle: React.FC<CareerLifestyleProps> = ({ profile }) => 
     wellness: false,
   });
 
-  const frameworkService = new FrameworkInsightsService();
+  const careerLifestyle = data.careerLifestyle;
+  const isLoading = loading.careerLifestyle;
+  const error = errors.careerLifestyle;
+
+  const careerPathways = careerLifestyle?.pathways;
+  const workEnvironment = careerLifestyle?.workEnvironment;
+  const lifestyleRecs = careerLifestyle?.lifestyle;
 
   useEffect(() => {
-    const generateCareerLifestyleInsights = async () => {
-      try {
-        setLoading(true);
-        const [pathways, environment, lifestyle] = await Promise.all([
-          frameworkService.generateCareerPathways(profile),
-          frameworkService.generateWorkEnvironmentPreferences(profile),
-          frameworkService.generateLifestyleRecommendations(profile)
-        ]);
-
-        setCareerPathways(pathways);
-        setWorkEnvironment(environment);
-        setLifestyleRecs(lifestyle);
-      } catch (err) {
-        console.error('Error generating career lifestyle insights:', err);
-        setError('Failed to generate personalized career and lifestyle insights');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    generateCareerLifestyleInsights();
+    if (!careerLifestyle && !isLoading) {
+      generateSection('careerLifestyle', profile);
+    }
   }, [profile]);
 
   const toggleSection = (section: string) => {
     setOpenSections(prev => ({ ...prev, [section]: !prev[section] }));
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="space-y-6">
         <Card>

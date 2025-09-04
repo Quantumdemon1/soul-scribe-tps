@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { PersonalityProfile } from '../../types/tps.types';
+import { useDashboard } from '@/contexts/DashboardContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -11,11 +12,7 @@ interface PersonalDevelopmentProps {
 }
 
 export const PersonalDevelopment: React.FC<PersonalDevelopmentProps> = ({ profile }) => {
-  const [aiGrowthAreas, setAiGrowthAreas] = useState<any>(null);
-  const [aiActivities, setAiActivities] = useState<any>(null);
-  const [aiTracking, setAiTracking] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { data, loading, errors, generateSection } = useDashboard();
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     growth: true,
     activities: false,
@@ -23,37 +20,25 @@ export const PersonalDevelopment: React.FC<PersonalDevelopmentProps> = ({ profil
     mindset: false,
   });
 
-  const frameworkService = new FrameworkInsightsService();
+  const personalDevelopment = data.personalDevelopment;
+  const isLoading = loading.personalDevelopment;
+  const error = errors.personalDevelopment;
+
+  const aiGrowthAreas = personalDevelopment?.growthAreas;
+  const aiActivities = personalDevelopment?.activities;
+  const aiTracking = personalDevelopment?.tracking;
 
   useEffect(() => {
-    const generateDevelopmentInsights = async () => {
-      try {
-        setLoading(true);
-        const [growthAreas, activities, tracking] = await Promise.all([
-          frameworkService.generatePersonalizedGrowthAreas(profile),
-          frameworkService.generateDevelopmentActivities(profile),
-          frameworkService.generateProgressTracking(profile)
-        ]);
-
-        setAiGrowthAreas(growthAreas);
-        setAiActivities(activities);
-        setAiTracking(tracking);
-      } catch (err) {
-        console.error('Error generating development insights:', err);
-        setError('Failed to generate personalized development insights');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    generateDevelopmentInsights();
+    if (!personalDevelopment && !isLoading) {
+      generateSection('personalDevelopment', profile);
+    }
   }, [profile]);
 
   const toggleSection = (section: string) => {
     setOpenSections(prev => ({ ...prev, [section]: !prev[section] }));
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="space-y-6">
         <Card>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { PersonalityProfile } from '../../types/tps.types';
 import { CoreInsight } from '../../types/llm.types';
+import { useDashboard } from '@/contexts/DashboardContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -15,42 +16,32 @@ interface CoreInsightsProps {
 }
 
 export const CoreInsights: React.FC<CoreInsightsProps> = ({ profile }) => {
-  const [coreInsights, setCoreInsights] = useState<CoreInsight | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { data, loading, errors, generateSection, isDataStale } = useDashboard();
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     summary: true,
     domains: true,
     strengths: true
   });
 
-  const frameworkService = new FrameworkInsightsService();
+  const coreInsights = data.coreInsights;
+  const isLoading = loading.coreInsights;
+  const error = errors.coreInsights;
 
   const generateInsights = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      console.log('Generating core insights for profile:', profile);
-      const insights = await frameworkService.generateCoreInsights(profile);
-      console.log('Generated core insights:', insights);
-      setCoreInsights(insights);
-    } catch (err) {
-      console.error('Failed to generate core insights:', err);
-      setError('Failed to generate personalized insights. Please try again.');
-    } finally {
-      setLoading(false);
-    }
+    await generateSection('coreInsights', profile);
   };
 
   useEffect(() => {
-    generateInsights();
+    if (!coreInsights && !isLoading) {
+      generateInsights();
+    }
   }, [profile]);
 
   const toggleSection = (section: string) => {
     setOpenSections(prev => ({ ...prev, [section]: !prev[section] }));
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
         <LoadingSpinner />
