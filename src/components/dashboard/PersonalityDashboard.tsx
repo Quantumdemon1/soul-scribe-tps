@@ -16,6 +16,7 @@ import { PersonalDevelopment } from './PersonalDevelopment';
 import { AIInsightsPanel } from './AIInsightsPanel';
 import { CareerLifestyle } from './CareerLifestyle';
 import { DashboardControls } from './DashboardControls';
+import { EnhancedInsightsPanel } from './EnhancedInsightsPanel';
 import { RefinementModal } from './RefinementModal';
 
 import { InsightComparisonPanel } from './InsightComparisonPanel';
@@ -220,7 +221,7 @@ const DashboardContent: React.FC<{ profile: PersonalityProfile; onRetakeAssessme
           className="w-full"
           preloadNext={true}
         >
-          <LazyTabs.List className="grid w-full grid-cols-7 mb-8">
+          <LazyTabs.List className="grid w-full grid-cols-4 lg:grid-cols-8 mb-8">
             <LazyTabs.Trigger value="overview" className="flex items-center gap-2">
               <User className="w-4 h-4" />
               Overview
@@ -248,6 +249,10 @@ const DashboardContent: React.FC<{ profile: PersonalityProfile; onRetakeAssessme
             <LazyTabs.Trigger value="comparison" className="flex items-center gap-2">
               <GitCompare className="w-4 h-4" />
               Comparison
+            </LazyTabs.Trigger>
+            <LazyTabs.Trigger value="enhanced" className="flex items-center gap-2">
+              <Brain className="w-4 h-4" />
+              Enhanced Insights
             </LazyTabs.Trigger>
           </LazyTabs.List>
 
@@ -369,6 +374,17 @@ const DashboardContent: React.FC<{ profile: PersonalityProfile; onRetakeAssessme
 
           <LazyTabs.Content value="comparison">
             <InsightComparisonPanel currentProfile={profile} />
+          </LazyTabs.Content>
+
+          <LazyTabs.Content value="enhanced">
+            <EnhancedInsightsPanel 
+              mbtiDetail={profile.mappings.mbtiDetail}
+              enneagramDetail={profile.mappings.enneagramDetail}
+              bigFiveDetail={profile.mappings.bigFiveDetail}
+              attachmentStyle={profile.mappings.attachmentStyle}
+              alignmentDetail={profile.mappings.alignmentDetail}
+              hollandDetail={profile.mappings.hollandDetail}
+            />
           </LazyTabs.Content>
         </LazyTabs>
       </div>

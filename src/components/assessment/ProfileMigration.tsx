@@ -15,15 +15,19 @@ export const ProfileMigration: React.FC<ProfileMigrationProps> = ({
 
   useEffect(() => {
     const checkAndMigrateProfile = () => {
-      // Check if this profile needs migration (no version or version is below 2.0.0)
-      const needsMigration = !profile.version || 
-        (profile.version && parseFloat(profile.version) < 2.0) ||
-        profile.mappings.dndAlignment === 'Neutral Neutral'; // Direct check for old default
+      // Check if this profile needs migration to version 2.1.0 (enhanced mappings)
+      const currentVersion = profile.version || '1.0.0';
+      const needsEnhancedMigration = parseFloat(currentVersion) < 2.1;
+      const needsAlignmentMigration = !profile.version || 
+        parseFloat(currentVersion) < 2.0 ||
+        profile.mappings.dndAlignment === 'Neutral Neutral';
       
-      if (needsMigration) {
-        console.log('Migrating profile with old D&D alignment calculation...', {
-          currentVersion: profile.version,
-          currentAlignment: profile.mappings.dndAlignment
+      if (needsEnhancedMigration || needsAlignmentMigration) {
+        console.log('Migrating profile to enhanced mappings version 2.1.0...', {
+          currentVersion,
+          hasEnhancedMappings: !!profile.mappings.mbtiDetail,
+          needsEnhancedMigration,
+          needsAlignmentMigration
         });
         setMigrationStatus('migrating');
         
@@ -31,11 +35,17 @@ export const ProfileMigration: React.FC<ProfileMigrationProps> = ({
           // Recalculate the profile with the updated logic
           const updatedProfile = TPSScoring.recalculateProfile(profile);
           
-          console.log('Profile migration complete:', {
+          console.log('Profile migration to v2.1.0 complete:', {
             oldAlignment: profile.mappings.dndAlignment,
             newAlignment: updatedProfile.mappings.dndAlignment,
             oldVersion: profile.version,
-            newVersion: updatedProfile.version
+            newVersion: updatedProfile.version,
+            hasEnhancedMappings: !!updatedProfile.mappings.mbtiDetail,
+            enhancedFeatures: {
+              mbtiDetail: !!updatedProfile.mappings.mbtiDetail,
+              attachmentStyle: !!updatedProfile.mappings.attachmentStyle,
+              enhancedEnneagram: !!updatedProfile.mappings.enneagramDetail
+            }
           });
           
           setMigrationStatus('complete');
@@ -45,9 +55,10 @@ export const ProfileMigration: React.FC<ProfileMigrationProps> = ({
           setMigrationStatus('complete'); // Continue with original profile
         }
       } else {
-        console.log('Profile migration not needed:', {
+        console.log('Profile migration not needed - already v2.1.0+:', {
           version: profile.version,
-          alignment: profile.mappings.dndAlignment
+          alignment: profile.mappings.dndAlignment,
+          hasEnhancedMappings: !!profile.mappings.mbtiDetail
         });
         setMigrationStatus('not-needed');
       }
