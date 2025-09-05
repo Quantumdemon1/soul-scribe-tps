@@ -16,6 +16,7 @@ import { AnalyticsOverview } from '@/components/analytics/AnalyticsOverview';
 import { SystemHealth } from '@/components/analytics/SystemHealth';
 import { CacheIntegrationTest } from '@/components/test/CacheIntegrationTest';
 import { PerformanceMonitor } from '@/components/ui/performance-monitor';
+import { AlignmentTest } from '@/components/test/AlignmentTest';
 import { DEFAULT_SYSTEM_PROMPTS } from '@/config/systemPrompts';
 
 interface LLMConfig {
@@ -526,7 +527,10 @@ export const AdminPanel: React.FC = () => {
           </TabsContent>
 
           <TabsContent value="testing" className="space-y-6">
-            <CacheIntegrationTest />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <CacheIntegrationTest />
+              <AlignmentTest />
+            </div>
           </TabsContent>
 
           <TabsContent value="performance" className="space-y-6">

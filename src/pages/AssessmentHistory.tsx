@@ -15,7 +15,7 @@ import { PDFReportGenerator } from '@/utils/pdfGenerator';
 import { supabase } from '@/integrations/supabase/client';
 import { TPSScoring } from '@/utils/tpsScoring';
 import { useToast } from '@/hooks/use-toast';
-import { AlignmentTest } from '@/components/test/AlignmentTest';
+
 
 const AssessmentHistory: React.FC = () => {
   const { assessments, loading, deleteAssessment } = useAssessments();
@@ -136,7 +136,7 @@ const AssessmentHistory: React.FC = () => {
                 <RefreshCw className="w-4 h-4 mr-2" />
                 {recalcLoading ? 'Recalculating...' : 'Recalculate mappings'}
               </Button>
-              <AlignmentTest />
+              
             </div>
           </div>
           
