@@ -1,13 +1,29 @@
 import { TPSScores, DominantTraits, PersonalityProfile } from '../types/tps.types';
-import { 
-  calculateMBTIEnhanced, 
-  calculateEnneagramEnhanced, 
-  calculateBigFiveEnhanced, 
-  calculateHollandEnhanced, 
-  calculateAlignmentEnhanced, 
-  calculateAttachmentStyle, 
-  calculateSocionicsEnhanced 
-} from '../mappings';
+
+// Safe imports to avoid circular dependencies
+let enhancedMappingsLoaded = false;
+let calculateMBTIEnhanced: any = null;
+let calculateEnneagramEnhanced: any = null;
+let calculateBigFiveEnhanced: any = null;
+let calculateHollandEnhanced: any = null;
+let calculateAlignmentEnhanced: any = null;
+let calculateAttachmentStyle: any = null;
+let calculateSocionicsEnhanced: any = null;
+
+// Try to load enhanced mappings synchronously if possible
+try {
+  const mappings = require('../mappings');
+  calculateMBTIEnhanced = mappings.calculateMBTIEnhanced;
+  calculateEnneagramEnhanced = mappings.calculateEnneagramEnhanced;
+  calculateBigFiveEnhanced = mappings.calculateBigFiveEnhanced;
+  calculateHollandEnhanced = mappings.calculateHollandEnhanced;
+  calculateAlignmentEnhanced = mappings.calculateAlignmentEnhanced;
+  calculateAttachmentStyle = mappings.calculateAttachmentStyle;
+  calculateSocionicsEnhanced = mappings.calculateSocionicsEnhanced;
+  enhancedMappingsLoaded = true;
+} catch (error) {
+  console.warn('Enhanced mappings not available, using basic scoring:', error);
+}
 
 export class TPSScoring {
   static readonly TRAIT_MAPPINGS = {
@@ -211,14 +227,14 @@ export class TPSScoring {
     const mbti = this.calculateMBTI(traitScores);
     const enneagramDetails = this.calculateEnneagramDetails(traitScores);
     
-    // Enhanced detailed mappings
-    const mbtiDetail = calculateMBTIEnhanced(traitScores);
-    const enneagramDetail = calculateEnneagramEnhanced(traitScores);
-    const bigFiveDetail = calculateBigFiveEnhanced(traitScores);
-    const alignmentDetail = calculateAlignmentEnhanced(traitScores);
-    const hollandDetail = calculateHollandEnhanced(traitScores);
-    const attachmentStyle = calculateAttachmentStyle(traitScores);
-    const socionicsDetail = calculateSocionicsEnhanced(mbti, traitScores);
+    // Enhanced detailed mappings (with safe fallback)
+    const mbtiDetail = calculateMBTIEnhanced ? calculateMBTIEnhanced(traitScores) : null;
+    const enneagramDetail = calculateEnneagramEnhanced ? calculateEnneagramEnhanced(traitScores) : null;
+    const bigFiveDetail = calculateBigFiveEnhanced ? calculateBigFiveEnhanced(traitScores) : null;
+    const alignmentDetail = calculateAlignmentEnhanced ? calculateAlignmentEnhanced(traitScores) : null;
+    const hollandDetail = calculateHollandEnhanced ? calculateHollandEnhanced(traitScores) : null;
+    const attachmentStyle = calculateAttachmentStyle ? calculateAttachmentStyle(traitScores) : null;
+    const socionicsDetail = calculateSocionicsEnhanced ? calculateSocionicsEnhanced(mbti, traitScores) : null;
     
     return {
       mbti,
