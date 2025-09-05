@@ -10,20 +10,25 @@ let calculateAlignmentEnhanced: any = null;
 let calculateAttachmentStyle: any = null;
 let calculateSocionicsEnhanced: any = null;
 
-// Try to load enhanced mappings synchronously if possible
-try {
-  const mappings = require('../mappings');
-  calculateMBTIEnhanced = mappings.calculateMBTIEnhanced;
-  calculateEnneagramEnhanced = mappings.calculateEnneagramEnhanced;
-  calculateBigFiveEnhanced = mappings.calculateBigFiveEnhanced;
-  calculateHollandEnhanced = mappings.calculateHollandEnhanced;
-  calculateAlignmentEnhanced = mappings.calculateAlignmentEnhanced;
-  calculateAttachmentStyle = mappings.calculateAttachmentStyle;
-  calculateSocionicsEnhanced = mappings.calculateSocionicsEnhanced;
-  enhancedMappingsLoaded = true;
-} catch (error) {
-  console.warn('Enhanced mappings not available, using basic scoring:', error);
-}
+// Try to load enhanced mappings asynchronously
+const loadEnhancedMappings = async () => {
+  try {
+    const mappings = await import('../mappings/index');
+    calculateMBTIEnhanced = mappings.calculateMBTIEnhanced;
+    calculateEnneagramEnhanced = mappings.calculateEnneagramEnhanced;
+    calculateBigFiveEnhanced = mappings.calculateBigFiveEnhanced;
+    calculateHollandEnhanced = mappings.calculateHollandEnhanced;
+    calculateAlignmentEnhanced = mappings.calculateAlignmentEnhanced;
+    calculateAttachmentStyle = mappings.calculateAttachmentStyle;
+    calculateSocionicsEnhanced = mappings.calculateSocionicsEnhanced;
+    enhancedMappingsLoaded = true;
+  } catch (error) {
+    // Enhanced mappings not available, using basic scoring
+  }
+};
+
+// Initialize enhanced mappings
+loadEnhancedMappings();
 
 export class TPSScoring {
   static readonly TRAIT_MAPPINGS = {

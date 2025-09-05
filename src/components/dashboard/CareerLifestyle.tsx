@@ -30,7 +30,9 @@ export const CareerLifestyle: React.FC<CareerLifestyleProps> = ({ profile }) => 
 
   useEffect(() => {
     if (!careerLifestyle && !isLoading) {
-      generateSection('careerLifestyle', profile);
+      generateSection('careerLifestyle', profile).catch((error) => {
+        console.error('Failed to generate career lifestyle:', error);
+      });
     }
   }, [profile]);
 
