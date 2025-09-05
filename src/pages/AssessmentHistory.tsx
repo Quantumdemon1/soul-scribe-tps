@@ -15,6 +15,7 @@ import { PDFReportGenerator } from '@/utils/pdfGenerator';
 import { supabase } from '@/integrations/supabase/client';
 import { TPSScoring } from '@/utils/tpsScoring';
 import { useToast } from '@/hooks/use-toast';
+import { AlignmentTest } from '@/components/test/AlignmentTest';
 
 const AssessmentHistory: React.FC = () => {
   const { assessments, loading, deleteAssessment } = useAssessments();
@@ -135,6 +136,7 @@ const AssessmentHistory: React.FC = () => {
                 <RefreshCw className="w-4 h-4 mr-2" />
                 {recalcLoading ? 'Recalculating...' : 'Recalculate mappings'}
               </Button>
+              <AlignmentTest />
             </div>
           </div>
           
@@ -241,10 +243,16 @@ const AssessmentHistory: React.FC = () => {
                               {assessment.profile.mappings && (
                                 <div>
                                   MBTI: {assessment.profile.mappings.mbti} | 
-                                  Enneagram: {assessment.profile.mappings.enneagram}
+                                  Enneagram: {assessment.profile.mappings.enneagram} |
+                                  D&D: {assessment.profile.mappings.dndAlignment}
                                   {assessment.profile.frameworkInsights && (
                                     <span className="ml-2 text-xs">
                                       <Badge variant="secondary" className="text-xs">Enhanced Insights</Badge>
+                                    </span>
+                                  )}
+                                  {assessment.profile.version && (
+                                    <span className="ml-2 text-xs">
+                                      <Badge variant="outline" className="text-xs">v{assessment.profile.version}</Badge>
                                     </span>
                                   )}
                                 </div>
