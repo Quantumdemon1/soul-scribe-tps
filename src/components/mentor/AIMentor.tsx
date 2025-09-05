@@ -10,6 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Brain, Send, MessageSquare, User, Bot, ChevronLeft, Plus, Sparkles } from 'lucide-react';
 import { MentorService, MentorConversation, MentorMessage } from '@/services/mentorService';
 import { ConversationStarters } from '@/components/mentor/ConversationStarters';
+import { MarkdownRenderer } from '@/components/ui/markdown-renderer';
 import { PersonalityProfile } from '@/types/tps.types';
 import { useAssessments } from '@/hooks/useAssessments';
 import { supabase } from '@/integrations/supabase/client';
@@ -337,7 +338,11 @@ export const AIMentor: React.FC<AIMentorProps> = ({ initialProfile }) => {
                           : 'bg-muted'
                       }`}
                     >
-                      <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                      {message.role === 'assistant' ? (
+                        <MarkdownRenderer content={message.content} className="text-sm" />
+                      ) : (
+                        <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                      )}
                       <div className="text-xs opacity-70 mt-1">
                         {new Date(message.created_at).toLocaleTimeString()}
                       </div>
