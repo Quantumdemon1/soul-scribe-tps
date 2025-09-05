@@ -22,17 +22,14 @@ const LazyTabsContent = React.forwardRef<
   HTMLDivElement,
   LazyTabsContentProps
 >(({ value, children, className, eager = false, ...props }, ref) => {
-  const [hasBeenActive, setHasBeenActive] = useState(eager);
-  
   return (
     <TabsContent
       ref={ref}
       value={value}
       className={className}
-      onFocus={() => setHasBeenActive(true)}
       {...props}
     >
-      {hasBeenActive ? children : null}
+      {children}
     </TabsContent>
   );
 });
@@ -52,41 +49,15 @@ export const LazyTabs: React.FC<LazyTabsProps> & {
   preloadNext = true,
   onTabLoad 
 }) => {
-  const [activeTab, setActiveTab] = useState(value || defaultValue || '');
-  const [loadedTabs, setLoadedTabs] = useState<Set<string>>(new Set());
-
   const handleValueChange = useCallback((newValue: string) => {
-    setActiveTab(newValue);
     onValueChange?.(newValue);
-    
-    // Mark tab as loaded
-    if (!loadedTabs.has(newValue)) {
-      setLoadedTabs(prev => new Set([...prev, newValue]));
-      onTabLoad?.(newValue);
-    }
-  }, [onValueChange, onTabLoad, loadedTabs]);
-
-  // Preload next tab
-  useEffect(() => {
-    if (!preloadNext || !activeTab) return;
-
-    const timer = setTimeout(() => {
-      // Find the next tab to preload (simplified logic)
-      const tabOrder = ['overview', 'insights', 'ai-insights', 'types', 'development', 'career'];
-      const currentIndex = tabOrder.indexOf(activeTab);
-      const nextTab = tabOrder[currentIndex + 1];
-      
-      if (nextTab && !loadedTabs.has(nextTab)) {
-        onTabLoad?.(nextTab);
-      }
-    }, 2000); // Preload after 2 seconds
-
-    return () => clearTimeout(timer);
-  }, [activeTab, preloadNext, onTabLoad, loadedTabs]);
+    onTabLoad?.(newValue);
+  }, [onValueChange, onTabLoad]);
 
   return (
     <Tabs 
-      value={value || activeTab} 
+      defaultValue={defaultValue}
+      value={value} 
       onValueChange={handleValueChange}
       className={className}
     >

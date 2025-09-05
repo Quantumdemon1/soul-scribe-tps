@@ -394,45 +394,50 @@ export class TPSScoring {
   }
 
   private static calculateAlignment(traitScores: TPSScores): string {
+    // Helper function to safely get trait score with fallback
+    const getTraitScore = (traitName: string): number => {
+      return traitScores[traitName] || 5.0; // Default to neutral if trait missing
+    };
+
     // Lawful-Chaotic Axis
     const lawfulness = (
-      (traitScores['Lawful'] * 0.40) +
-      (traitScores['Structured'] * 0.30) +
-      (traitScores['Diplomatic'] * 0.15) +
-      (traitScores['Self-Mastery'] * 0.15)
+      (getTraitScore('Lawful') * 0.40) +
+      (getTraitScore('Structured') * 0.30) +
+      (getTraitScore('Diplomatic') * 0.15) +
+      (getTraitScore('Self-Mastery') * 0.15)
     );
     
     const chaos = (
-      (traitScores['Self-Principled'] * 0.35) +
-      (traitScores['Independent'] * 0.35) +
-      (traitScores['Dynamic'] * 0.15) +
-      (traitScores['Intuitive'] * 0.15)
+      (getTraitScore('Self-Principled') * 0.35) +
+      (getTraitScore('Independent') * 0.35) +
+      (getTraitScore('Dynamic') * 0.15) +
+      (getTraitScore('Intuitive') * 0.15)
     );
     
     let ethical: string;
-    if (lawfulness > 5.5) ethical = 'Lawful';
-    else if (chaos > 5.5) ethical = 'Chaotic';
+    if (lawfulness > 6.0) ethical = 'Lawful';
+    else if (chaos > 6.0) ethical = 'Chaotic';
     else ethical = 'Neutral';
     
     // Good-Evil Axis
     const goodness = (
-      (traitScores['Communal Navigate'] * 0.30) +
-      (traitScores['Diplomatic'] * 0.25) +
-      (traitScores['Optimistic'] * 0.20) +
-      (traitScores['Responsive'] * 0.15) +
-      (traitScores['Social'] * 0.10)
+      (getTraitScore('Communal Navigate') * 0.30) +
+      (getTraitScore('Diplomatic') * 0.25) +
+      (getTraitScore('Optimistic') * 0.20) +
+      (getTraitScore('Responsive') * 0.15) +
+      (getTraitScore('Social') * 0.10)
     );
     
     const selfishness = (
-      (traitScores['Self-Indulgent'] * 0.40) +
-      (traitScores['Independent Navigate'] * 0.20) +
-      (traitScores['Assertive'] * 0.20) +
-      (traitScores['Pessimistic'] * 0.20)
+      (getTraitScore('Self-Indulgent') * 0.40) +
+      (getTraitScore('Independent Navigate') * 0.20) +
+      (getTraitScore('Assertive') * 0.20) +
+      (getTraitScore('Pessimistic') * 0.20)
     );
     
     let moral: string;
-    if (goodness > 5.5) moral = 'Good';
-    else if (selfishness > 5.5) moral = 'Evil';
+    if (goodness > 6.0) moral = 'Good';
+    else if (selfishness > 6.0) moral = 'Evil';
     else moral = 'Neutral';
     
     // Standard DnD naming: 'True Neutral' instead of 'Neutral Neutral'
