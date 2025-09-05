@@ -150,7 +150,26 @@ export class TPSScoring {
       traitScores,
       domainScores,
       mappings,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      version: '2.0.0' // Version to track alignment calculation fixes
+    };
+  }
+
+  // Utility to recalculate an existing profile with updated logic
+  static recalculateProfile(profile: PersonalityProfile, originalResponses?: number[]): PersonalityProfile {
+    // If we have original responses, do a full recalculation
+    if (originalResponses) {
+      return this.generateFullProfile(originalResponses);
+    }
+    
+    // Otherwise, just recalculate mappings from existing trait scores
+    const mappings = this.mapToOtherFrameworks(profile.dominantTraits, profile.traitScores);
+    
+    return {
+      ...profile,
+      mappings,
+      timestamp: new Date().toISOString(),
+      version: '2.0.0'
     };
   }
 
@@ -174,7 +193,8 @@ export class TPSScoring {
       traitScores: finalTraitScores,
       domainScores,
       mappings,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      version: '2.0.0'
     };
   }
 
@@ -396,7 +416,12 @@ export class TPSScoring {
   private static calculateAlignment(traitScores: TPSScores): string {
     // Helper function to safely get trait score with fallback
     const getTraitScore = (traitName: string): number => {
-      return traitScores[traitName] || 5.0; // Default to neutral if trait missing
+      const score = traitScores[traitName];
+      if (score === undefined) {
+        console.warn(`D&D Alignment: Missing trait '${traitName}', using default 5.0`);
+        return 5.0;
+      }
+      return score;
     };
 
     // Lawful-Chaotic Axis
@@ -414,9 +439,17 @@ export class TPSScoring {
       (getTraitScore('Intuitive') * 0.15)
     );
     
+    // Debug logging
+    console.log('D&D Alignment Calculation:', {
+      lawfulness: lawfulness.toFixed(2),
+      chaos: chaos.toFixed(2),
+      availableTraits: Object.keys(traitScores),
+      traitCounts: Object.keys(traitScores).length
+    });
+    
     let ethical: string;
-    if (lawfulness > 6.0) ethical = 'Lawful';
-    else if (chaos > 6.0) ethical = 'Chaotic';
+    if (lawfulness > chaos && lawfulness > 6.0) ethical = 'Lawful';
+    else if (chaos > lawfulness && chaos > 6.0) ethical = 'Chaotic';
     else ethical = 'Neutral';
     
     // Good-Evil Axis
@@ -435,15 +468,20 @@ export class TPSScoring {
       (getTraitScore('Pessimistic') * 0.20)
     );
     
+    console.log('D&D Alignment Moral Axis:', {
+      goodness: goodness.toFixed(2),
+      selfishness: selfishness.toFixed(2)
+    });
+    
     let moral: string;
-    if (goodness > 6.0) moral = 'Good';
-    else if (selfishness > 6.0) moral = 'Evil';
+    if (goodness > selfishness && goodness > 6.0) moral = 'Good';
+    else if (selfishness > goodness && selfishness > 6.0) moral = 'Evil';
     else moral = 'Neutral';
     
-    // Standard DnD naming: 'True Neutral' instead of 'Neutral Neutral'
-    if (ethical === 'Neutral' && moral === 'Neutral') return 'True Neutral';
+    const result = ethical === 'Neutral' && moral === 'Neutral' ? 'True Neutral' : `${ethical} ${moral}`;
+    console.log('D&D Alignment Result:', result);
     
-    return `${ethical} ${moral}`;
+    return result;
   }
 
   private static calculateSocionics(mbti: string): string {

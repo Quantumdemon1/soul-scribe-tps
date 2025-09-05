@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { FrameworkCorrelations } from '@/components/dashboard/FrameworkCorrelations';
 import { PersonalityDashboard } from '@/components/dashboard/PersonalityDashboard';
+import { ProfileMigration } from './ProfileMigration';
 import { FrameworkInsightsService } from '@/services/frameworkInsightsService';
 import { Brain, Download, Save, Share2, FileText, LoaderIcon } from 'lucide-react';
 import { PDFReportGenerator } from '@/utils/pdfGenerator';
@@ -25,6 +26,10 @@ export const AssessmentResults: React.FC<AssessmentResultsProps> = ({
   const [enhancedProfile, setEnhancedProfile] = useState<PersonalityProfile>(profile);
   const [generatingInsights, setGeneratingInsights] = useState(false);
   const { toast } = useToast();
+
+  const handleProfileMigration = (updatedProfile: PersonalityProfile) => {
+    setEnhancedProfile(updatedProfile);
+  };
 
   useEffect(() => {
     generateFrameworkInsights();
@@ -116,6 +121,12 @@ export const AssessmentResults: React.FC<AssessmentResultsProps> = ({
 
   return (
     <div className="space-y-6">
+      {/* Profile Migration Component */}
+      <ProfileMigration 
+        profile={profile} 
+        onProfileUpdated={handleProfileMigration} 
+      />
+      
       {/* Header */}
       <Card className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border-primary/20">
         <CardHeader>

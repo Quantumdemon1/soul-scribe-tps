@@ -40,6 +40,7 @@ export interface PersonalityProfile {
   };
   frameworkInsights?: import('./llm.types').FrameworkInsights;
   timestamp: string;
+  version?: string; // Optional version for tracking calculation updates
 }
 
 export interface QuestionResponse {
