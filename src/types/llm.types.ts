@@ -11,6 +11,12 @@ export interface LLMConfig {
     frameworkAnalysis: string;
     coreInsights: string;
     aiMentor: string;
+    mbtiExplanation: string;
+    enneagramExplanation: string;
+    bigFiveExplanation: string;
+    attachmentExplanation: string;
+    alignmentExplanation: string;
+    hollandExplanation: string;
   };
 }
 

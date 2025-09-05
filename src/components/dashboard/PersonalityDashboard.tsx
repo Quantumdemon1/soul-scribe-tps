@@ -384,6 +384,7 @@ const DashboardContent: React.FC<{ profile: PersonalityProfile; onRetakeAssessme
               attachmentStyle={profile.mappings.attachmentStyle}
               alignmentDetail={profile.mappings.alignmentDetail}
               hollandDetail={profile.mappings.hollandDetail}
+              profile={profile}
             />
           </LazyTabs.Content>
         </LazyTabs>

@@ -1,9 +1,13 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Brain, Heart, Users, Target, Compass, Shield } from 'lucide-react';
-import { MBTIDetail, EnneagramDetail, BigFiveDetail, AttachmentStyle, AlignmentDetail, HollandDetail } from '@/types/tps.types';
+import { Button } from '@/components/ui/button';
+import { Brain, Heart, Users, Target, Compass, Shield, Loader2, Lightbulb } from 'lucide-react';
+import { MBTIDetail, EnneagramDetail, BigFiveDetail, AttachmentStyle, AlignmentDetail, HollandDetail, PersonalityProfile } from '@/types/tps.types';
+import { EnhancedInsightService, FrameworkExplanation } from '@/services/enhancedInsightService';
+import { MarkdownRenderer } from '@/components/ui/markdown-renderer';
+import { useAuth } from '@/hooks/useAuth';
 
 interface EnhancedInsightsPanelProps {
   mbtiDetail?: MBTIDetail;
@@ -12,6 +16,7 @@ interface EnhancedInsightsPanelProps {
   attachmentStyle?: AttachmentStyle;
   alignmentDetail?: AlignmentDetail;
   hollandDetail?: HollandDetail;
+  profile?: PersonalityProfile;
 }
 
 export const EnhancedInsightsPanel: React.FC<EnhancedInsightsPanelProps> = ({
@@ -20,8 +25,79 @@ export const EnhancedInsightsPanel: React.FC<EnhancedInsightsPanelProps> = ({
   bigFiveDetail,
   attachmentStyle,
   alignmentDetail,
-  hollandDetail
+  hollandDetail,
+  profile
 }) => {
+  const { user } = useAuth();
+  const [explanations, setExplanations] = useState<FrameworkExplanation>({});
+  const [isGenerating, setIsGenerating] = useState<Record<string, boolean>>({});
+  const [hasGenerated, setHasGenerated] = useState<Record<string, boolean>>({});
+  const enhancedInsightService = new EnhancedInsightService();
+
+  const generateExplanation = async (framework: string) => {
+    if (!profile || isGenerating[framework] || hasGenerated[framework]) return;
+
+    setIsGenerating(prev => ({ ...prev, [framework]: true }));
+    
+    try {
+      const result = await enhancedInsightService.generateFrameworkExplanations(
+        profile,
+        [framework],
+        user?.id
+      );
+      
+      setExplanations(prev => ({ ...prev, ...result }));
+      setHasGenerated(prev => ({ ...prev, [framework]: true }));
+    } catch (error) {
+      console.error(`Error generating ${framework} explanation:`, error);
+    } finally {
+      setIsGenerating(prev => ({ ...prev, [framework]: false }));
+    }
+  };
+
+  const generateAllExplanations = async () => {
+    if (!profile) return;
+
+    const availableFrameworks = [];
+    if (mbtiDetail) availableFrameworks.push('mbti');
+    if (enneagramDetail) availableFrameworks.push('enneagram');
+    if (bigFiveDetail) availableFrameworks.push('bigFive');
+    if (attachmentStyle) availableFrameworks.push('attachment');
+    if (alignmentDetail) availableFrameworks.push('alignment');
+    if (hollandDetail) availableFrameworks.push('holland');
+
+    const frameworks = availableFrameworks.filter(f => !hasGenerated[f]);
+    if (frameworks.length === 0) return;
+
+    setIsGenerating(prev => {
+      const newState = { ...prev };
+      frameworks.forEach(f => newState[f] = true);
+      return newState;
+    });
+
+    try {
+      const result = await enhancedInsightService.generateFrameworkExplanations(
+        profile,
+        frameworks,
+        user?.id
+      );
+      
+      setExplanations(prev => ({ ...prev, ...result }));
+      setHasGenerated(prev => {
+        const newState = { ...prev };
+        frameworks.forEach(f => newState[f] = true);
+        return newState;
+      });
+    } catch (error) {
+      console.error('Error generating explanations:', error);
+    } finally {
+      setIsGenerating(prev => {
+        const newState = { ...prev };
+        frameworks.forEach(f => newState[f] = false);
+        return newState;
+      });
+    }
+  };
   if (!mbtiDetail && !enneagramDetail && !bigFiveDetail) {
     return (
       <Card>
@@ -32,8 +108,40 @@ export const EnhancedInsightsPanel: React.FC<EnhancedInsightsPanelProps> = ({
     );
   }
 
+  const hasAnyFramework = mbtiDetail || enneagramDetail || bigFiveDetail || attachmentStyle || alignmentDetail || hollandDetail;
+
   return (
     <div className="space-y-6">
+      {hasAnyFramework && profile && (
+        <Card className="bg-muted/30">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Lightbulb className="w-4 h-4 text-primary" />
+                <span className="text-sm font-medium">AI-Powered Explanations</span>
+              </div>
+              <Button 
+                onClick={generateAllExplanations}
+                disabled={Object.values(isGenerating).some(Boolean)}
+                size="sm"
+                variant="outline"
+              >
+                {Object.values(isGenerating).some(Boolean) ? (
+                  <>
+                    <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                    Generating...
+                  </>
+                ) : (
+                  'Generate All Explanations'
+                )}
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground mt-2">
+              Get personalized AI explanations for each framework result to understand why you got these types and how to apply them.
+            </p>
+          </CardContent>
+        </Card>
+      )}
       {/* MBTI Enhanced Details */}
       {mbtiDetail && (
         <Card>
@@ -79,6 +187,37 @@ export const EnhancedInsightsPanel: React.FC<EnhancedInsightsPanelProps> = ({
                 </span>
               </div>
             </div>
+            
+            {(explanations.mbti || isGenerating.mbti) && (
+              <div className="mt-4 pt-4 border-t border-border">
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="text-sm font-medium flex items-center gap-2">
+                    <Lightbulb className="w-3 h-3" />
+                    AI Explanation
+                  </h4>
+                  {isGenerating.mbti && <Loader2 className="w-3 h-3 animate-spin" />}
+                </div>
+                {explanations.mbti ? (
+                  <MarkdownRenderer content={explanations.mbti} className="text-xs" />
+                ) : (
+                  <div className="text-xs text-muted-foreground">Generating explanation...</div>
+                )}
+              </div>
+            )}
+            
+            {!explanations.mbti && !isGenerating.mbti && !hasGenerated.mbti && profile && (
+              <div className="mt-4 pt-4 border-t border-border">
+                <Button 
+                  onClick={() => generateExplanation('mbti')}
+                  size="sm" 
+                  variant="ghost"
+                  className="w-full text-xs"
+                >
+                  <Lightbulb className="w-3 h-3 mr-1" />
+                  Generate AI Explanation
+                </Button>
+              </div>
+            )}
           </CardContent>
         </Card>
       )}
@@ -128,6 +267,37 @@ export const EnhancedInsightsPanel: React.FC<EnhancedInsightsPanelProps> = ({
                 </p>
               </div>
             </div>
+            
+            {(explanations.enneagram || isGenerating.enneagram) && (
+              <div className="mt-4 pt-4 border-t border-border">
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="text-sm font-medium flex items-center gap-2">
+                    <Lightbulb className="w-3 h-3" />
+                    AI Explanation
+                  </h4>
+                  {isGenerating.enneagram && <Loader2 className="w-3 h-3 animate-spin" />}
+                </div>
+                {explanations.enneagram ? (
+                  <MarkdownRenderer content={explanations.enneagram} className="text-xs" />
+                ) : (
+                  <div className="text-xs text-muted-foreground">Generating explanation...</div>
+                )}
+              </div>
+            )}
+            
+            {!explanations.enneagram && !isGenerating.enneagram && !hasGenerated.enneagram && profile && (
+              <div className="mt-4 pt-4 border-t border-border">
+                <Button 
+                  onClick={() => generateExplanation('enneagram')}
+                  size="sm" 
+                  variant="ghost"
+                  className="w-full text-xs"
+                >
+                  <Lightbulb className="w-3 h-3 mr-1" />
+                  Generate AI Explanation
+                </Button>
+              </div>
+            )}
           </CardContent>
         </Card>
       )}
@@ -162,6 +332,37 @@ export const EnhancedInsightsPanel: React.FC<EnhancedInsightsPanelProps> = ({
                 ))}
               </ul>
             </div>
+            
+            {(explanations.attachment || isGenerating.attachment) && (
+              <div className="mt-4 pt-4 border-t border-border">
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="text-sm font-medium flex items-center gap-2">
+                    <Lightbulb className="w-3 h-3" />
+                    AI Explanation
+                  </h4>
+                  {isGenerating.attachment && <Loader2 className="w-3 h-3 animate-spin" />}
+                </div>
+                {explanations.attachment ? (
+                  <MarkdownRenderer content={explanations.attachment} className="text-xs" />
+                ) : (
+                  <div className="text-xs text-muted-foreground">Generating explanation...</div>
+                )}
+              </div>
+            )}
+            
+            {!explanations.attachment && !isGenerating.attachment && !hasGenerated.attachment && profile && (
+              <div className="mt-4 pt-4 border-t border-border">
+                <Button 
+                  onClick={() => generateExplanation('attachment')}
+                  size="sm" 
+                  variant="ghost"
+                  className="w-full text-xs"
+                >
+                  <Lightbulb className="w-3 h-3 mr-1" />
+                  Generate AI Explanation
+                </Button>
+              </div>
+            )}
           </CardContent>
         </Card>
       )}
@@ -238,6 +439,37 @@ export const EnhancedInsightsPanel: React.FC<EnhancedInsightsPanelProps> = ({
                 </p>
               </div>
             </div>
+            
+            {(explanations.bigFive || isGenerating.bigFive) && (
+              <div className="mt-4 pt-4 border-t border-border">
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="text-sm font-medium flex items-center gap-2">
+                    <Lightbulb className="w-3 h-3" />
+                    AI Explanation
+                  </h4>
+                  {isGenerating.bigFive && <Loader2 className="w-3 h-3 animate-spin" />}
+                </div>
+                {explanations.bigFive ? (
+                  <MarkdownRenderer content={explanations.bigFive} className="text-xs" />
+                ) : (
+                  <div className="text-xs text-muted-foreground">Generating explanation...</div>
+                )}
+              </div>
+            )}
+            
+            {!explanations.bigFive && !isGenerating.bigFive && !hasGenerated.bigFive && profile && (
+              <div className="mt-4 pt-4 border-t border-border">
+                <Button 
+                  onClick={() => generateExplanation('bigFive')}
+                  size="sm" 
+                  variant="ghost"
+                  className="w-full text-xs"
+                >
+                  <Lightbulb className="w-3 h-3 mr-1" />
+                  Generate AI Explanation
+                </Button>
+              </div>
+            )}
           </CardContent>
         </Card>
       )}
@@ -284,6 +516,37 @@ export const EnhancedInsightsPanel: React.FC<EnhancedInsightsPanelProps> = ({
                   </div>
                 ))}
             </div>
+            
+            {(explanations.alignment || isGenerating.alignment) && (
+              <div className="mt-4 pt-4 border-t border-border">
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="text-sm font-medium flex items-center gap-2">
+                    <Lightbulb className="w-3 h-3" />
+                    AI Explanation
+                  </h4>
+                  {isGenerating.alignment && <Loader2 className="w-3 h-3 animate-spin" />}
+                </div>
+                {explanations.alignment ? (
+                  <MarkdownRenderer content={explanations.alignment} className="text-xs" />
+                ) : (
+                  <div className="text-xs text-muted-foreground">Generating explanation...</div>
+                )}
+              </div>
+            )}
+            
+            {!explanations.alignment && !isGenerating.alignment && !hasGenerated.alignment && profile && (
+              <div className="mt-4 pt-4 border-t border-border">
+                <Button 
+                  onClick={() => generateExplanation('alignment')}
+                  size="sm" 
+                  variant="ghost"
+                  className="w-full text-xs"
+                >
+                  <Lightbulb className="w-3 h-3 mr-1" />
+                  Generate AI Explanation
+                </Button>
+              </div>
+            )}
           </CardContent>
         </Card>
       )}
