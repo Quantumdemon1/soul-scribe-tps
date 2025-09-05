@@ -111,6 +111,7 @@ export const FrameworkCorrelations: React.FC<FrameworkCorrelationsProps> = ({ pr
         <div className="grid md:grid-cols-3 gap-4 mb-8">
           <div className="bg-muted/50 border border-border rounded-lg p-4">
             <div className="text-sm text-muted-foreground mb-1">MBTI Type</div>
+            <div className="text-xs text-muted-foreground mb-2">Your personality preferences in how you interact, process information, make decisions, and approach life</div>
             <div className="text-2xl font-bold text-primary">{profile.mappings.mbti}</div>
             {insights?.mbti && (
               <div className="text-xs text-muted-foreground flex items-center gap-1">
@@ -123,6 +124,7 @@ export const FrameworkCorrelations: React.FC<FrameworkCorrelationsProps> = ({ pr
           </div>
           <div className="bg-muted/50 border border-border rounded-lg p-4">
             <div className="text-sm text-muted-foreground mb-1">Enneagram</div>
+            <div className="text-xs text-muted-foreground mb-2">Your core motivation, fears, and behavioral patterns based on nine fundamental personality types</div>
             <div className="text-2xl font-bold text-primary">
               Type {profile.mappings.enneagramDetails.type}w{profile.mappings.enneagramDetails.wing}
             </div>
@@ -130,6 +132,7 @@ export const FrameworkCorrelations: React.FC<FrameworkCorrelationsProps> = ({ pr
           </div>
           <div className="bg-muted/50 border border-border rounded-lg p-4">
             <div className="text-sm text-muted-foreground mb-1">D&D Alignment</div>
+            <div className="text-xs text-muted-foreground mb-2">Your ethical and moral compass, measuring your approach to rules and concern for others</div>
             <div className="text-2xl font-bold text-primary">{profile.mappings.dndAlignment}</div>
             {insights?.alignment && (
               <div className="text-xs text-muted-foreground flex items-center gap-1">
@@ -148,6 +151,7 @@ export const FrameworkCorrelations: React.FC<FrameworkCorrelationsProps> = ({ pr
             <FrameworkCard
               title="MBTI"
               subtitle={profile.mappings.mbti}
+              description="Your personality preferences in how you interact, process information, make decisions, and approach life"
               icon={Brain}
               expanded={expandedFramework === 'mbti'}
               onToggle={() => toggleFramework('mbti')}
@@ -160,6 +164,7 @@ export const FrameworkCorrelations: React.FC<FrameworkCorrelationsProps> = ({ pr
             <FrameworkCard
               title="Enneagram"
               subtitle={`Type ${profile.mappings.enneagramDetails.type}w${profile.mappings.enneagramDetails.wing}`}
+              description="Your core motivation, fears, and behavioral patterns based on nine fundamental personality types"
               icon={Users}
               expanded={expandedFramework === 'enneagram'}
               onToggle={() => toggleFramework('enneagram')}
@@ -172,6 +177,7 @@ export const FrameworkCorrelations: React.FC<FrameworkCorrelationsProps> = ({ pr
             <FrameworkCard
               title="Big Five Traits"
               subtitle="Five-Factor Model of Personality"
+              description="Your personality across five major dimensions that influence behavior and thinking patterns"
               icon={Star}
               expanded={expandedFramework === 'bigfive'}
               onToggle={() => toggleFramework('bigfive')}
@@ -184,6 +190,7 @@ export const FrameworkCorrelations: React.FC<FrameworkCorrelationsProps> = ({ pr
             <FrameworkCard
               title="Moral Alignment"
               subtitle={profile.mappings.dndAlignment}
+              description="Your ethical and moral compass, measuring your approach to rules and concern for others"
               icon={Shield}
               expanded={expandedFramework === 'alignment'}
               onToggle={() => toggleFramework('alignment')}
@@ -196,6 +203,7 @@ export const FrameworkCorrelations: React.FC<FrameworkCorrelationsProps> = ({ pr
             <FrameworkCard
               title="Holland Code"
               subtitle={profile.mappings.hollandCode}
+              description="Your career interests and work environment preferences across six occupational themes"
               icon={Briefcase}
               expanded={expandedFramework === 'holland'}
               onToggle={() => toggleFramework('holland')}
@@ -219,6 +227,7 @@ export const FrameworkCorrelations: React.FC<FrameworkCorrelationsProps> = ({ pr
             <FrameworkCard
               title="Socionics"
               subtitle={profile.mappings.socionics}
+              description="How you process and exchange information with others, based on cognitive functions and social dynamics"
               icon={Target}
               expanded={expandedFramework === 'socionics'}
               onToggle={() => toggleFramework('socionics')}
@@ -261,6 +270,7 @@ export const FrameworkCorrelations: React.FC<FrameworkCorrelationsProps> = ({ pr
 interface FrameworkCardProps {
   title: string;
   subtitle: string;
+  description?: string;
   icon: React.ComponentType<{ className?: string }>;
   expanded: boolean;
   onToggle: () => void;
@@ -271,6 +281,7 @@ interface FrameworkCardProps {
 const FrameworkCard: React.FC<FrameworkCardProps> = ({ 
   title, 
   subtitle, 
+  description,
   icon: Icon, 
   expanded, 
   onToggle, 
@@ -301,7 +312,9 @@ const FrameworkCard: React.FC<FrameworkCardProps> = ({
             <div>
               <h3 className="text-lg font-semibold text-foreground">{title}: {subtitle}</h3>
               <div className="flex items-center gap-4">
-                <p className="text-sm text-muted-foreground">Click to explore your {title} profile</p>
+                <p className="text-sm text-muted-foreground">
+                  {description ? description : `Click to explore your ${title} profile`}
+                </p>
                 {confidence !== undefined && (
                   <span className="text-xs flex items-center gap-1">
                     Confidence: 
