@@ -33,7 +33,8 @@ import {
   Sparkles,
   
   GitCompare,
-  Settings
+  Settings,
+  MessageSquare
 } from 'lucide-react';
 
 interface DashboardProps {
@@ -157,6 +158,13 @@ const DashboardContent: React.FC<{ profile: PersonalityProfile; onRetakeAssessme
 
           {/* Action Buttons */}
           <div className="flex flex-wrap justify-center gap-4">
+            <Button 
+              onClick={() => window.location.href = '/mentor'}
+              className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg"
+            >
+              <MessageSquare className="w-4 h-4 mr-2" />
+              Chat with AI Mentor
+            </Button>
             <Button 
               onClick={handleExportJSON}
               variant="secondary"

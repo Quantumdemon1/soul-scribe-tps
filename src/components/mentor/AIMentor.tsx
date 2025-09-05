@@ -7,10 +7,12 @@ import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { useToast } from '@/hooks/use-toast';
-import { Brain, Send, MessageSquare, User, Bot, ChevronLeft, Plus } from 'lucide-react';
+import { Brain, Send, MessageSquare, User, Bot, ChevronLeft, Plus, Sparkles } from 'lucide-react';
 import { MentorService, MentorConversation, MentorMessage } from '@/services/mentorService';
+import { ConversationStarters } from '@/components/mentor/ConversationStarters';
 import { PersonalityProfile } from '@/types/tps.types';
 import { useAssessments } from '@/hooks/useAssessments';
+import { supabase } from '@/integrations/supabase/client';
 
 interface AIMentorProps {
   initialProfile?: PersonalityProfile;
@@ -35,7 +37,30 @@ export const AIMentor: React.FC<AIMentorProps> = ({ initialProfile }) => {
 
   useEffect(() => {
     loadConversations();
-  }, []);
+    
+    // Set up real-time subscriptions for messages
+    const channel = supabase
+      .channel('mentor-messages')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'mentor_messages',
+          filter: currentConversation ? `conversation_id=eq.${currentConversation.id}` : undefined
+        },
+        (payload) => {
+          if (currentConversation && payload.new.conversation_id === currentConversation.id) {
+            setMessages(prev => [...prev, payload.new as MentorMessage]);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [currentConversation]);
 
   useEffect(() => {
     scrollToBottom();
@@ -108,21 +133,22 @@ export const AIMentor: React.FC<AIMentorProps> = ({ initialProfile }) => {
     }
   };
 
-  const sendMessage = async () => {
-    if (!inputMessage.trim() || !currentConversation || !profile) return;
+  const sendMessage = async (messageText?: string) => {
+    const messageToSend = messageText || inputMessage.trim();
+    if (!messageToSend || !currentConversation || !profile) return;
 
-    const userMessage = inputMessage.trim();
     setInputMessage('');
     setIsLoading(true);
 
     try {
       const response = await mentorService.generateMentorResponse(
         currentConversation.id,
-        userMessage,
+        messageToSend,
         profile
       );
 
-      // Reload messages to get the latest conversation
+      // Messages will be updated via real-time subscription
+      // But let's also manually reload to ensure consistency
       const updatedMessages = await mentorService.getMessages(currentConversation.id);
       setMessages(updatedMessages);
     } catch (error) {
@@ -134,6 +160,33 @@ export const AIMentor: React.FC<AIMentorProps> = ({ initialProfile }) => {
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleStarterConversation = async (topic: string, message: string) => {
+    if (!profile) return;
+    
+    try {
+      const latestAssessment = assessments.length > 0 ? assessments[0] : null;
+      const newConversation = await mentorService.createConversation(
+        latestAssessment?.id,
+        topic
+      );
+      
+      setConversations(prev => [newConversation, ...prev]);
+      setCurrentConversation(newConversation);
+      setMessages([]);
+      setShowSidebar(false);
+      
+      // Send the starter message
+      setTimeout(() => sendMessage(message), 500);
+    } catch (error) {
+      console.error('Error starting conversation:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to start conversation',
+        variant: 'destructive'
+      });
     }
   };
 
@@ -310,18 +363,24 @@ export const AIMentor: React.FC<AIMentorProps> = ({ initialProfile }) => {
               <div ref={messagesEndRef} />
             </div>
           ) : (
-            <div className="flex items-center justify-center h-full">
-              <div className="text-center">
-                <MessageSquare className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-medium mb-2">Select or Start a Conversation</h3>
-                <p className="text-muted-foreground mb-4">
-                  Choose an existing conversation or start a new one to begin chatting with your AI mentor.
+            <div className="space-y-6 max-w-4xl mx-auto">
+              {/* Welcome section with conversation starters */}
+              <div className="text-center py-8">
+                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center mx-auto mb-4">
+                  <Brain className="w-8 h-8 text-primary" />
+                </div>
+                <h3 className="text-xl font-semibold mb-2">Welcome to your AI Mentor!</h3>
+                <p className="text-muted-foreground mb-6">
+                  I'm here to help you understand your personality and provide personalized guidance.
+                  Choose a topic below or ask me anything!
                 </p>
-                <Button onClick={startNewConversation}>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Start New Conversation
-                </Button>
               </div>
+              
+              {/* Conversation Starters */}
+              <ConversationStarters 
+                profile={profile}
+                onStartConversation={handleStarterConversation}
+              />
             </div>
           )}
         </ScrollArea>
@@ -339,7 +398,7 @@ export const AIMentor: React.FC<AIMentorProps> = ({ initialProfile }) => {
                 disabled={isLoading}
               />
               <Button 
-                onClick={sendMessage} 
+                onClick={() => sendMessage()} 
                 disabled={!inputMessage.trim() || isLoading}
                 size="icon"
               >
