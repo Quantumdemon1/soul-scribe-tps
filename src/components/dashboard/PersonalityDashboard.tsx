@@ -17,7 +17,7 @@ import { AIInsightsPanel } from './AIInsightsPanel';
 import { CareerLifestyle } from './CareerLifestyle';
 import { DashboardControls } from './DashboardControls';
 import { RefinementModal } from './RefinementModal';
-import { BookmarksPanel } from './BookmarksPanel';
+
 import { InsightComparisonPanel } from './InsightComparisonPanel';
 import { Header } from '@/components/layout/Header';
 import { 
@@ -30,7 +30,7 @@ import {
   Briefcase,
   TrendingUp,
   Sparkles,
-  Star,
+  
   GitCompare,
   Settings
 } from 'lucide-react';
@@ -211,7 +211,7 @@ const DashboardContent: React.FC<{ profile: PersonalityProfile; onRetakeAssessme
           className="w-full"
           preloadNext={true}
         >
-          <LazyTabs.List className="grid w-full grid-cols-8 mb-8">
+          <LazyTabs.List className="grid w-full grid-cols-7 mb-8">
             <LazyTabs.Trigger value="overview" className="flex items-center gap-2">
               <User className="w-4 h-4" />
               Overview
@@ -235,10 +235,6 @@ const DashboardContent: React.FC<{ profile: PersonalityProfile; onRetakeAssessme
             <LazyTabs.Trigger value="career" className="flex items-center gap-2">
               <Briefcase className="w-4 h-4" />
               Career & Lifestyle
-            </LazyTabs.Trigger>
-            <LazyTabs.Trigger value="bookmarks" className="flex items-center gap-2">
-              <Star className="w-4 h-4" />
-              Bookmarks
             </LazyTabs.Trigger>
             <LazyTabs.Trigger value="comparison" className="flex items-center gap-2">
               <GitCompare className="w-4 h-4" />
@@ -386,10 +382,6 @@ const DashboardContent: React.FC<{ profile: PersonalityProfile; onRetakeAssessme
 
           <LazyTabs.Content value="career">
             <CareerLifestyle profile={profile} />
-          </LazyTabs.Content>
-
-          <LazyTabs.Content value="bookmarks">
-            <BookmarksPanel currentSection={activeTab} />
           </LazyTabs.Content>
 
           <LazyTabs.Content value="comparison">
