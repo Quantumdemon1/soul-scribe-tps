@@ -1,4 +1,13 @@
 import { TPSScores, DominantTraits, PersonalityProfile } from '../types/tps.types';
+import { 
+  calculateMBTIEnhanced, 
+  calculateEnneagramEnhanced, 
+  calculateBigFiveEnhanced, 
+  calculateHollandEnhanced, 
+  calculateAlignmentEnhanced, 
+  calculateAttachmentStyle, 
+  calculateSocionicsEnhanced 
+} from '../mappings';
 
 export class TPSScoring {
   static readonly TRAIT_MAPPINGS = {
@@ -151,7 +160,7 @@ export class TPSScoring {
       domainScores,
       mappings,
       timestamp: new Date().toISOString(),
-      version: '2.0.0' // Version to track alignment calculation fixes
+      version: '2.1.0' // Enhanced mappings version
     };
   }
 
@@ -169,7 +178,7 @@ export class TPSScoring {
       ...profile,
       mappings,
       timestamp: new Date().toISOString(),
-      version: '2.0.0'
+      version: '2.1.0'
     };
   }
 
@@ -194,13 +203,22 @@ export class TPSScoring {
       domainScores,
       mappings,
       timestamp: new Date().toISOString(),
-      version: '2.0.0'
+      version: '2.1.0'
     };
   }
 
   private static mapToOtherFrameworks(dominantTraits: DominantTraits, traitScores: TPSScores) {
     const mbti = this.calculateMBTI(traitScores);
     const enneagramDetails = this.calculateEnneagramDetails(traitScores);
+    
+    // Enhanced detailed mappings
+    const mbtiDetail = calculateMBTIEnhanced(traitScores);
+    const enneagramDetail = calculateEnneagramEnhanced(traitScores);
+    const bigFiveDetail = calculateBigFiveEnhanced(traitScores);
+    const alignmentDetail = calculateAlignmentEnhanced(traitScores);
+    const hollandDetail = calculateHollandEnhanced(traitScores);
+    const attachmentStyle = calculateAttachmentStyle(traitScores);
+    const socionicsDetail = calculateSocionicsEnhanced(mbti, traitScores);
     
     return {
       mbti,
@@ -210,7 +228,15 @@ export class TPSScoring {
       dndAlignment: this.calculateAlignment(traitScores),
       socionics: this.calculateSocionics(mbti),
       hollandCode: this.calculateHollandCode(traitScores),
-      personalityMatches: this.findPersonalityMatches(traitScores)
+      personalityMatches: this.findPersonalityMatches(traitScores),
+      // Enhanced detailed mappings
+      mbtiDetail,
+      enneagramDetail,
+      bigFiveDetail,
+      alignmentDetail,
+      hollandDetail,
+      attachmentStyle,
+      socionicsDetail
     };
   }
 
