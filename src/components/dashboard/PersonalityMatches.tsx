@@ -2,9 +2,8 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
-import { User, Filter, Info } from 'lucide-react';
+import { User, Info } from 'lucide-react';
 import { PersonalityArchetype } from '@/types/tps.types';
 import { HelpTooltip } from '@/components/ui/help-tooltip';
 
@@ -13,39 +12,18 @@ interface PersonalityMatchesProps {
 }
 
 export const PersonalityMatches: React.FC<PersonalityMatchesProps> = ({ matches }) => {
-  const [filter, setFilter] = useState<'all' | 'real' | 'fictional'>('all');
   const [showAll, setShowAll] = useState(false);
 
-  const filteredMatches = matches.filter(match => {
-    if (filter === 'all') return true;
-    return match.type === filter;
-  });
-
-  const displayedMatches = showAll ? filteredMatches : filteredMatches.slice(0, 6);
+  const displayedMatches = showAll ? matches : matches.slice(0, 6);
 
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
-            <User className="w-5 h-5" />
-            Personality Matches
-            <HelpTooltip content="These are historical figures and fictional characters who share similar personality traits with you, based on your assessment results." />
-          </CardTitle>
-          <div className="flex items-center gap-2">
-            <Filter className="w-4 h-4 text-muted-foreground" />
-            <Select value={filter} onValueChange={(value: 'all' | 'real' | 'fictional') => setFilter(value)}>
-              <SelectTrigger className="w-32">
-                <SelectValue placeholder="Filter" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Types</SelectItem>
-                <SelectItem value="real">Historical</SelectItem>
-                <SelectItem value="fictional">Fictional</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
+        <CardTitle className="flex items-center gap-2">
+          <User className="w-5 h-5" />
+          Personality Matches
+          <HelpTooltip content="These are historical figures and fictional characters who share similar personality traits with you, based on your assessment results." />
+        </CardTitle>
         <p className="text-sm text-muted-foreground">
           Discover historical figures and fictional characters who share your personality traits. 
           These matches are based on detailed trait analysis and can offer insights into your unique personality expression.
@@ -79,11 +57,11 @@ export const PersonalityMatches: React.FC<PersonalityMatchesProps> = ({ matches 
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-xs text-muted-foreground">Similarity</span>
                   <span className="text-xs font-medium">
-                    {Math.round(match.similarity * 100)}%
+                    {Math.round(Math.min(match.similarity * 100, 100))}%
                   </span>
                 </div>
                 <Progress 
-                  value={match.similarity * 100} 
+                  value={Math.min(match.similarity * 100, 100)} 
                   className="h-2"
                 />
               </div>
@@ -102,19 +80,19 @@ export const PersonalityMatches: React.FC<PersonalityMatchesProps> = ({ matches 
           ))}
         </div>
         
-        {!showAll && filteredMatches.length > 6 && (
+        {!showAll && matches.length > 6 && (
           <div className="mt-6 text-center">
             <Button 
               variant="outline" 
               onClick={() => setShowAll(true)}
               className="w-full md:w-auto"
             >
-              Show All {filteredMatches.length} Matches
+              Show All {matches.length} Matches
             </Button>
           </div>
         )}
         
-        {showAll && filteredMatches.length > 6 && (
+        {showAll && matches.length > 6 && (
           <div className="mt-6 text-center">
             <Button 
               variant="outline" 
