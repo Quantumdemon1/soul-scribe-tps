@@ -6,7 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { usePerformanceOptimization } from "@/hooks/usePerformanceOptimization";
-import { LazyIndex, LazyAuth, LazyAdmin, LazyAssessmentHistory, LazyProfile, LazyNotFound, PageWrapper } from './components/layout/LazyPages';
+import { LazyIndex, LazyAuth, LazyAdmin, LazyAssessmentHistory, LazyProfile, LazyMentor, LazyNotFound, PageWrapper } from './components/layout/LazyPages';
 
 const queryClient = new QueryClient();
 
@@ -49,6 +49,14 @@ const AppContent = () => {
               element={
                 <ProtectedRoute>
                   <PageWrapper><LazyAssessmentHistory /></PageWrapper>
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/mentor" 
+              element={
+                <ProtectedRoute>
+                  <PageWrapper><LazyMentor /></PageWrapper>
                 </ProtectedRoute>
               } 
             />

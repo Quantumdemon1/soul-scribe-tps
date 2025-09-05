@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger } from '@/components/ui/navigation-menu';
-import { Settings, User, Home, History, BookOpen, HelpCircle, LogOut } from 'lucide-react';
+import { Settings, User, Home, History, BookOpen, HelpCircle, LogOut, Brain } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { GuidedTour } from '@/components/help/GuidedTour';
@@ -49,6 +49,19 @@ export const Header: React.FC = () => {
               >
                 <History className="w-4 h-4 mr-2" />
                 History
+              </Link>
+            </NavigationMenuItem>
+            
+            <NavigationMenuItem>
+              <Link 
+                to="/mentor" 
+                className={cn(
+                  "inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background h-10 px-4 py-2",
+                  isActive('/mentor') ? "bg-accent text-accent-foreground" : "hover:bg-accent hover:text-accent-foreground"
+                )}
+              >
+                <Brain className="w-4 h-4 mr-2" />
+                AI Mentor
               </Link>
             </NavigationMenuItem>
             

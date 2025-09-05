@@ -7,6 +7,7 @@ export const LazyAuth = lazy(() => import('../../pages/Auth'));
 export const LazyAdmin = lazy(() => import('../../pages/Admin'));
 export const LazyAssessmentHistory = lazy(() => import('../../pages/AssessmentHistory'));
 export const LazyProfile = lazy(() => import('../../pages/Profile'));
+export const LazyMentor = lazy(() => import('../../pages/Mentor'));
 export const LazyNotFound = lazy(() => import('../../pages/NotFound'));
 
 // Page wrapper with loading fallback

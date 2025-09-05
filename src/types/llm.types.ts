@@ -10,6 +10,7 @@ export interface LLMConfig {
     developmentPlanning: string;
     frameworkAnalysis: string;
     coreInsights: string;
+    aiMentor: string;
   };
 }
 

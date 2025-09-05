@@ -30,7 +30,8 @@ export class LLMService {
               careerGuidance: 'You are a career counselor specializing in personality-career alignment using TPS assessment data.',
               developmentPlanning: 'You are a personal development coach creating customized growth plans based on TPS personality profiles.',
               frameworkAnalysis: 'You are an expert personality psychologist specializing in framework correlation analysis for the Triadic Personality System (TPS).',
-              coreInsights: 'You are an expert personality psychologist providing personalized core insights based on TPS assessment results.'
+              coreInsights: 'You are an expert personality psychologist providing personalized core insights based on TPS assessment results.',
+              aiMentor: 'You are an AI Personality Mentor, an expert in personality psychology with deep knowledge of the Triadic Personality System (TPS), MBTI, Enneagram, Big Five, and other personality frameworks. Your role is to provide personalized guidance, insights, and support based on the user\'s unique personality profile. You adapt your communication style to match their personality preferences, offer practical advice for personal growth, career development, and relationship insights. You are supportive, non-judgmental, and focus on empowering the user to understand and leverage their personality strengths while addressing growth areas. Always consider their specific trait combinations and framework mappings when providing guidance.'
             }
         };
       } else {
@@ -123,6 +124,53 @@ export class LLMService {
   ): Promise<string> {
     const prompt = this.buildInsightPrompt(profile, promptType);
     return this.callLLM(prompt, promptType);
+  }
+
+  async generateMentorResponse(
+    userMessage: string,
+    profile: any,
+    conversationHistory: Array<{role: string, content: string}> = []
+  ): Promise<string> {
+    const contextPrompt = this.buildMentorPrompt(profile, userMessage, conversationHistory);
+    return this.callLLM(contextPrompt, 'aiMentor');
+  }
+
+  private buildMentorPrompt(
+    profile: any, 
+    userMessage: string, 
+    conversationHistory: Array<{role: string, content: string}>
+  ): string {
+    const { dominantTraits, traitScores, domainScores, mappings } = profile;
+    
+    const personalityContext = `
+USER'S PERSONALITY PROFILE:
+
+Dominant Traits by Triad:
+${Object.entries(dominantTraits).map(([triad, trait]) => `- ${triad}: ${trait}`).join('\n')}
+
+Domain Scores:
+- External Focus: ${domainScores.External}/10 (How they engage with the outer world)
+- Internal Focus: ${domainScores.Internal}/10 (Their inner mental processes)
+- Interpersonal Style: ${domainScores.Interpersonal}/10 (How they relate to others)
+- Processing Style: ${domainScores.Processing}/10 (How they handle information)
+
+Framework Mappings:
+- MBTI Type: ${mappings.mbti}
+- Enneagram: ${mappings.enneagram}
+- D&D Alignment: ${mappings.dndAlignment}
+- Big Five: O=${mappings.bigFive.Openness} C=${mappings.bigFive.Conscientiousness} E=${mappings.bigFive.Extraversion} A=${mappings.bigFive.Agreeableness} N=${mappings.bigFive.Neuroticism}
+
+CONVERSATION CONTEXT:
+${conversationHistory.length > 0 ? 
+  conversationHistory.slice(-6).map(msg => `${msg.role.toUpperCase()}: ${msg.content}`).join('\n') : 
+  'This is the beginning of your conversation with this user.'
+}
+
+CURRENT USER MESSAGE: "${userMessage}"
+
+Please respond as their AI Personality Mentor, taking into account their unique personality profile. Adapt your communication style to their preferences, provide insights relevant to their traits, and offer practical guidance that resonates with their personality type.`;
+
+    return personalityContext;
   }
 
   private buildInsightPrompt(profile: any, type: keyof LLMConfig['systemPrompts']): string {
