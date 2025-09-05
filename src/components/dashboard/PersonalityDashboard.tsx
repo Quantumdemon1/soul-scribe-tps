@@ -255,12 +255,14 @@ const DashboardContent: React.FC<{ profile: PersonalityProfile; onRetakeAssessme
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                   <div className="text-center p-6 bg-muted/50 rounded-lg">
                     <h3 className="font-medium text-muted-foreground mb-2">MBTI Type</h3>
+                    <p className="text-xs text-muted-foreground mb-3">Your personality preferences in how you interact, process information, make decisions, and approach life</p>
                     <Badge variant="default" className="text-lg px-4 py-2">
                       {profile.mappings.mbti}
                     </Badge>
                   </div>
                   <div className="text-center p-6 bg-muted/50 rounded-lg">
                     <h3 className="font-medium text-muted-foreground mb-2">Enneagram</h3>
+                    <p className="text-xs text-muted-foreground mb-3">Your core motivation, fears, and behavioral patterns based on nine fundamental personality types</p>
                     <Badge variant="secondary" className="text-lg px-4 py-2">
                       {profile.mappings.enneagram}
                     </Badge>
@@ -270,24 +272,28 @@ const DashboardContent: React.FC<{ profile: PersonalityProfile; onRetakeAssessme
                   </div>
                   <div className="text-center p-6 bg-muted/50 rounded-lg">
                     <h3 className="font-medium text-muted-foreground mb-2">Socionics</h3>
+                    <p className="text-xs text-muted-foreground mb-3">How you process and exchange information with others, based on cognitive functions and social dynamics</p>
                     <Badge variant="outline" className="text-lg px-4 py-2">
                       {profile.mappings.socionics}
                     </Badge>
                   </div>
                   <div className="text-center p-6 bg-muted/50 rounded-lg">
                     <h3 className="font-medium text-muted-foreground mb-2">Holland Code</h3>
+                    <p className="text-xs text-muted-foreground mb-3">Your career interests and work environment preferences across six occupational themes</p>
                     <Badge variant="secondary" className="text-lg px-4 py-2">
                       {profile.mappings.hollandCode}
                     </Badge>
                   </div>
                   <div className="text-center p-6 bg-muted/50 rounded-lg">
                     <h3 className="font-medium text-muted-foreground mb-2">D&D Alignment</h3>
+                    <p className="text-xs text-muted-foreground mb-3">Your ethical and moral compass, measuring your approach to rules and concern for others</p>
                     <Badge variant="outline" className="text-lg px-4 py-2">
                       {profile.mappings.dndAlignment}
                     </Badge>
                   </div>
                   <div className="text-center p-6 bg-muted/50 rounded-lg">
                     <h3 className="font-medium text-muted-foreground mb-4">Big Five</h3>
+                    <p className="text-xs text-muted-foreground mb-3">Your personality across five major dimensions that influence behavior and thinking patterns</p>
                     <div className="space-y-3">
                       {Object.entries(profile.mappings.bigFive).map(([trait, score]) => (
                         <div key={trait} className="space-y-1">
