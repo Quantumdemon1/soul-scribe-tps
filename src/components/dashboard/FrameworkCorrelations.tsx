@@ -96,6 +96,28 @@ export const FrameworkCorrelations: React.FC<FrameworkCorrelationsProps> = ({ pr
     );
   }
 
+  // Check if we have the required data
+  if (!profile.mappings) {
+    return (
+      <div className="space-y-6">
+        <div className="bg-background border border-border rounded-xl p-6">
+          <h2 className="text-2xl font-bold text-foreground mb-2 flex items-center gap-2">
+            <span className="text-primary">🎯</span>
+            Personality Framework Correlations
+          </h2>
+          <div className="text-center py-8">
+            <p className="text-muted-foreground mb-4">
+              Framework correlations are not available for this assessment. Please take a new assessment to see your personality framework correlations.
+            </p>
+            <Button onClick={() => window.location.href = '/'} variant="outline">
+              Take New Assessment
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="bg-background border border-border rounded-xl p-6">
@@ -112,7 +134,7 @@ export const FrameworkCorrelations: React.FC<FrameworkCorrelationsProps> = ({ pr
           <div className="bg-muted/50 border border-border rounded-lg p-4">
             <div className="text-sm text-muted-foreground mb-1">MBTI Type</div>
             <div className="text-xs text-muted-foreground mb-2">Your personality preferences in how you interact, process information, make decisions, and approach life</div>
-            <div className="text-2xl font-bold text-primary">{profile.mappings.mbti}</div>
+            <div className="text-2xl font-bold text-primary">{profile.mappings?.mbti || 'N/A'}</div>
             {insights?.mbti && (
               <div className="text-xs text-muted-foreground flex items-center gap-1">
                 Confidence: 
@@ -126,14 +148,19 @@ export const FrameworkCorrelations: React.FC<FrameworkCorrelationsProps> = ({ pr
             <div className="text-sm text-muted-foreground mb-1">Enneagram</div>
             <div className="text-xs text-muted-foreground mb-2">Your core motivation, fears, and behavioral patterns based on nine fundamental personality types</div>
             <div className="text-2xl font-bold text-primary">
-              Type {profile.mappings.enneagramDetails.type}w{profile.mappings.enneagramDetails.wing}
+              {profile.mappings?.enneagramDetails ? 
+                `Type ${profile.mappings.enneagramDetails.type}w${profile.mappings.enneagramDetails.wing}` : 
+                profile.mappings?.enneagram || 'N/A'
+              }
             </div>
-            <div className="text-xs text-muted-foreground">Tritype: {profile.mappings.enneagramDetails.tritype}</div>
+            {profile.mappings?.enneagramDetails?.tritype && (
+              <div className="text-xs text-muted-foreground">Tritype: {profile.mappings.enneagramDetails.tritype}</div>
+            )}
           </div>
           <div className="bg-muted/50 border border-border rounded-lg p-4">
             <div className="text-sm text-muted-foreground mb-1">D&D Alignment</div>
             <div className="text-xs text-muted-foreground mb-2">Your ethical and moral compass, measuring your approach to rules and concern for others</div>
-            <div className="text-2xl font-bold text-primary">{profile.mappings.dndAlignment}</div>
+            <div className="text-2xl font-bold text-primary">{profile.mappings?.dndAlignment || 'N/A'}</div>
             {insights?.alignment && (
               <div className="text-xs text-muted-foreground flex items-center gap-1">
                 Confidence: 
@@ -145,99 +172,111 @@ export const FrameworkCorrelations: React.FC<FrameworkCorrelationsProps> = ({ pr
           </div>
         </div>
 
-        {insights && (
+        {insights && profile.mappings && (
           <div className="space-y-4">
             {/* MBTI Detailed */}
-            <FrameworkCard
-              title="MBTI"
-              subtitle={profile.mappings.mbti}
-              description="Your personality preferences in how you interact, process information, make decisions, and approach life"
-              icon={Brain}
-              expanded={expandedFramework === 'mbti'}
-              onToggle={() => toggleFramework('mbti')}
-              confidence={insights.mbti.confidence}
-            >
-              <MBTIDetails mbti={profile.mappings.mbti} insight={insights.mbti} />
-            </FrameworkCard>
+            {profile.mappings.mbti && (
+              <FrameworkCard
+                title="MBTI"
+                subtitle={profile.mappings.mbti}
+                description="Your personality preferences in how you interact, process information, make decisions, and approach life"
+                icon={Brain}
+                expanded={expandedFramework === 'mbti'}
+                onToggle={() => toggleFramework('mbti')}
+                confidence={insights.mbti?.confidence}
+              >
+                <MBTIDetails mbti={profile.mappings.mbti} insight={insights.mbti} />
+              </FrameworkCard>
+            )}
 
             {/* Enneagram Detailed */}
-            <FrameworkCard
-              title="Enneagram"
-              subtitle={`Type ${profile.mappings.enneagramDetails.type}w${profile.mappings.enneagramDetails.wing}`}
-              description="Your core motivation, fears, and behavioral patterns based on nine fundamental personality types"
-              icon={Users}
-              expanded={expandedFramework === 'enneagram'}
-              onToggle={() => toggleFramework('enneagram')}
-              confidence={insights.enneagram.confidence}
-            >
-              <EnneagramDetails enneagram={profile.mappings.enneagramDetails} insight={insights.enneagram} />
-            </FrameworkCard>
+            {profile.mappings.enneagramDetails && (
+              <FrameworkCard
+                title="Enneagram"
+                subtitle={`Type ${profile.mappings.enneagramDetails.type}w${profile.mappings.enneagramDetails.wing}`}
+                description="Your core motivation, fears, and behavioral patterns based on nine fundamental personality types"
+                icon={Users}
+                expanded={expandedFramework === 'enneagram'}
+                onToggle={() => toggleFramework('enneagram')}
+                confidence={insights.enneagram?.confidence}
+              >
+                <EnneagramDetails enneagram={profile.mappings.enneagramDetails} insight={insights.enneagram} />
+              </FrameworkCard>
+            )}
 
             {/* Big Five Detailed */}
-            <FrameworkCard
-              title="Big Five Traits"
-              subtitle="Five-Factor Model of Personality"
-              description="Your personality across five major dimensions that influence behavior and thinking patterns"
-              icon={Star}
-              expanded={expandedFramework === 'bigfive'}
-              onToggle={() => toggleFramework('bigfive')}
-              confidence={insights.bigFive.confidence}
-            >
-              <BigFiveDetails bigFive={profile.mappings.bigFive} insight={insights.bigFive} />
-            </FrameworkCard>
+            {profile.mappings.bigFive && insights.bigFive && (
+              <FrameworkCard
+                title="Big Five Traits"
+                subtitle="Five-Factor Model of Personality"
+                description="Your personality across five major dimensions that influence behavior and thinking patterns"
+                icon={Star}
+                expanded={expandedFramework === 'bigfive'}
+                onToggle={() => toggleFramework('bigfive')}
+                confidence={insights.bigFive.confidence}
+              >
+                <BigFiveDetails bigFive={profile.mappings.bigFive} insight={insights.bigFive} />
+              </FrameworkCard>
+            )}
 
             {/* Alignment Detailed */}
-            <FrameworkCard
-              title="Moral Alignment"
-              subtitle={profile.mappings.dndAlignment}
-              description="Your ethical and moral compass, measuring your approach to rules and concern for others"
-              icon={Shield}
-              expanded={expandedFramework === 'alignment'}
-              onToggle={() => toggleFramework('alignment')}
-              confidence={insights.alignment.confidence}
-            >
-              <AlignmentDetails alignment={profile.mappings.dndAlignment} insight={insights.alignment} />
-            </FrameworkCard>
+            {profile.mappings.dndAlignment && insights.alignment && (
+              <FrameworkCard
+                title="Moral Alignment"
+                subtitle={profile.mappings.dndAlignment}
+                description="Your ethical and moral compass, measuring your approach to rules and concern for others"
+                icon={Shield}
+                expanded={expandedFramework === 'alignment'}
+                onToggle={() => toggleFramework('alignment')}
+                confidence={insights.alignment.confidence}
+              >
+                <AlignmentDetails alignment={profile.mappings.dndAlignment} insight={insights.alignment} />
+              </FrameworkCard>
+            )}
 
             {/* Holland Code */}
-            <FrameworkCard
-              title="Holland Code"
-              subtitle={profile.mappings.hollandCode}
-              description="Your career interests and work environment preferences across six occupational themes"
-              icon={Briefcase}
-              expanded={expandedFramework === 'holland'}
-              onToggle={() => toggleFramework('holland')}
-              confidence={insights.hollandCode.confidence}
-            >
-              <div className="space-y-4">
-                <p className="text-muted-foreground">{insights.hollandCode.summary}</p>
-                <div className="space-y-2">
-                  <h4 className="font-semibold text-foreground">Primary Interest Types</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {insights.hollandCode.primaryTypes.map((type, i) => (
-                      <Badge key={i} variant="secondary">{type}</Badge>
-                    ))}
+            {profile.mappings.hollandCode && insights.hollandCode && (
+              <FrameworkCard
+                title="Holland Code"
+                subtitle={profile.mappings.hollandCode}
+                description="Your career interests and work environment preferences across six occupational themes"
+                icon={Briefcase}
+                expanded={expandedFramework === 'holland'}
+                onToggle={() => toggleFramework('holland')}
+                confidence={insights.hollandCode.confidence}
+              >
+                <div className="space-y-4">
+                  <p className="text-muted-foreground">{insights.hollandCode.summary}</p>
+                  <div className="space-y-2">
+                    <h4 className="font-semibold text-foreground">Primary Interest Types</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {insights.hollandCode.primaryTypes.map((type, i) => (
+                        <Badge key={i} variant="secondary">{type}</Badge>
+                      ))}
+                    </div>
                   </div>
+                  <p className="text-sm text-muted-foreground">{insights.hollandCode.reasoning}</p>
                 </div>
-                <p className="text-sm text-muted-foreground">{insights.hollandCode.reasoning}</p>
-              </div>
-            </FrameworkCard>
+              </FrameworkCard>
+            )}
 
             {/* Socionics */}
-            <FrameworkCard
-              title="Socionics"
-              subtitle={profile.mappings.socionics}
-              description="How you process and exchange information with others, based on cognitive functions and social dynamics"
-              icon={Target}
-              expanded={expandedFramework === 'socionics'}
-              onToggle={() => toggleFramework('socionics')}
-              confidence={insights.socionics.confidence}
-            >
-              <div className="space-y-4">
-                <p className="text-muted-foreground">{insights.socionics.summary}</p>
-                <p className="text-sm text-muted-foreground">{insights.socionics.reasoning}</p>
-              </div>
-            </FrameworkCard>
+            {profile.mappings.socionics && insights.socionics && (
+              <FrameworkCard
+                title="Socionics"
+                subtitle={profile.mappings.socionics}
+                description="How you process and exchange information with others, based on cognitive functions and social dynamics"
+                icon={Target}
+                expanded={expandedFramework === 'socionics'}
+                onToggle={() => toggleFramework('socionics')}
+                confidence={insights.socionics.confidence}
+              >
+                <div className="space-y-4">
+                  <p className="text-muted-foreground">{insights.socionics.summary}</p>
+                  <p className="text-sm text-muted-foreground">{insights.socionics.reasoning}</p>
+                </div>
+              </FrameworkCard>
+            )}
           </div>
         )}
 
