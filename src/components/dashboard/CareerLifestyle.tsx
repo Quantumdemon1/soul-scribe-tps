@@ -115,21 +115,21 @@ export const CareerLifestyle: React.FC<CareerLifestyleProps> = ({ profile }) => 
                         <p className="text-foreground/80 text-sm">{career.reasoning}</p>
                       </div>
                       
-                      <div className="p-3 rounded-lg bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 border">
+                      <div className="p-3 rounded-lg bg-muted/50 border border-border">
                         <h4 className="font-medium text-foreground mb-1 flex items-center gap-2">
-                          <Building className="w-4 h-4" />
+                          <Building className="w-4 h-4 text-primary" />
                           Ideal Work Environment
                         </h4>
-                        <p className="text-foreground/70 text-sm">{career.workEnvironment}</p>
+                        <p className="text-muted-foreground text-sm">{career.workEnvironment}</p>
                       </div>
 
                       {career.growthPath && (
-                        <div className="p-3 rounded-lg bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 border">
+                        <div className="p-3 rounded-lg bg-muted/50 border border-border">
                           <h4 className="font-medium text-foreground mb-1 flex items-center gap-2">
-                            <TrendingUp className="w-4 h-4" />
+                            <TrendingUp className="w-4 h-4 text-primary" />
                             Growth Path
                           </h4>
-                          <p className="text-foreground/70 text-sm">{career.growthPath}</p>
+                          <p className="text-muted-foreground text-sm">{career.growthPath}</p>
                         </div>
                       )}
 
