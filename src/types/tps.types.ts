@@ -17,6 +17,7 @@ export interface PersonalityArchetype {
   type: 'real' | 'fictional';
   similarity: number;
   description: string;
+  confidence?: number;
 }
 
 export interface PersonalityProfile {

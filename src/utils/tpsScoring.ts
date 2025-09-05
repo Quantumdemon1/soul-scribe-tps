@@ -562,29 +562,102 @@ export class TPSScoring {
 
   private static findPersonalityMatches(userScores: TPSScores): { name: string; type: 'real' | 'fictional'; similarity: number; description: string }[] {
     const archetypes = [
+      // Historical Figures
       {
-        name: "Barack Obama",
+        name: "Albert Einstein",
+        type: "real" as const,
+        traits: {
+          'Analytical': 10,
+          'Intuitive': 9,
+          'Independent': 8,
+          'Self-Principled': 8,
+          'Structured': 7
+        },
+        description: "Revolutionary scientific thinking and intellectual curiosity"
+      },
+      {
+        name: "Leonardo da Vinci",
+        type: "real" as const,
+        traits: {
+          'Intuitive': 10,
+          'Artistic': 10,
+          'Analytical': 8,
+          'Independent': 9,
+          'Self-Principled': 7
+        },
+        description: "Renaissance genius with boundless creativity and innovation"
+      },
+      {
+        name: "Marie Curie",
+        type: "real" as const,
+        traits: {
+          'Self-Mastery': 9,
+          'Analytical': 9,
+          'Structured': 8,
+          'Self-Principled': 9,
+          'Perseverance': 10
+        },
+        description: "Pioneering determination and scientific excellence"
+      },
+      {
+        name: "Winston Churchill",
+        type: "real" as const,
+        traits: {
+          'Assertive': 9,
+          'Diplomatic': 8,
+          'Self-Principled': 9,
+          'Direct': 8,
+          'Optimistic': 7
+        },
+        description: "Resilient leadership through adversity"
+      },
+      {
+        name: "Mother Teresa",
+        type: "real" as const,
+        traits: {
+          'Communal Navigate': 10,
+          'Self-Principled': 9,
+          'Responsive': 9,
+          'Social': 8,
+          'Self-Aware': 9
+        },
+        description: "Compassionate service and humanitarian dedication"
+      },
+      {
+        name: "Benjamin Franklin",
         type: "real" as const,
         traits: {
           'Diplomatic': 9,
-          'Assertive': 7,
-          'Communal Navigate': 8,
-          'Optimistic': 7,
-          'Pragmatic': 8
+          'Pragmatic': 9,
+          'Analytical': 8,
+          'Social': 8,
+          'Optimistic': 8
         },
-        description: "Inspirational communication and collaborative leadership"
+        description: "Practical wisdom and diplomatic innovation"
       },
       {
-        name: "Hermione Granger",
-        type: "fictional" as const,
+        name: "Jane Austen",
+        type: "real" as const,
         traits: {
-          'Analytical': 9,
-          'Self-Mastery': 9,
-          'Structured': 8,
-          'Lawful': 8,
-          'Direct': 7
+          'Analytical': 8,
+          'Artistic': 9,
+          'Self-Aware': 9,
+          'Mixed Communication': 8,
+          'Independent': 7
         },
-        description: "Analytical brilliance and disciplined achievement"
+        description: "Keen social observation and literary brilliance"
+      },
+      {
+        name: "Theodore Roosevelt",
+        type: "real" as const,
+        traits: {
+          'Assertive': 9,
+          'Optimistic': 9,
+          'Direct': 8,
+          'Self-Principled': 8,
+          'Social': 7
+        },
+        description: "Energetic leadership and adventurous spirit"
       },
       {
         name: "Steve Jobs",
@@ -599,6 +672,55 @@ export class TPSScoring {
         description: "Visionary innovation and uncompromising standards"
       },
       {
+        name: "Oprah Winfrey",
+        type: "real" as const,
+        traits: {
+          'Communal Navigate': 9,
+          'Responsive': 8,
+          'Optimistic': 9,
+          'Social': 9,
+          'Self-Aware': 7
+        },
+        description: "Empathetic leadership and inspirational communication"
+      },
+      // Fictional Characters
+      {
+        name: "Sherlock Holmes",
+        type: "fictional" as const,
+        traits: {
+          'Analytical': 10,
+          'Independent': 9,
+          'Structured': 8,
+          'Self-Principled': 7,
+          'Direct': 8
+        },
+        description: "Deductive reasoning and methodical investigation"
+      },
+      {
+        name: "Hermione Granger",
+        type: "fictional" as const,
+        traits: {
+          'Analytical': 9,
+          'Self-Mastery': 9,
+          'Structured': 8,
+          'Lawful': 8,
+          'Direct': 7
+        },
+        description: "Analytical brilliance and disciplined achievement"
+      },
+      {
+        name: "Aragorn",
+        type: "fictional" as const,
+        traits: {
+          'Self-Principled': 9,
+          'Diplomatic': 8,
+          'Self-Mastery': 8,
+          'Lawful': 9,
+          'Responsive': 7
+        },
+        description: "Noble leadership and unwavering duty"
+      },
+      {
         name: "Tyrion Lannister",
         type: "fictional" as const,
         traits: {
@@ -611,38 +733,90 @@ export class TPSScoring {
         description: "Strategic thinking with emotional intelligence"
       },
       {
-        name: "Oprah Winfrey",
-        type: "real" as const,
+        name: "Elizabeth Bennet",
+        type: "fictional" as const,
         traits: {
-          'Communal Navigate': 9,
-          'Responsive': 8,
-          'Optimistic': 9,
-          'Social': 9,
-          'Self-Aware': 7
+          'Independent': 9,
+          'Self-Principled': 8,
+          'Mixed Communication': 8,
+          'Self-Aware': 8,
+          'Direct': 7
         },
-        description: "Empathetic leadership and inspirational communication"
+        description: "Independent spirit and principled convictions"
+      },
+      {
+        name: "Captain Jean-Luc Picard",
+        type: "fictional" as const,
+        traits: {
+          'Diplomatic': 9,
+          'Self-Principled': 9,
+          'Analytical': 8,
+          'Lawful': 8,
+          'Self-Mastery': 8
+        },
+        description: "Ethical leadership and diplomatic wisdom"
+      },
+      {
+        name: "Yoda",
+        type: "fictional" as const,
+        traits: {
+          'Self-Aware': 10,
+          'Self-Mastery': 10,
+          'Self-Principled': 9,
+          'Responsive': 8,
+          'Structured': 7
+        },
+        description: "Ancient wisdom and patient mentorship"
+      },
+      {
+        name: "Atticus Finch",
+        type: "fictional" as const,
+        traits: {
+          'Self-Principled': 10,
+          'Lawful': 9,
+          'Diplomatic': 8,
+          'Self-Aware': 8,
+          'Responsive': 8
+        },
+        description: "Moral integrity and principled justice"
       }
     ];
     
-    // Calculate similarity scores
+    // Calculate similarity scores with improved weighting
     const matches = archetypes.map(archetype => {
-      const similarity = Object.entries(archetype.traits)
-        .reduce((sum, [trait, value]) => {
-          const diff = Math.abs((userScores[trait] || 5) - value);
-          return sum + (10 - diff);
-        }, 0) / Object.keys(archetype.traits).length;
+      let totalWeight = 0;
+      let weightedSum = 0;
+      
+      Object.entries(archetype.traits).forEach(([trait, value]) => {
+        const userScore = userScores[trait] || 5;
+        const weight = value >= 8 ? 1.2 : 1.0; // Give more weight to defining traits
+        const diff = Math.abs(userScore - value);
+        const score = Math.max(0, 10 - diff);
+        
+        weightedSum += score * weight;
+        totalWeight += weight;
+      });
+      
+      const similarity = weightedSum / totalWeight;
+      const confidence = Math.min(100, similarity * 10);
       
       return { 
         name: archetype.name, 
         type: archetype.type, 
-        similarity, 
-        description: archetype.description 
+        similarity: similarity / 10, // Normalize to 0-1 range
+        description: archetype.description,
+        confidence: Math.round(confidence)
       };
     });
     
-    // Return top 3 matches
-    return matches
+    // Return top 6 matches (3 real, 3 fictional if possible)
+    const sortedMatches = matches.sort((a, b) => b.similarity - a.similarity);
+    const realMatches = sortedMatches.filter(m => m.type === 'real').slice(0, 3);
+    const fictionalMatches = sortedMatches.filter(m => m.type === 'fictional').slice(0, 3);
+    
+    // Combine and take top 6 overall
+    return [...realMatches, ...fictionalMatches]
       .sort((a, b) => b.similarity - a.similarity)
-      .slice(0, 3);
+      .slice(0, 6);
   }
 }

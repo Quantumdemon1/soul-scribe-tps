@@ -369,10 +369,11 @@ export class PDFContentGenerator {
           type: 'grid',
           data: {
             title: 'Top Personality Matches',
-            items: this.profile.mappings.personalityMatches?.map(match => ({
+            items: this.profile.mappings.personalityMatches?.slice(0, 6).map(match => ({
               name: match.name,
-              type: match.type,
+              type: match.type === 'real' ? 'Historical' : 'Fictional',
               similarity: `${(match.similarity * 100).toFixed(0)}%`,
+              confidence: match.confidence ? `${match.confidence}%` : 'N/A',
               description: match.description
             })) || []
           }

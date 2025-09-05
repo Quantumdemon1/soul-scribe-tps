@@ -19,6 +19,7 @@ import { DashboardControls } from './DashboardControls';
 import { RefinementModal } from './RefinementModal';
 
 import { InsightComparisonPanel } from './InsightComparisonPanel';
+import { PersonalityMatches } from './PersonalityMatches';
 import { Header } from '@/components/layout/Header';
 import { 
   Brain, 
@@ -312,39 +313,7 @@ const DashboardContent: React.FC<{ profile: PersonalityProfile; onRetakeAssessme
 
             {/* Personality Matches */}
             {profile.mappings.personalityMatches && profile.mappings.personalityMatches.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <User className="w-5 h-5" />
-                    Personality Matches
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid md:grid-cols-3 gap-4">
-                    {profile.mappings.personalityMatches.map((match, index) => (
-                      <div key={index} className="p-4 rounded-lg border bg-card">
-                        <div className="flex items-center justify-between mb-2">
-                          <h4 className="font-semibold">{match.name}</h4>
-                          <Badge variant={match.type === 'real' ? 'default' : 'secondary'}>
-                            {match.type === 'real' ? 'Real' : 'Fictional'}
-                          </Badge>
-                        </div>
-                        <p className="text-sm text-muted-foreground mb-2">{match.description}</p>
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs text-muted-foreground">Match:</span>
-                          <div className="flex-1 bg-muted rounded-full h-2">
-                            <div 
-                              className="bg-primary h-2 rounded-full"
-                              style={{ width: `${match.similarity * 10}%` }}
-                            />
-                          </div>
-                          <span className="text-xs font-medium">{(match.similarity * 10).toFixed(0)}%</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+              <PersonalityMatches matches={profile.mappings.personalityMatches} />
             )}
 
             {/* Trait Visualization */}

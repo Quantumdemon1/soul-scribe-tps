@@ -38,7 +38,15 @@ const SAMPLE_PROFILE: PersonalityProfile = {
     dndAlignment: 'Lawful Neutral',
     socionics: 'LII',
     hollandCode: 'IAR',
-    personalityMatches: []
+    personalityMatches: [
+      {
+        name: "Albert Einstein",
+        type: "real" as const,
+        similarity: 0.85,
+        description: "Revolutionary scientific thinking and intellectual curiosity",
+        confidence: 85
+      }
+    ]
   },
   timestamp: new Date().toISOString()
 };
