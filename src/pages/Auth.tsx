@@ -111,7 +111,7 @@ const Auth: React.FC = () => {
       <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 flex items-center justify-center p-4">
         <div className="w-full max-w-md space-y-6">
           <div className="text-center space-y-2">
-            <h1 className="text-3xl font-bold text-foreground">TPS Assessment</h1>
+            <h1 className="text-3xl font-bold text-foreground">Psyforge</h1>
             <p className="text-muted-foreground">Reset your password</p>
           </div>
           <PasswordReset onBack={() => setShowPasswordReset(false)} />
@@ -124,7 +124,7 @@ const Auth: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 flex items-center justify-center p-4">
       <div className="w-full max-w-md space-y-6">
         <div className="text-center space-y-2">
-          <h1 className="text-3xl font-bold text-foreground">TPS Assessment</h1>
+          <h1 className="text-3xl font-bold text-foreground">Psyforge</h1>
           <p className="text-muted-foreground">
             Sign in to save your results and track your personality journey
           </p>

@@ -83,8 +83,8 @@ const DashboardContent: React.FC<{ profile: PersonalityProfile; onRetakeAssessme
     if (navigator.share) {
       try {
         await navigator.share({
-          title: 'My TPS Personality Profile',
-          text: `I just completed the Triadic Personality System assessment! My MBTI type is ${profile.mappings.mbti} and my Enneagram type is ${profile.mappings.enneagram}.`,
+          title: 'My Psyforge Personality Profile',
+          text: `I just completed the Psyforge personality assessment! My MBTI type is ${profile.mappings.mbti} and my Enneagram type is ${profile.mappings.enneagram}.`,
           url: window.location.href
         });
       } catch (error) {
@@ -92,7 +92,7 @@ const DashboardContent: React.FC<{ profile: PersonalityProfile; onRetakeAssessme
       }
     } else {
       // Fallback to clipboard
-      const shareText = `I just completed the Triadic Personality System assessment! My MBTI type is ${profile.mappings.mbti} and my Enneagram type is ${profile.mappings.enneagram}.`;
+      const shareText = `I just completed the Psyforge personality assessment! My MBTI type is ${profile.mappings.mbti} and my Enneagram type is ${profile.mappings.enneagram}.`;
       navigator.clipboard.writeText(shareText);
     }
   };

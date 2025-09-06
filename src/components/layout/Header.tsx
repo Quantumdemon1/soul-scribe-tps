@@ -39,7 +39,7 @@ export const Header: React.FC = () => {
           <div className="flex items-center justify-between mb-6">
             <Link to="/" className="flex items-center space-x-2" onClick={() => setMobileMenuOpen(false)}>
               <BookOpen className="h-6 w-6 text-primary" />
-              <span className="font-bold">TPS Assessment</span>
+              <span className="font-bold">Psyforge</span>
             </Link>
           </div>
           
@@ -134,7 +134,7 @@ export const Header: React.FC = () => {
           <Link to="/" className="mr-6 flex items-center space-x-2">
             <BookOpen className="h-6 w-6 text-primary" />
             <span className="hidden font-bold sm:inline-block">
-              TPS Assessment
+              Psyforge
             </span>
           </Link>
           <nav className="flex items-center space-x-6 text-sm font-medium">
@@ -158,7 +158,7 @@ export const Header: React.FC = () => {
           <div className="flex-1 flex justify-center">
             <Link to="/" className="flex items-center space-x-2">
               <BookOpen className="h-6 w-6 text-primary" />
-              <span className="font-bold text-sm">TPS</span>
+              <span className="font-bold text-sm">Psyforge</span>
             </Link>
           </div>
         )}

@@ -46,7 +46,7 @@ const AssessmentSelection: React.FC = () => {
         {/* Header with auth controls */}
         <div className="flex justify-between items-center mb-8">
           <div className="text-sm text-muted-foreground">
-            TPS Assessment System
+            Psyforge
           </div>
           <div className="flex items-center gap-3">
             {user ? (
@@ -76,7 +76,7 @@ const AssessmentSelection: React.FC = () => {
           {/* Header */}
           <div className="text-center mb-12">
             <h1 className="text-4xl font-bold text-foreground mb-4">
-              Triadic Personality System Assessment
+              Psyforge Personality Assessment
             </h1>
             <p className="text-xl text-muted-foreground mb-6 max-w-3xl mx-auto">
               Choose the assessment format that works best for you. All versions provide valuable insights 
@@ -192,11 +192,11 @@ const AssessmentSelection: React.FC = () => {
             
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">What makes TPS different?</CardTitle>
+                <CardTitle className="text-lg">What makes Psyforge different?</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground">
-                  TPS integrates multiple personality frameworks into one assessment, providing correlations with MBTI, Enneagram, 
+                  Psyforge integrates multiple personality frameworks into one assessment, providing correlations with MBTI, Enneagram, 
                   Big Five, and more. This gives you a comprehensive view of your personality from multiple perspectives.
                 </p>
               </CardContent>

@@ -262,7 +262,7 @@ export const AdminPanel: React.FC = () => {
               </div>
               Admin Panel
             </h1>
-            <p className="text-muted-foreground mt-1">Manage TPS assessment system configuration</p>
+            <p className="text-muted-foreground mt-1">Manage Psyforge assessment system configuration</p>
           </div>
           <Badge variant="secondary" className="text-sm px-3 py-1">
             Admin Access

@@ -194,7 +194,7 @@ export const PersonalityTest: React.FC<PersonalityTestProps> = ({ assessmentType
               <div className={`flex items-center justify-center ${isMobile ? 'mb-2' : 'mb-4'}`}>
                 <Brain className={`${isMobile ? 'w-8 h-8 mr-2' : 'w-12 h-12 mr-3'}`} />
                 <CardTitle className={`font-bold ${isMobile ? 'text-xl' : 'text-3xl'}`}>
-                  {isMobile ? 'TPS Assessment' : 'Triadic Personality System'}
+                  {isMobile ? 'Psyforge Assessment' : 'Psyforge Personality Assessment'}
                 </CardTitle>
               </div>
               <p className={`opacity-90 ${isMobile ? 'text-sm' : 'text-lg'}`}>

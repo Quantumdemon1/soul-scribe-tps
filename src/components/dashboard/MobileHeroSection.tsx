@@ -46,7 +46,7 @@ export const MobileHeroSection: React.FC<MobileHeroSectionProps> = ({
               <Brain className="w-16 h-16 mr-4" />
               <div>
                 <h1 className="text-4xl font-bold mb-2">Your Personality Profile</h1>
-                <p className="text-xl opacity-90">Triadic Personality System Analysis</p>
+                <p className="text-xl opacity-90">Psyforge Analysis</p>
               </div>
             </div>
             <p className="text-lg opacity-80 max-w-2xl mx-auto">
@@ -151,7 +151,7 @@ export const MobileHeroSection: React.FC<MobileHeroSectionProps> = ({
             <Brain className="w-12 h-12 mr-3" />
             <div>
               <h1 className="text-2xl font-bold mb-1">Your Profile</h1>
-              <p className="text-sm opacity-90">TPS Analysis</p>
+              <p className="text-sm opacity-90">Psyforge Analysis</p>
             </div>
           </div>
           <p className="text-sm opacity-80 px-2">

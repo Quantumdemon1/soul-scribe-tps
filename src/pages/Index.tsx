@@ -28,7 +28,7 @@ const Index = () => {
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <div className="text-sm text-muted-foreground">
-            TPS Assessment System - Overview
+            Psyforge - Overview
           </div>
           <div className="flex items-center gap-3">
             <span className="text-sm text-muted-foreground flex items-center gap-2">

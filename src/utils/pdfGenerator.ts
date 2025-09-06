@@ -63,7 +63,7 @@ export class PDFReportGenerator {
       
       // Save the PDF
       const timestamp = new Date().toISOString().split('T')[0];
-      pdf.save(`TPS-Comprehensive-Report-${timestamp}.pdf`);
+      pdf.save(`Psyforge-Comprehensive-Report-${timestamp}.pdf`);
       
       console.log('Enhanced PDF generation completed successfully');
       
@@ -83,7 +83,7 @@ export class PDFReportGenerator {
   ): number {
     // Main header
     let currentY = styling.addHeader(
-      'Triadic Personality System',
+      'Psyforge',
       'Comprehensive Personality Assessment Report',
       20
     );
@@ -104,7 +104,7 @@ export class PDFReportGenerator {
     
     const details = [
       `Assessment Date: ${new Date().toLocaleDateString()}`,
-      `Assessment Type: Comprehensive TPS Analysis`,
+      `Assessment Type: Comprehensive Psyforge Analysis`,
       `Total Domains: 4 (External, Internal, Interpersonal, Processing)`,
       `Framework Correlations: MBTI, Enneagram, Big Five, Alignment`,
       `Pages in Report: ${totalPages}`,
@@ -756,7 +756,7 @@ export class PDFReportGenerator {
 <body>
     <div class="container">
         <div class="header">
-            <h1>Triadic Personality System (TPS)</h1>
+            <h1>Psyforge</h1>
             <h2>Comprehensive Personality Assessment Report</h2>
             <p>Generated on ${timestamp}</p>
         </div>
@@ -866,7 +866,7 @@ export class PDFReportGenerator {
         </div>
 
         <div class="footer">
-            <p>This report was generated using the Triadic Personality System (TPS), a comprehensive personality assessment framework.</p>
+            <p>This report was generated using Psyforge, a comprehensive personality assessment framework.</p>
             <p style="margin-top: 8px;">For best results, please review this assessment with a qualified personality coach or counselor.</p>
         </div>
     </div>

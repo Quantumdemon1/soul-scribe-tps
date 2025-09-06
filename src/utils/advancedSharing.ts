@@ -20,24 +20,24 @@ export class AdvancedSharing {
       case 'linkedin':
         return {
           title: 'Professional Personality Assessment Results',
-          text: `I just completed a comprehensive Triadic Personality System assessment! 🧠
+          text: `I just completed a comprehensive Psyforge personality assessment! 🧠
 
 My results show I'm an ${baseContent.mbti} type with ${baseContent.enneagram} Enneagram patterns. My strongest domain is ${baseContent.topDomain} (${baseContent.topScore}/10).
 
-Understanding your personality can unlock better collaboration, leadership, and career alignment. The TPS framework maps to multiple systems including MBTI, Enneagram, and Big Five for a complete picture.
+Understanding your personality can unlock better collaboration, leadership, and career alignment. Psyforge maps to multiple systems including MBTI, Enneagram, and Big Five for a complete picture.
 
-#PersonalityAssessment #ProfessionalDevelopment #SelfAwareness #Leadership #CareerGrowth #TPS`,
+#PersonalityAssessment #ProfessionalDevelopment #SelfAwareness #Leadership #CareerGrowth #Psyforge`,
           hashtags: ['PersonalityAssessment', 'ProfessionalDevelopment', 'SelfAwareness', 'Leadership', 'CareerGrowth']
         };
 
       case 'twitter':
         return {
-          title: 'My TPS Personality Results',
-          text: `Just took the TPS personality assessment! 🧠
+          title: 'My Psyforge Personality Results',
+          text: `Just took the Psyforge personality assessment! 🧠
 
 Results: ${baseContent.mbti} | ${baseContent.enneagram} | ${baseContent.topDomain} domain strongest (${baseContent.topScore}/10)
 
-Love how it maps multiple frameworks together for deeper insights! 
+Love how it maps multiple frameworks together for deeper insights!
 
 #PersonalityTest #SelfAwareness #MBTI #Enneagram`,
           hashtags: ['PersonalityTest', 'SelfAwareness', 'MBTI', 'Enneagram']
@@ -46,7 +46,7 @@ Love how it maps multiple frameworks together for deeper insights!
       case 'facebook':
         return {
           title: 'Fascinating Personality Assessment Results!',
-          text: `I just completed the most comprehensive personality assessment I've ever taken! The Triadic Personality System analyzes 36 different traits across 4 major domains.
+          text: `I just completed the most comprehensive personality assessment I've ever taken! Psyforge analyzes 36 different traits across 4 major domains.
 
 My results:
 🔹 MBTI Type: ${baseContent.mbti}
@@ -61,12 +61,12 @@ Anyone else interested in taking a deep dive into understanding their personalit
 
       default:
         return {
-          title: 'My TPS Personality Assessment Results',
-          text: `I just completed the Triadic Personality System assessment! 
+          title: 'My Psyforge Personality Assessment Results',
+          text: `I just completed the Psyforge personality assessment! 
 
 My results: ${baseContent.mbti} (MBTI) | ${baseContent.enneagram} (Enneagram) | ${baseContent.topDomain} domain strongest (${baseContent.topScore}/10)
 
-The TPS framework provides a comprehensive view by integrating multiple personality systems. Really valuable insights for personal and professional development!
+Psyforge provides a comprehensive view by integrating multiple personality systems. Really valuable insights for personal and professional development!
 
 #PersonalityAssessment #SelfAwareness #PersonalDevelopment`,
           hashtags: ['PersonalityAssessment', 'SelfAwareness', 'PersonalDevelopment']
@@ -143,7 +143,7 @@ The TPS framework provides a comprehensive view by integrating multiple personal
         </defs>
         <rect width="400" height="300" fill="url(#bg)"/>
         <text x="200" y="50" text-anchor="middle" fill="white" font-family="Arial" font-size="20" font-weight="bold">
-          TPS Personality Results
+          Psyforge Results
         </text>
         <text x="200" y="100" text-anchor="middle" fill="white" font-family="Arial" font-size="16">
           MBTI: ${profile.mappings.mbti}
@@ -158,7 +158,7 @@ The TPS framework provides a comprehensive view by integrating multiple personal
           Score: ${this.getTopDomainScore(profile)}/10
         </text>
         <text x="200" y="260" text-anchor="middle" fill="white" font-family="Arial" font-size="12">
-          Triadic Personality System Assessment
+          Psyforge Personality Assessment
         </text>
       </svg>
     `;

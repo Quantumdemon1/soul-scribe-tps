@@ -240,7 +240,7 @@ export class PDFStyling {
     // Report info
     const timestamp = new Date().toLocaleDateString();
     this.pdf.text(
-      `TPS Assessment Report - Generated ${timestamp}`,
+      `Psyforge Assessment Report - Generated ${timestamp}`,
       this.margins.left,
       footerY
     );
