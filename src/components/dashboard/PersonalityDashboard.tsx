@@ -120,9 +120,9 @@ const DashboardContent: React.FC<{ profile: PersonalityProfile; onRetakeAssessme
                 <p className="text-xl opacity-90">Triadic Personality System Analysis</p>
               </div>
             </div>
-            <p className="text-lg opacity-80 max-w-2xl mx-auto">
-              Deep insights into your personality across four core domains that shape how you experience and interact with the world.
-            </p>
+          <p className="text-lg opacity-80 max-w-2xl mx-auto">
+            Below are your Domain Scores, which correspond to how much you prefer viewing the world - the higher the score, the stronger your preference in that domain.
+          </p>
           </div>
 
           {/* Quick Stats */}
