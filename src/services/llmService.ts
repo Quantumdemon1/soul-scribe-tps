@@ -1,5 +1,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { LLMConfig } from '@/types/llm.types';
+import { InputValidator } from '@/utils/inputValidation';
+import { DEFAULT_SYSTEM_PROMPTS } from '@/config/systemPrompts';
 
 export class LLMService {
   private config: LLMConfig | null = null;
@@ -24,24 +26,17 @@ export class LLMService {
           model: 'gpt-4o-mini',
           temperature: 0.7,
           maxTokens: 2000,
-            systemPrompts: {
-              tieBreaking: 'You are a skilled personality psychologist conducting Socratic clarification for the TPS assessment.',
-              insightGeneration: 'You are an expert personality psychologist providing comprehensive insights based on TPS assessment results.',
-              careerGuidance: 'You are a career counselor specializing in personality-career alignment using TPS assessment data.',
-              developmentPlanning: 'You are a personal development coach creating customized growth plans based on TPS personality profiles.',
-              frameworkAnalysis: 'You are an expert personality psychologist specializing in framework correlation analysis for the Triadic Personality System (TPS).',
-              coreInsights: 'You are an expert personality psychologist providing personalized core insights based on TPS assessment results.',
-              aiMentor: 'You are an AI Personality Mentor, an expert in personality psychology with deep knowledge of the Triadic Personality System (TPS), MBTI, Enneagram, Big Five, and other personality frameworks. Your role is to provide personalized guidance, insights, and support based on the user\'s unique personality profile. You adapt your communication style to match their personality preferences, offer practical advice for personal growth, career development, and relationship insights. You are supportive, non-judgmental, and focus on empowering the user to understand and leverage their personality strengths while addressing growth areas. Always consider their specific trait combinations and framework mappings when providing guidance.',
-              mbtiExplanation: 'You are an expert in MBTI cognitive functions providing personalized explanations of how an individual\'s TPS profile maps to their MBTI type and cognitive function stack.',
-              enneagramExplanation: 'You are an expert in Enneagram psychology providing deep insights into an individual\'s type, wing, instinctual variant, and tritype.',
-              bigFiveExplanation: 'You are an expert in Big Five personality psychology providing clear explanations of an individual\'s facet scores and their practical implications.',
-              attachmentExplanation: 'You are an expert in attachment theory providing insights into an individual\'s attachment style and its impact on relationships.',
-              alignmentExplanation: 'You are an expert in moral psychology providing insights into an individual\'s ethical and moral decision-making patterns.',
-              hollandExplanation: 'You are an expert in vocational psychology providing detailed career guidance based on an individual\'s Holland Code and work preferences.'
-            }
+          systemPrompts: DEFAULT_SYSTEM_PROMPTS
         };
       } else {
-        this.config = data.config as unknown as LLMConfig;
+        // Merge stored config with default system prompts to ensure all prompts are available
+        this.config = {
+          ...(data.config as unknown as LLMConfig),
+          systemPrompts: {
+            ...DEFAULT_SYSTEM_PROMPTS,
+            ...(data.config as any)?.systemPrompts || {}
+          }
+        };
       }
     }
     
@@ -50,7 +45,6 @@ export class LLMService {
 
   async callLLM(prompt: string, promptType: keyof LLMConfig['systemPrompts']): Promise<string> {
     // Input validation and sanitization
-    const { InputValidator } = await import('../utils/inputValidation');
     const sanitizedPrompt = InputValidator.validatePromptInput(prompt);
     
     const config = await this.getConfig();
