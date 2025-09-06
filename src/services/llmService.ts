@@ -49,13 +49,21 @@ export class LLMService {
   }
 
   async callLLM(prompt: string, promptType: keyof LLMConfig['systemPrompts']): Promise<string> {
+    // Input validation and sanitization
+    const { InputValidator } = await import('../utils/inputValidation');
+    const sanitizedPrompt = InputValidator.validatePromptInput(prompt);
+    
     const config = await this.getConfig();
     const systemPrompt = config.systemPrompts[promptType];
     
+    if (!systemPrompt) {
+      throw new Error(`System prompt not found for type: ${promptType}`);
+    }
+    
     if (config.provider === 'openai') {
-      return this.callOpenAI(prompt, systemPrompt, config);
+      return this.callOpenAI(sanitizedPrompt, systemPrompt, config);
     } else if (config.provider === 'anthropic') {
-      return this.callClaude(prompt, systemPrompt, config);
+      return this.callClaude(sanitizedPrompt, systemPrompt, config);
     }
     
     throw new Error('Invalid LLM provider');

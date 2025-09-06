@@ -170,7 +170,10 @@ export class TPSScoring {
   }
 
   static generateFullProfile(responses: number[]): PersonalityProfile {
-    const traitScores = this.calculateTraitScores(responses);
+    // Validate assessment responses for security
+    const validatedResponses = this.validateResponses(responses);
+    
+    const traitScores = this.calculateTraitScores(validatedResponses);
     const dominantTraits = this.calculateDominantTraits(traitScores);
     const domainScores = this.calculateDomainScores(traitScores);
     const mappings = this.mapToOtherFrameworks(dominantTraits, traitScores);
@@ -183,6 +186,24 @@ export class TPSScoring {
       timestamp: new Date().toISOString(),
       version: '2.1.0' // Enhanced mappings version
     };
+  }
+
+  private static validateResponses(responses: number[]): number[] {
+    if (!Array.isArray(responses)) {
+      throw new Error('Assessment responses must be an array');
+    }
+    
+    if (responses.length !== 108) {
+      throw new Error('Assessment must contain exactly 108 responses');
+    }
+    
+    return responses.map((response, index) => {
+      const num = Number(response);
+      if (isNaN(num) || num < 1 || num > 10) {
+        throw new Error(`Response ${index + 1} must be a number between 1 and 10`);
+      }
+      return num;
+    });
   }
 
   // Utility to recalculate an existing profile with updated logic
