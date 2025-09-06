@@ -12,6 +12,7 @@ import { SocraticClarification } from './SocraticClarification';
 import { ChevronLeft, ChevronRight, Brain } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useAssessments } from '@/hooks/useAssessments';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { toast } from '@/hooks/use-toast';
 
 interface PersonalityTestProps {
@@ -181,43 +182,47 @@ export const PersonalityTest: React.FC<PersonalityTestProps> = ({ assessmentType
     return <PersonalityDashboard profile={profile} />;
   }
 
+  const isMobile = useIsMobile();
+
   return (
-    <div className="min-h-screen bg-background p-4">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="max-w-4xl mx-auto mb-8">
-        <Card className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground border-0">
-          <CardHeader className="text-center pb-4">
-            <div className="flex items-center justify-center mb-4">
-              <Brain className="w-12 h-12 mr-3" />
-              <CardTitle className="text-3xl font-bold">
-                Triadic Personality System
-              </CardTitle>
-            </div>
-            <p className="text-lg opacity-90">
-              {assessmentConfig.name}
-            </p>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <div className="space-y-4">
-              <div className="flex justify-between items-center text-sm">
-                <span>Progress</span>
-                <span>{currentPage + 1} of {totalPages} pages</span>
+      <div className={`${isMobile ? 'p-4' : 'p-6'} ${isMobile ? 'mb-4' : 'mb-8'}`}>
+        <div className="max-w-4xl mx-auto">
+          <Card className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground border-0">
+            <CardHeader className={`text-center ${isMobile ? 'pb-3 px-4 pt-4' : 'pb-4'}`}>
+              <div className={`flex items-center justify-center ${isMobile ? 'mb-2' : 'mb-4'}`}>
+                <Brain className={`${isMobile ? 'w-8 h-8 mr-2' : 'w-12 h-12 mr-3'}`} />
+                <CardTitle className={`font-bold ${isMobile ? 'text-xl' : 'text-3xl'}`}>
+                  {isMobile ? 'TPS Assessment' : 'Triadic Personality System'}
+                </CardTitle>
               </div>
-              <Progress 
-                value={progressPercentage} 
-                className="h-3 bg-primary-foreground/20"
-              />
-              <div className="flex justify-between text-sm opacity-90">
-                <span>{Math.round(progressPercentage)}% Complete</span>
-                <span>{assessmentConfig.questionCount - (currentPage * questionsPerPage)} questions remaining</span>
+              <p className={`opacity-90 ${isMobile ? 'text-sm' : 'text-lg'}`}>
+                {assessmentConfig.name}
+              </p>
+            </CardHeader>
+            <CardContent className={`pt-0 ${isMobile ? 'px-4 pb-4' : ''}`}>
+              <div className="space-y-3">
+                <div className={`flex justify-between items-center ${isMobile ? 'text-xs' : 'text-sm'}`}>
+                  <span>Progress</span>
+                  <span>{currentPage + 1} of {totalPages} pages</span>
+                </div>
+                <Progress 
+                  value={progressPercentage} 
+                  className={`bg-primary-foreground/20 ${isMobile ? 'h-2' : 'h-3'}`}
+                />
+                <div className={`flex justify-between opacity-90 ${isMobile ? 'text-xs' : 'text-sm'}`}>
+                  <span>{Math.round(progressPercentage)}% Complete</span>
+                  <span>{assessmentConfig.questionCount - (currentPage * questionsPerPage)} remaining</span>
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
       {/* Questions */}
-      <div className="max-w-4xl mx-auto space-y-6">
+      <div className={`max-w-4xl mx-auto ${isMobile ? 'px-4 space-y-4' : 'space-y-6'}`}>
         {currentQuestions.map((question, idx) => {
           const globalIdx = currentPage * questionsPerPage + idx;
           return (
@@ -233,47 +238,89 @@ export const PersonalityTest: React.FC<PersonalityTestProps> = ({ assessmentType
       </div>
 
       {/* Navigation */}
-      <div className="max-w-4xl mx-auto mt-8 flex justify-between items-center">
-        <Button
-          onClick={handlePrevious}
-          disabled={currentPage === 0}
-          variant="outline"
-          className="px-6"
-        >
-          <ChevronLeft className="w-4 h-4 mr-2" />
-          Previous
-        </Button>
+      <div className={`max-w-4xl mx-auto ${isMobile ? 'mt-6 px-4' : 'mt-8'}`}>
+        {isMobile ? (
+          // Mobile: Stack navigation vertically
+          <div className="space-y-3">
+            <div className="text-center">
+              <p className="text-sm text-muted-foreground mb-3">
+                Page {currentPage + 1} of {totalPages}
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <Button
+                onClick={handlePrevious}
+                disabled={currentPage === 0}
+                variant="outline"
+                className="flex-1 h-12 touch-manipulation"
+              >
+                <ChevronLeft className="w-4 h-4 mr-2" />
+                Previous
+              </Button>
+              <Button
+                onClick={handleNext}
+                className="flex-1 h-12 touch-manipulation"
+              >
+                {currentPage === totalPages - 1 ? (
+                  <>
+                    <Brain className="w-4 h-4 mr-2" />
+                    Results
+                  </>
+                ) : (
+                  <>
+                    Next
+                    <ChevronRight className="w-4 h-4 ml-2" />
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        ) : (
+          // Desktop: Horizontal layout
+          <div className="flex justify-between items-center">
+            <Button
+              onClick={handlePrevious}
+              disabled={currentPage === 0}
+              variant="outline"
+              className="px-6"
+            >
+              <ChevronLeft className="w-4 h-4 mr-2" />
+              Previous
+            </Button>
 
-        <div className="text-center">
-          <p className="text-sm text-muted-foreground">
-            Page {currentPage + 1} of {totalPages}
-          </p>
-        </div>
+            <div className="text-center">
+              <p className="text-sm text-muted-foreground">
+                Page {currentPage + 1} of {totalPages}
+              </p>
+            </div>
 
-        <Button
-          onClick={handleNext}
-          className="px-6"
-        >
-          {currentPage === totalPages - 1 ? (
-            <>
-              <Brain className="w-4 h-4 mr-2" />
-              Calculate Results
-            </>
-          ) : (
-            <>
-              Next
-              <ChevronRight className="w-4 h-4 ml-2" />
-            </>
-          )}
-        </Button>
+            <Button
+              onClick={handleNext}
+              className="px-6"
+            >
+              {currentPage === totalPages - 1 ? (
+                <>
+                  <Brain className="w-4 h-4 mr-2" />
+                  Calculate Results
+                </>
+              ) : (
+                <>
+                  Next
+                  <ChevronRight className="w-4 h-4 ml-2" />
+                </>
+              )}
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Instructions */}
-      <div className="max-w-4xl mx-auto mt-8">
+      <div className={`max-w-4xl mx-auto ${isMobile ? 'mt-6 px-4' : 'mt-8'}`}>
         <Card className="bg-muted/50">
-          <CardContent className="p-4">
-            <p className="text-sm text-muted-foreground text-center">
+          <CardContent className={`${isMobile ? 'p-3' : 'p-4'}`}>
+            <p className={`text-muted-foreground text-center ${isMobile ? 'text-xs leading-relaxed' : 'text-sm'}`}>
               <strong>Instructions:</strong> Rate each statement from 1 (Strongly Disagree) to 10 (Strongly Agree) based on how accurately it describes you. 
+              {!isMobile && <br />}
               There are no right or wrong answers - be honest about your typical thoughts, feelings, and behaviors.
             </p>
           </CardContent>
