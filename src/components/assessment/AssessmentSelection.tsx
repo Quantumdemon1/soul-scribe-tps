@@ -17,6 +17,7 @@ const AssessmentSelection: React.FC = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
 
+  // Render conditionally based on state, but keep all hooks at the top
   if (completedProfile) {
     return (
       <AssessmentResults 
