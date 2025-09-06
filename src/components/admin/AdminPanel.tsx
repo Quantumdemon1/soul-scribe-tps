@@ -11,7 +11,8 @@ import { Slider } from '@/components/ui/slider';
 import { LLMService } from '@/services/llmService';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
-import { Settings, Database, Brain, BarChart3, Save, RefreshCw, CheckCircle, AlertCircle, Copy, Upload, Download, Activity } from 'lucide-react';
+import { Settings, Database, Brain, BarChart3, Save, RefreshCw, CheckCircle, AlertCircle, Copy, Upload, Download, Activity, Shield } from 'lucide-react';
+import { useAdminRole } from '@/hooks/useAdminRole';
 import { AnalyticsOverview } from '@/components/analytics/AnalyticsOverview';
 import { SystemHealth } from '@/components/analytics/SystemHealth';
 import { CacheIntegrationTest } from '@/components/test/CacheIntegrationTest';
@@ -60,6 +61,7 @@ const modelOptions = {
 };
 
 export const AdminPanel: React.FC = () => {
+  const { isAdmin, loading: adminLoading } = useAdminRole();
   const [config, setConfig] = useState<LLMConfig>(defaultConfig);
   const [loading, setLoading] = useState(false);
   const [stats, setStats] = useState<any>(null);
@@ -68,9 +70,11 @@ export const AdminPanel: React.FC = () => {
   const [selectedPrompt, setSelectedPrompt] = useState<keyof typeof DEFAULT_SYSTEM_PROMPTS>('tieBreaking');
 
   useEffect(() => {
-    loadConfig();
-    loadStats();
-  }, []);
+    if (isAdmin) {
+      loadConfig();
+      loadStats();
+    }
+  }, [isAdmin]);
 
   const loadConfig = async () => {
     try {
@@ -224,6 +228,28 @@ export const AdminPanel: React.FC = () => {
       description: "Prompt copied to clipboard."
     });
   };
+
+  if (adminLoading || loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-lg">Loading admin panel...</div>
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen space-y-4">
+        <Shield className="h-16 w-16 text-muted-foreground" />
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-destructive">Access Denied</h1>
+          <p className="text-muted-foreground mt-2">
+            You need administrator privileges to access this panel.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background p-6">
