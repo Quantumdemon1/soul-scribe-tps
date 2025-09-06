@@ -16,27 +16,27 @@
   }
 
   :root {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --card: 240 10% 3.9%;
+    --card-foreground: 0 0% 98%;
 
-    --popover: 217.2 32.6% 17.5%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 240 5.9% 10%;
+    --popover-foreground: 0 0% 98%;
 
     --primary: 263 70% 50%;
-    --primary-foreground: 210 40% 98%;
-    --primary-glow: 263 70% 65%;
+    --primary-foreground: 0 0% 98%;
+    --primary-glow: 263 85% 60%;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
 
-    --accent: 263 70% 50%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
@@ -52,8 +52,11 @@
 
     /* Assessment specific colors */
     --assessment-bg: linear-gradient(135deg, hsl(263 70% 50%) 0%, hsl(299 71% 52%) 100%);
-    --assessment-card: 217.2 32.6% 17.5%;
+    --assessment-card: 240 3.7% 15.9%;
     --assessment-progress: hsl(263 70% 50%);
+    
+    /* Hero gradient */
+    --hero-bg: linear-gradient(135deg, hsl(240 10% 3.9%) 0%, hsl(263 70% 15%) 50%, hsl(299 71% 20%) 100%);
     
     /* Domain colors */
     --domain-external: 263 70% 50%;
@@ -68,9 +71,9 @@
     --chart-4: 38 92% 50%;
     --chart-5: 299 71% 52%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 263 70% 50%;
 
     --radius: 0.5rem;
 

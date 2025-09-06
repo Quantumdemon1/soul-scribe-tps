@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useAssessments } from '@/hooks/useAssessments';
+import { HeroSection } from '@/components/landing/HeroSection';
+import { FeatureCards } from '@/components/landing/FeatureCards';
 import AssessmentSelection from "../components/assessment/AssessmentSelection";
 import { FrameworkCorrelations } from '@/components/dashboard/FrameworkCorrelations';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { User, History, Target } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -12,13 +14,29 @@ const Index = () => {
   const { user } = useAuth();
   const { assessments, loading } = useAssessments();
   const navigate = useNavigate();
+  const [showAssessment, setShowAssessment] = useState(false);
 
-  // Show assessment selection for non-logged in users or those without assessments
-  if (!user || loading || !assessments || assessments.length === 0) {
+  // Show assessment component if requested
+  if (showAssessment) {
     return <AssessmentSelection />;
   }
 
-  // Get the most recent assessment profile
+  // Show results dashboard for users with assessments
+  if (user && !loading && assessments && assessments.length > 0) {
+    return <UserDashboard user={user} assessments={assessments} navigate={navigate} />;
+  }
+
+  // Landing page for new users
+  return (
+    <div className="min-h-screen bg-background">
+      <HeroSection onStartAssessment={() => setShowAssessment(true)} />
+      <FeatureCards />
+    </div>
+  );
+};
+
+// Separate component for user dashboard
+const UserDashboard: React.FC<{ user: any; assessments: any[]; navigate: any }> = ({ user, assessments, navigate }) => {
   const latestAssessment = assessments[0];
   const profile = latestAssessment?.profile;
 
