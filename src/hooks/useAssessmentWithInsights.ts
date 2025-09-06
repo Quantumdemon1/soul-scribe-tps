@@ -46,7 +46,7 @@ export const useAssessmentWithInsights = (): UseAssessmentWithInsightsReturn => 
       
       // Generate framework insights with performance tracking
       const frameworkInsights = await handleAsyncError(
-        () => frameworkService.generateFrameworkInsights(profile, profile.traitScores),
+        () => frameworkService.generateFrameworkInsights(profile, profile.traitScores, userId),
         "Failed to generate framework insights"
       );
 

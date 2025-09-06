@@ -7,6 +7,7 @@ import { stableHash } from '@/utils/hash';
 export class FrameworkInsightsService {
   private llmService = new LLMService();
   private static readonly INSIGHTS_VERSION = 1;
+  private static readonly FRAMEWORK_VERSION = 1;
 
   // Consolidated AI Insights Methods (from AIInsightsService) with caching
   async generateComprehensiveInsights(profile: PersonalityProfile, userId?: string): Promise<AIInsights> {
@@ -189,12 +190,52 @@ Keep it practical, empathetic, and actionable for building better relationships.
 
   async generateFrameworkInsights(
     profile: PersonalityProfile,
-    traitScores: TPSScores
+    traitScores: TPSScores,
+    userId?: string
   ): Promise<FrameworkInsights> {
     try {
       console.log('Generating framework insights for profile:', profile.mappings);
-      
-      // Generate insights in parallel for better performance
+
+      // Build cache key
+      const cacheKey = this.makeCacheKey(profile, 'framework');
+
+      // 1) Try DB cache when user is logged in
+      if (userId) {
+        try {
+          const { supabase } = await import('@/integrations/supabase/client');
+          const { data, error } = await supabase
+            .from('ai_insights')
+            .select('content, version')
+            .eq('user_id', userId)
+            .eq('insight_type', 'framework_correlations')
+            .eq('cache_key', cacheKey)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+          if (!error && data && data.version === FrameworkInsightsService.FRAMEWORK_VERSION) {
+            return data.content as unknown as FrameworkInsights;
+          }
+        } catch (e) {
+          console.warn('Framework DB cache lookup failed, continuing...', e);
+        }
+      } else {
+        // 2) Try localStorage cache for anonymous users
+        try {
+          const lsKey = `psyforge:fw:${cacheKey}`;
+          const raw = localStorage.getItem(lsKey);
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            if (parsed.version === FrameworkInsightsService.FRAMEWORK_VERSION) {
+              return parsed.content as FrameworkInsights;
+            }
+          }
+        } catch (_) {
+          // ignore localStorage errors
+        }
+      }
+
+      // 3) Generate fresh insights in parallel
       const [mbti, enneagram, bigFive, alignment, synthesis] = await Promise.all([
         this.generateMBTIInsight(profile.mappings.mbti, traitScores),
         this.generateEnneagramInsight(profile.mappings.enneagramDetails, traitScores),
@@ -224,6 +265,35 @@ Keep it practical, empathetic, and actionable for building better relationships.
       };
 
       console.log('Successfully generated framework insights');
+
+      // 4) Persist cache
+      if (userId) {
+        try {
+          const { supabase } = await import('@/integrations/supabase/client');
+          await supabase.from('ai_insights').insert({
+            user_id: userId,
+            insight_type: 'framework_correlations',
+            content: insights as any,
+            model_used: 'frameworkAnalysis',
+            cache_key: cacheKey,
+            version: FrameworkInsightsService.FRAMEWORK_VERSION
+          });
+        } catch (e) {
+          console.warn('Failed to save framework insights cache to DB', e);
+        }
+      } else {
+        try {
+          const lsKey = `psyforge:fw:${cacheKey}`;
+          localStorage.setItem(lsKey, JSON.stringify({
+            version: FrameworkInsightsService.FRAMEWORK_VERSION,
+            content: insights,
+            ts: Date.now()
+          }));
+        } catch (_) {
+          // ignore localStorage errors
+        }
+      }
+
       return insights;
     } catch (error) {
       console.error('Error generating framework insights:', error);

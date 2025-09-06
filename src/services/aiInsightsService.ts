@@ -59,7 +59,7 @@ export class AIInsightsService {
       // Generate framework insights if not already present
       if (!profile.frameworkInsights) {
         try {
-          const frameworkInsights = await this.frameworkInsightsService.generateFrameworkInsights(profile, profile.traitScores);
+          const frameworkInsights = await this.frameworkInsightsService.generateFrameworkInsights(profile, profile.traitScores, userId);
           profile.frameworkInsights = frameworkInsights;
           console.log('Successfully generated framework insights');
         } catch (error) {

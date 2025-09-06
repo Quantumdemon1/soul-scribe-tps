@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ChevronDown, ChevronUp, Brain, Users, Star, Shield, Briefcase, Target } from 'lucide-react';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { useAuth } from '@/hooks/useAuth';
 
 interface FrameworkCorrelationsProps {
   profile: PersonalityProfile;
@@ -17,6 +18,7 @@ export const FrameworkCorrelations: React.FC<FrameworkCorrelationsProps> = ({ pr
   const [expandedFramework, setExpandedFramework] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { user } = useAuth();
 
   useEffect(() => {
     loadInsights();
@@ -35,7 +37,7 @@ export const FrameworkCorrelations: React.FC<FrameworkCorrelationsProps> = ({ pr
       }
 
       const service = new FrameworkInsightsService();
-      const data = await service.generateFrameworkInsights(profile, profile.traitScores);
+      const data = await service.generateFrameworkInsights(profile, profile.traitScores, user?.id);
       setInsights(data);
     } catch (err) {
       console.error('Error loading framework insights:', err);
