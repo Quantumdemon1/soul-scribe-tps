@@ -29,6 +29,7 @@ export const PersonalityTest: React.FC<PersonalityTestProps> = ({ assessmentType
   const [initialScores, setInitialScores] = useState<any>(null);
   const { user } = useAuth();
   const { saveAssessment } = useAssessments();
+  const isMobile = useIsMobile(); // ✅ Move hook call to the top, before any conditional logic
 
   // Get assessment configuration
   const assessmentConfig = React.useMemo(() => {
@@ -182,7 +183,6 @@ export const PersonalityTest: React.FC<PersonalityTestProps> = ({ assessmentType
     return <PersonalityDashboard profile={profile} />;
   }
 
-  const isMobile = useIsMobile();
 
   return (
     <div className="min-h-screen bg-background">
