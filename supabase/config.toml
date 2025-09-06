@@ -1,1 +1,4 @@
 project_id = "rvbbmtpdeqchsbalhssc"
+
+[functions.llm-proxy]
+verify_jwt = true
