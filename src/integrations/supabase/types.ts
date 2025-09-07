@@ -133,6 +133,54 @@ export type Database = {
         }
         Relationships: []
       }
+      bulk_imports: {
+        Row: {
+          admin_user_id: string
+          batch_id: string
+          completed_at: string | null
+          created_at: string
+          error_count: number
+          errors: Json | null
+          filename: string
+          id: string
+          import_type: string
+          metadata: Json | null
+          status: string
+          success_count: number
+          total_records: number
+        }
+        Insert: {
+          admin_user_id: string
+          batch_id: string
+          completed_at?: string | null
+          created_at?: string
+          error_count?: number
+          errors?: Json | null
+          filename: string
+          id?: string
+          import_type: string
+          metadata?: Json | null
+          status?: string
+          success_count?: number
+          total_records?: number
+        }
+        Update: {
+          admin_user_id?: string
+          batch_id?: string
+          completed_at?: string | null
+          created_at?: string
+          error_count?: number
+          errors?: Json | null
+          filename?: string
+          id?: string
+          import_type?: string
+          metadata?: Json | null
+          status?: string
+          success_count?: number
+          total_records?: number
+        }
+        Relationships: []
+      }
       error_logs: {
         Row: {
           context: Json | null

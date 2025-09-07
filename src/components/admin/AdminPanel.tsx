@@ -19,6 +19,7 @@ import { CacheIntegrationTest } from '@/components/test/CacheIntegrationTest';
 import { PerformanceMonitor } from '@/components/ui/performance-monitor';
 import { AlignmentTest } from '@/components/test/AlignmentTest';
 import { DEFAULT_SYSTEM_PROMPTS } from '@/config/systemPrompts';
+const BulkImportLazy = React.lazy(() => import('@/components/admin/BulkImport'));
 
 interface LLMConfig {
   provider: 'openai' | 'anthropic';
@@ -270,7 +271,7 @@ export const AdminPanel: React.FC = () => {
         </div>
 
         <Tabs defaultValue="llm" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="llm" className="flex items-center gap-2">
               <Brain className="w-4 h-4" />
               LLM Configuration
@@ -290,6 +291,10 @@ export const AdminPanel: React.FC = () => {
             <TabsTrigger value="performance" className="flex items-center gap-2">
               <Activity className="w-4 h-4" />
               Performance
+            </TabsTrigger>
+            <TabsTrigger value="bulk" className="flex items-center gap-2">
+              <Upload className="w-4 h-4" />
+              Bulk Import
             </TabsTrigger>
           </TabsList>
 
