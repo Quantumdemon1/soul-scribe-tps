@@ -109,7 +109,7 @@ export const MobileDashboardControls: React.FC<MobileDashboardControlsProps> = (
 
   // Mobile optimized version
   return (
-    <div className="mb-4">
+    <div className="mb-4 px-4">{/* Added horizontal padding for consistency */}
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
         {/* Compact header with status */}
         <div className="flex items-center justify-between py-2 px-4 bg-muted/50 rounded-lg">

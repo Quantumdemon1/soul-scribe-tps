@@ -117,8 +117,8 @@ export const MobileDashboardTabs: React.FC<MobileDashboardTabsProps> = ({
         </div>
       </div>
       
-      {/* Tab content */}
-      <div className="px-4">
+      {/* Tab content with bottom padding for mobile navigation space */}
+      <div className="pb-6">
         {children}
       </div>
     </LazyTabs>

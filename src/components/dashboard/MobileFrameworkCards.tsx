@@ -100,7 +100,7 @@ export const MobileFrameworkCards: React.FC<MobileFrameworkCardsProps> = ({ prof
 
   // Mobile layout - stack cards with collapsible content
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 pb-4">
       <div className="flex items-center gap-2 mb-4 px-4">
         <Target className="w-5 h-5" />
         <h2 className="text-lg font-semibold">Framework Correlations</h2>

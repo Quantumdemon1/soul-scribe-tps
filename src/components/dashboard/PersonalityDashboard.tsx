@@ -123,7 +123,7 @@ const DashboardContent: React.FC<{ profile: PersonalityProfile; onRetakeAssessme
       />
 
       {/* Main Content */}
-      <div className={isMobile ? "" : "max-w-7xl mx-auto px-6 py-8"}>
+      <div className={isMobile ? "pt-4" : "max-w-7xl mx-auto px-6 py-8"}>
         {isMobile ? (
           <MobileDashboardControls profile={profile} currentSection={activeTab} />
         ) : (
@@ -169,7 +169,7 @@ const DashboardContent: React.FC<{ profile: PersonalityProfile; onRetakeAssessme
             )}
 
             {/* Domain Details */}
-            <div className={isMobile ? "space-y-4 mx-4" : "grid gap-6"}>
+            <div className={isMobile ? "space-y-4 px-4" : "grid gap-6"}>
               {Object.entries(profile.dominantTraits).map(([triad, trait]) => (
                 <DomainCard
                   key={triad}
@@ -181,31 +181,31 @@ const DashboardContent: React.FC<{ profile: PersonalityProfile; onRetakeAssessme
             </div>
           </LazyTabs.Content>
 
-          <LazyTabs.Content value="insights">
+          <LazyTabs.Content value="insights" className={isMobile ? "px-4" : ""}>
             <CoreInsights profile={profile} />
           </LazyTabs.Content>
 
-          <LazyTabs.Content value="ai-insights">
+          <LazyTabs.Content value="ai-insights" className={isMobile ? "px-4" : ""}>
             <AIInsightsPanel profile={profile} />
           </LazyTabs.Content>
 
-          <LazyTabs.Content value="types">
+          <LazyTabs.Content value="types" className={isMobile ? "" : ""}>
             <FrameworkCorrelations profile={profile} />
           </LazyTabs.Content>
 
-          <LazyTabs.Content value="development">
+          <LazyTabs.Content value="development" className={isMobile ? "px-4" : ""}>
             <PersonalDevelopment profile={profile} />
           </LazyTabs.Content>
 
-          <LazyTabs.Content value="career">
+          <LazyTabs.Content value="career" className={isMobile ? "px-4" : ""}>
             <CareerLifestyle profile={profile} />
           </LazyTabs.Content>
 
-          <LazyTabs.Content value="comparison">
+          <LazyTabs.Content value="comparison" className={isMobile ? "px-4" : ""}>
             <InsightComparisonPanel currentProfile={profile} />
           </LazyTabs.Content>
 
-          <LazyTabs.Content value="enhanced">
+          <LazyTabs.Content value="enhanced" className={isMobile ? "px-4" : ""}>
             <EnhancedInsightsPanel 
               mbtiDetail={profile.mappings.mbtiDetail}
               enneagramDetail={profile.mappings.enneagramDetail}
