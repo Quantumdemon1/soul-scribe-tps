@@ -131,7 +131,7 @@ export const DashboardProvider: React.FC<DashboardProviderProps> = ({ children, 
           model_used: 'dashboard-cache',
           version: 1
         }, {
-          onConflict: 'user_id,section_name,cache_key'
+          onConflict: 'user_id,insight_type'
         });
     } catch (error) {
       console.warn(`Failed to save database cache for ${section}:`, error);
