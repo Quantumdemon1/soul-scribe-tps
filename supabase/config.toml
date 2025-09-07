@@ -2,3 +2,6 @@ project_id = "rvbbmtpdeqchsbalhssc"
 
 [functions.llm-proxy]
 verify_jwt = false
+
+[functions.bulk-import]
+verify_jwt = true

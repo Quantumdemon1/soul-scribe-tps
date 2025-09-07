@@ -567,6 +567,12 @@ export const AdminPanel: React.FC = () => {
           <TabsContent value="performance" className="space-y-6">
             <PerformanceMonitor />
           </TabsContent>
+
+          <TabsContent value="bulk" className="space-y-6">
+            <React.Suspense fallback={<div className="text-sm text-muted-foreground">Loading bulk import...</div>}>
+              <BulkImportLazy />
+            </React.Suspense>
+          </TabsContent>
         </Tabs>
       </div>
     </div>
