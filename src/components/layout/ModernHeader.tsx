@@ -6,11 +6,15 @@ import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useAdminRole } from '@/hooks/useAdminRole';
+import { GuidedTour } from '@/components/help/GuidedTour';
 
 export const ModernHeader: React.FC = () => {
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showTour, setShowTour] = useState(false);
   const { user, signOut } = useAuth();
+  const { isAdmin } = useAdminRole();
   const isMobile = useIsMobile();
   
   const isActive = (path: string) => location.pathname === path;
@@ -68,6 +72,26 @@ export const ModernHeader: React.FC = () => {
                   <User className="mr-3 h-4 w-4" />
                   Profile
                 </Link>
+                {isAdmin && (
+                  <Link
+                    to="/admin"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center px-4 py-3 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent"
+                  >
+                    <User className="mr-3 h-4 w-4" />
+                    Admin Panel
+                  </Link>
+                )}
+                <button
+                  onClick={() => {
+                    setShowTour(true);
+                    setMobileMenuOpen(false);
+                  }}
+                  className="flex items-center w-full px-4 py-3 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent"
+                >
+                  <Brain className="mr-3 h-4 w-4" />
+                  Help & Tour
+                </button>
                 <button
                   onClick={() => {
                     signOut();
@@ -136,6 +160,16 @@ export const ModernHeader: React.FC = () => {
                     Profile
                   </Button>
                 </Link>
+                {isAdmin && (
+                  <Link to="/admin">
+                    <Button variant="ghost" size="sm">
+                      Admin Panel
+                    </Button>
+                  </Link>
+                )}
+                <Button variant="ghost" size="sm" onClick={() => setShowTour(true)}>
+                  Help & Tour
+                </Button>
                 <Button variant="ghost" size="sm" onClick={signOut}>
                   Sign Out
                 </Button>
@@ -151,6 +185,7 @@ export const ModernHeader: React.FC = () => {
           </div>
         )}
       </div>
+      {showTour && <GuidedTour isOpen={showTour} onClose={() => setShowTour(false)} />}
     </header>
   );
 };

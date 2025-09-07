@@ -26,7 +26,6 @@ import { RefinementModal } from './RefinementModal';
 
 import { InsightComparisonPanel } from './InsightComparisonPanel';
 import { PersonalityMatches } from './PersonalityMatches';
-import { Header } from '@/components/layout/Header';
 import { 
   Brain, 
   Download, 
@@ -37,7 +36,6 @@ import {
   Briefcase,
   TrendingUp,
   Sparkles,
-  
   GitCompare,
   Settings,
   MessageSquare
@@ -114,7 +112,6 @@ const DashboardContent: React.FC<{ profile: PersonalityProfile; onRetakeAssessme
 
   return (
       <div className="min-h-screen bg-background">
-        <Header />
       {/* Hero Section */}
       <MobileHeroSection
         profile={profile}
