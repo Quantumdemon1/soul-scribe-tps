@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { ChevronDown, ChevronUp, Brain, Users, Star, Shield, Briefcase, Target } from 'lucide-react';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 
 interface FrameworkCorrelationsProps {
   profile: PersonalityProfile;
@@ -39,11 +40,54 @@ export const FrameworkCorrelations: React.FC<FrameworkCorrelationsProps> = ({ pr
       const service = new FrameworkInsightsService();
       const data = await service.generateFrameworkInsights(profile, profile.traitScores, user?.id);
       setInsights(data);
+
+      // If profile doesn't have insights, persist them now
+      if (data && !profile.frameworkInsights) {
+        await persistInsightsToProfile(data);
+      }
     } catch (err) {
       console.error('Error loading framework insights:', err);
       setError(err instanceof Error ? err.message : 'Failed to load insights');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const persistInsightsToProfile = async (frameworkInsights: any) => {
+    try {
+      if (user) {
+        // For authenticated users: update the latest assessment in Supabase
+        const { data: assessments } = await supabase
+          .from('assessments')
+          .select('id')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(1);
+
+        if (assessments && assessments.length > 0) {
+          const updatedProfile = {
+            ...profile,
+            frameworkInsights,
+            timestamp: new Date().toISOString()
+          };
+          
+          await supabase
+            .from('assessments')
+            .update({ profile: updatedProfile as any })
+            .eq('id', assessments[0].id);
+        }
+      } else {
+        // For guests: update localStorage
+        const updatedProfile = {
+          ...profile,
+          frameworkInsights,
+          timestamp: new Date().toISOString()
+        };
+        localStorage.setItem('tps-profile', JSON.stringify(updatedProfile));
+      }
+    } catch (error) {
+      console.error('Error persisting insights to profile:', error);
+      // Don't throw - this shouldn't block the UI
     }
   };
 

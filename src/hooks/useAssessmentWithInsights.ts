@@ -6,6 +6,8 @@ import { useToast } from '@/hooks/use-toast';
 import { usePerformanceOptimization } from './usePerformanceOptimization';
 import { useErrorHandler } from './useErrorHandler';
 import { useLoadingState } from './useLoadingState';
+import { useAuth } from './useAuth';
+import { supabase } from '@/integrations/supabase/client';
 
 interface UseAssessmentWithInsightsReturn {
   enhanceProfileWithInsights: (profile: PersonalityProfile, userId?: string) => Promise<PersonalityProfile>;
@@ -17,6 +19,7 @@ interface UseAssessmentWithInsightsReturn {
 
 export const useAssessmentWithInsights = (): UseAssessmentWithInsightsReturn => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const { performanceUtils, trackComponentRender } = usePerformanceOptimization();
   const { handleAsyncError } = useErrorHandler({
     showToast: false, // Handle toasts manually for better UX
@@ -63,8 +66,12 @@ export const useAssessmentWithInsights = (): UseAssessmentWithInsightsReturn => 
       
       const enhancedProfile: PersonalityProfile = {
         ...profile,
-        frameworkInsights: frameworkInsights || undefined
+        frameworkInsights: frameworkInsights || undefined,
+        timestamp: new Date().toISOString()
       };
+
+      // Persist the enhanced profile
+      await persistEnhancedProfile(enhancedProfile);
 
       if (frameworkInsights) {
         toast({
@@ -84,7 +91,34 @@ export const useAssessmentWithInsights = (): UseAssessmentWithInsightsReturn => 
     }, { retryOnError: true });
 
     return result || profile;
-  }, [toast, performanceUtils, handleAsyncError, loadingState, trackComponentRender]);
+  }, [toast, user, performanceUtils, handleAsyncError, loadingState, trackComponentRender]);
+
+  const persistEnhancedProfile = async (updatedProfile: PersonalityProfile) => {
+    try {
+      if (user) {
+        // For authenticated users: update the latest assessment in Supabase
+        const { data: assessments } = await supabase
+          .from('assessments')
+          .select('id')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(1);
+
+        if (assessments && assessments.length > 0) {
+          await supabase
+            .from('assessments')
+            .update({ profile: updatedProfile as any })
+            .eq('id', assessments[0].id);
+        }
+      } else {
+        // For guests: update localStorage
+        localStorage.setItem('tps-profile', JSON.stringify(updatedProfile));
+      }
+    } catch (error) {
+      console.error('Error persisting enhanced profile:', error);
+      // Don't throw - this shouldn't block the UI
+    }
+  };
 
   return {
     enhanceProfileWithInsights,

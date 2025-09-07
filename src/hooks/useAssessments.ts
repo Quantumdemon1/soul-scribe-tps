@@ -129,11 +129,37 @@ export function useAssessments() {
     return () => subscription.unsubscribe();
   }, []);
 
+  const updateAssessmentProfile = async (assessmentId: string, profile: PersonalityProfile) => {
+    try {
+      const { error } = await supabase
+        .from('assessments')
+        .update({ profile: profile as any })
+        .eq('id', assessmentId);
+
+      if (error) throw error;
+
+      // Update the local state
+      setAssessments(prev => prev.map(assessment => 
+        assessment.id === assessmentId 
+          ? { ...assessment, profile }
+          : assessment
+      ));
+    } catch (error: any) {
+      console.error('Error updating assessment profile:', error);
+      toast({
+        title: "Update Failed",
+        description: "Failed to update assessment profile.",
+        variant: "destructive"
+      });
+    }
+  };
+
   return {
     assessments,
     loading,
     saveAssessment,
     loadAssessments,
-    deleteAssessment
+    deleteAssessment,
+    updateAssessmentProfile
   };
 }

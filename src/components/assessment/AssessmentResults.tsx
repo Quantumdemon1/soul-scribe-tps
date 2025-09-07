@@ -11,6 +11,8 @@ import { FrameworkInsightsService } from '@/services/frameworkInsightsService';
 import { Brain, Download, Save, Share2, FileText, LoaderIcon } from 'lucide-react';
 import { PDFReportGenerator } from '@/utils/pdfGenerator';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 
 interface AssessmentResultsProps {
   profile: PersonalityProfile;
@@ -26,6 +28,7 @@ export const AssessmentResults: React.FC<AssessmentResultsProps> = ({
   const [enhancedProfile, setEnhancedProfile] = useState<PersonalityProfile>(profile);
   const [generatingInsights, setGeneratingInsights] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const handleProfileMigration = (updatedProfile: PersonalityProfile) => {
     setEnhancedProfile(updatedProfile);
@@ -44,14 +47,18 @@ export const AssessmentResults: React.FC<AssessmentResultsProps> = ({
     setGeneratingInsights(true);
     try {
       const insightsService = new FrameworkInsightsService();
-      const insights = await insightsService.generateFrameworkInsights(profile, profile.traitScores);
+      const insights = await insightsService.generateFrameworkInsights(profile, profile.traitScores, user?.id);
       
       const updatedProfile = {
         ...profile,
-        frameworkInsights: insights
+        frameworkInsights: insights,
+        timestamp: new Date().toISOString()
       };
       
       setEnhancedProfile(updatedProfile);
+      
+      // Persist the enhanced profile
+      await persistEnhancedProfile(updatedProfile);
       
       toast({
         title: "Framework Insights Generated",
@@ -67,6 +74,33 @@ export const AssessmentResults: React.FC<AssessmentResultsProps> = ({
       setEnhancedProfile(profile);
     } finally {
       setGeneratingInsights(false);
+    }
+  };
+
+  const persistEnhancedProfile = async (updatedProfile: PersonalityProfile) => {
+    try {
+      if (user) {
+        // For authenticated users: update the latest assessment in Supabase
+        const { data: assessments } = await supabase
+          .from('assessments')
+          .select('id')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(1);
+
+        if (assessments && assessments.length > 0) {
+          await supabase
+            .from('assessments')
+            .update({ profile: updatedProfile as any })
+            .eq('id', assessments[0].id);
+        }
+      } else {
+        // For guests: update localStorage
+        localStorage.setItem('tps-profile', JSON.stringify(updatedProfile));
+      }
+    } catch (error) {
+      console.error('Error persisting enhanced profile:', error);
+      // Don't throw - this shouldn't block the UI
     }
   };
 
