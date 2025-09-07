@@ -4,6 +4,7 @@ import { LLMService } from './llmService';
 import { TPSScoring } from '@/utils/tpsScoring';
 import { supabase } from '@/integrations/supabase/client';
 import { stableHash } from '@/utils/hash';
+import { calculateIntegralDevelopment, getIntegralClarificationQuestions, validateIntegralAssessment } from '@/mappings/integral.enhanced';
 
 export class SocraticClarificationService {
   private readonly CUSP_THRESHOLD = 2.5; // Traits within 2.5 points are cusps
@@ -42,6 +43,10 @@ export class SocraticClarificationService {
         }
       });
     });
+
+    // Add Integral Theory developmental level analysis
+    const integralAnalysis = await this.analyzeIntegralDevelopmentCusps(traitScores);
+    cusps.push(...integralAnalysis);
     
     // Sort by importance and limit to top cusps
     const sortedCusps = cusps
@@ -54,6 +59,54 @@ export class SocraticClarificationService {
     }
     
     return sortedCusps;
+  }
+
+  private async analyzeIntegralDevelopmentCusps(traitScores: TPSScores): Promise<CuspAnalysis[]> {
+    const integralCusps: CuspAnalysis[] = [];
+    
+    try {
+      const integralDetail = calculateIntegralDevelopment(traitScores);
+      
+      // Check if there's ambiguity between primary and secondary levels
+      if (integralDetail.secondaryLevel && 
+          Math.abs(integralDetail.primaryLevel.score - integralDetail.secondaryLevel.score) <= 1.0) {
+        
+        integralCusps.push({
+          triad: `Integral Theory Development`,
+          traits: [integralDetail.primaryLevel.color, integralDetail.secondaryLevel.color],
+          scores: [integralDetail.primaryLevel.score, integralDetail.secondaryLevel.score],
+          requiresClarification: true,
+          importanceScore: 9.5, // High importance for cognitive development clarity
+          integralLevel: integralDetail.primaryLevel
+        });
+      }
+
+      // Check Reality Triad mapping for cognitive development consistency
+      const { physical, social, universal } = integralDetail.realityTriadMapping;
+      const realityScores = [
+        { name: 'Physical', score: physical },
+        { name: 'Social', score: social },
+        { name: 'Universal', score: universal }
+      ];
+      
+      realityScores.sort((a, b) => b.score - a.score);
+      
+      if (Math.abs(realityScores[0].score - realityScores[1].score) <= 0.7) {
+        integralCusps.push({
+          triad: 'Reality Triad Focus',
+          traits: [realityScores[0].name, realityScores[1].name],
+          scores: [realityScores[0].score, realityScores[1].score],
+          requiresClarification: true,
+          importanceScore: 8.8, // High importance for reality focus clarity
+          isRealityTriad: true
+        });
+      }
+      
+    } catch (error) {
+      console.warn('Error analyzing integral development cusps:', error);
+    }
+    
+    return integralCusps;
   }
   
   async generateClarificationQuestions(cusp: CuspAnalysis): Promise<string[]> {
@@ -69,6 +122,22 @@ export class SocraticClarificationService {
     if (cached) {
       console.log('Using cached clarification questions');
       return cached;
+    }
+
+    // Handle Integral Theory level clarification
+    if (cusp.integralLevel) {
+      const integralQuestions = getIntegralClarificationQuestions(cusp.integralLevel);
+      if (integralQuestions.length > 0) {
+        this.setMemoryCache(cacheKey, integralQuestions);
+        return integralQuestions;
+      }
+    }
+
+    // Handle Reality Triad clarification
+    if (cusp.isRealityTriad) {
+      const realityTriadQuestions = this.generateRealityTriadQuestions(cusp);
+      this.setMemoryCache(cacheKey, realityTriadQuestions);
+      return realityTriadQuestions;
     }
 
     const traitDescriptions = this.getTraitDescriptions();
@@ -97,12 +166,44 @@ CRITICAL: Return ONLY the single question as plain text, no formatting, numberin
     
     return [question];
   }
+
+  private generateRealityTriadQuestions(cusp: CuspAnalysis): string[] {
+    const realityTriadQuestions = {
+      'Physical_vs_Social': [
+        "When solving a problem, do you prefer to start with concrete, tangible aspects or with how it affects people and relationships?",
+        "In your daily life, what captures your attention more - the physical world around you or the social dynamics between people?"
+      ],
+      'Social_vs_Universal': [
+        "When considering important decisions, do you focus more on social harmony and relationships or on universal principles and abstract concepts?",
+        "What motivates you more - improving relationships and community wellbeing or understanding deeper patterns and meanings?"
+      ],
+      'Physical_vs_Universal': [
+        "Do you prefer dealing with concrete, observable things you can see and touch, or exploring abstract ideas and universal concepts?",
+        "When learning something new, are you more drawn to practical applications or theoretical understanding?"
+      ]
+    };
+
+    const questionKey = `${cusp.traits[0]}_vs_${cusp.traits[1]}`;
+    return realityTriadQuestions[questionKey] || [
+      `When approaching complex situations, do you tend to focus more on ${cusp.traits[0].toLowerCase()} or ${cusp.traits[1].toLowerCase()} aspects?`
+    ];
+  }
   
   async processClarificationResponse(
-    question: string,
-    response: string,
+    question: string, 
+    response: string, 
     cusp: CuspAnalysis
   ): Promise<Record<string, number>> {
+    // Enhanced analysis for Integral Theory levels
+    if (cusp.integralLevel) {
+      return await this.processIntegralClarificationResponse(question, response, cusp);
+    }
+
+    // Enhanced analysis for Reality Triad
+    if (cusp.isRealityTriad) {
+      return await this.processRealityTriadResponse(question, response, cusp);
+    }
+
     const traitDescriptions = this.getTraitDescriptions();
     
     const prompt = `
@@ -165,6 +266,111 @@ Use this exact format: {"${cusp.traits[0]}": 0.0, "${cusp.traits[1]}": 0.0, "${c
         neutralAdjustments[trait] = 0;
       });
       return neutralAdjustments;
+    }
+  }
+
+  private async processIntegralClarificationResponse(
+    question: string,
+    response: string,
+    cusp: CuspAnalysis
+  ): Promise<Record<string, number>> {
+    try {
+      // Validate the response aligns with the assessed integral level
+      const isValid = validateIntegralAssessment([response], cusp.integralLevel!);
+      
+      const prompt = `You are analyzing a user's response to determine their cognitive development level according to Integral Theory. 
+
+Question: "${question}"
+User Response: "${response}"
+
+Integral Levels being compared:
+- ${cusp.traits[0]} (current score: ${cusp.scores[0].toFixed(1)})
+- ${cusp.traits[1]} (current score: ${cusp.scores[1].toFixed(1)})
+
+Based on the cognitive complexity, thinking patterns, and worldview expressed in their response, determine which integral level this represents. Consider:
+
+- Cognitive complexity and abstraction level
+- How they handle multiple perspectives
+- Their approach to problem-solving
+- Values and concerns expressed
+- Language patterns and conceptual frameworks used
+
+Return ONLY a JSON object with adjustments between -1.5 and +1.5 (wider range for developmental clarity):
+
+{"${cusp.traits[0]}": adjustment_value, "${cusp.traits[1]}": adjustment_value}
+
+Note: This response ${isValid ? 'aligns' : 'may not align'} with the assessed level based on keyword analysis.
+
+Return only the JSON object, no explanation.`;
+
+      const llmResponse = await this.llmService.callLLM(prompt, 'tieBreaking');
+
+      const jsonMatch = llmResponse.match(/\{[^}]+\}/);
+      if (jsonMatch) {
+        const adjustments = JSON.parse(jsonMatch[0]);
+        
+        // Apply validation penalty if response doesn't align
+        if (!isValid) {
+          Object.keys(adjustments).forEach(key => {
+            adjustments[key] *= 0.7; // Reduce confidence in adjustments
+          });
+        }
+        
+        return adjustments;
+      }
+      
+      return {};
+    } catch (error) {
+      console.error('Error processing integral clarification response:', error);
+      return {};
+    }
+  }
+
+  private async processRealityTriadResponse(
+    question: string,
+    response: string,
+    cusp: CuspAnalysis
+  ): Promise<Record<string, number>> {
+    try {
+      const prompt = `You are analyzing a user's response to determine their Reality Triad preference (Physical, Social, Universal focus).
+
+Question: "${question}"
+User Response: "${response}"
+
+Reality Triad aspects being compared:
+- ${cusp.traits[0]} (current score: ${cusp.scores[0].toFixed(1)})
+- ${cusp.traits[1]} (current score: ${cusp.scores[1].toFixed(1)})
+
+Analyze which reality focus their response demonstrates:
+
+PHYSICAL: Concrete, tangible, observable phenomena. Focus on what can be seen, touched, measured.
+SOCIAL: Interpersonal dynamics, relationships, social systems, how things affect people.
+UNIVERSAL: Abstract concepts, universal principles, patterns, theoretical frameworks.
+
+This directly maps to Integral Theory cognitive development levels:
+- Physical focus → Red/Amber levels (concrete operational thinking)
+- Social focus → Orange/Green levels (formal operational thinking)  
+- Universal focus → Teal/Turquoise levels (post-formal thinking)
+
+Return ONLY a JSON object with adjustments between -1.2 and +1.2:
+
+{"${cusp.traits[0]}": adjustment_value, "${cusp.traits[1]}": adjustment_value}
+
+Base adjustments on clear indicators of which reality triad their thinking demonstrates.
+
+Return only the JSON object, no explanation.`;
+
+      const llmResponse = await this.llmService.callLLM(prompt, 'tieBreaking');
+
+      const jsonMatch = llmResponse.match(/\{[^}]+\}/);
+      if (jsonMatch) {
+        return JSON.parse(jsonMatch[0]);
+      }
+      
+      return {};
+    } catch (error) {
+      console.error('Error processing reality triad response:', error);
+      return {};
     }
   }
 

@@ -9,6 +9,7 @@ let calculateHollandEnhanced: any = null;
 let calculateAlignmentEnhanced: any = null;
 let calculateAttachmentStyle: any = null;
 let calculateSocionicsEnhanced: any = null;
+let calculateIntegralDevelopment: any = null;
 
 // Try to load enhanced mappings asynchronously
 const loadEnhancedMappings = async () => {
@@ -21,6 +22,7 @@ const loadEnhancedMappings = async () => {
     calculateAlignmentEnhanced = mappings.calculateAlignmentEnhanced;
     calculateAttachmentStyle = mappings.calculateAttachmentStyle;
     calculateSocionicsEnhanced = mappings.calculateSocionicsEnhanced;
+    calculateIntegralDevelopment = mappings.calculateIntegralDevelopment;
     enhancedMappingsLoaded = true;
   } catch (error) {
     // Enhanced mappings not available, using basic scoring
@@ -261,6 +263,7 @@ export class TPSScoring {
     const hollandDetail = calculateHollandEnhanced ? calculateHollandEnhanced(traitScores) : null;
     const attachmentStyle = calculateAttachmentStyle ? calculateAttachmentStyle(traitScores) : null;
     const socionicsDetail = calculateSocionicsEnhanced ? calculateSocionicsEnhanced(mbti, traitScores) : null;
+    const integralDetail = calculateIntegralDevelopment ? calculateIntegralDevelopment(traitScores) : null;
     
     return {
       mbti,
@@ -278,7 +281,8 @@ export class TPSScoring {
       alignmentDetail,
       hollandDetail,
       attachmentStyle,
-      socionicsDetail
+      socionicsDetail,
+      integralDetail
     };
   }
 

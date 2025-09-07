@@ -162,6 +162,41 @@ export interface SocionicsDetail {
   confidence: number;
 }
 
+export interface IntegralDetail {
+  primaryLevel: {
+    color: string;
+    name: string;
+    cognitiveStage: string;
+    worldview: string;
+    thinkingPattern: string;
+    score: number;
+    confidence: number;
+    characteristics: string[];
+    growthEdge: string[];
+    typicalConcerns: string[];
+  };
+  secondaryLevel?: {
+    color: string;
+    name: string;
+    cognitiveStage: string;
+    worldview: string;
+    thinkingPattern: string;
+    score: number;
+    confidence: number;
+    characteristics: string[];
+    growthEdge: string[];
+    typicalConcerns: string[];
+  };
+  realityTriadMapping: {
+    physical: number;
+    social: number;
+    universal: number;
+  };
+  cognitiveComplexity: number;
+  developmentalEdge: string;
+  confidence: number;
+}
+
 export interface PersonalityProfile {
   dominantTraits: DominantTraits;
   traitScores: TPSScores;
@@ -188,6 +223,7 @@ export interface PersonalityProfile {
     hollandDetail?: HollandDetail;
     attachmentStyle?: AttachmentStyle;
     socionicsDetail?: SocionicsDetail;
+    integralDetail?: IntegralDetail;
   };
   frameworkInsights?: import('./llm.types').FrameworkInsights;
   timestamp: string;

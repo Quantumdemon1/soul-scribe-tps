@@ -6,6 +6,7 @@ export * from './holland.enhanced';
 export * from './alignment.enhanced';
 export * from './attachment.mapping';
 export * from './socionics.enhanced';
+export * from './integral.enhanced';
 
 // Utility functions for enhanced mappings
 export function calculateConfidence(score: number, threshold: number = 1.5): number {
