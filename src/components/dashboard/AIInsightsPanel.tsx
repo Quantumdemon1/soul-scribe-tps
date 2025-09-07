@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { PersonalityProfile } from '@/types/tps.types';
 import { AIInsights } from '@/types/llm.types';
-import { FrameworkInsightsService } from '@/services/frameworkInsightsService';
+import { AIInsightsService } from '@/services/aiInsightsService';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { HelpTooltip } from '@/components/ui/help-tooltip';
-import { Brain, Briefcase, TrendingUp, Heart, Sparkles, ChevronDown, RefreshCw, Target } from 'lucide-react';
+import { Brain, Briefcase, TrendingUp, Heart, Sparkles, ChevronDown, RefreshCw, Target, Database } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/hooks/use-toast';
 
@@ -20,6 +20,7 @@ export const AIInsightsPanel: React.FC<AIInsightsPanelProps> = ({ profile }) => 
   const [insights, setInsights] = useState<AIInsights | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isFromCache, setIsFromCache] = useState(false);
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     general: true,
     career: false,
@@ -28,7 +29,7 @@ export const AIInsightsPanel: React.FC<AIInsightsPanelProps> = ({ profile }) => 
   });
   
   const { user } = useAuth();
-  const frameworkService = new FrameworkInsightsService();
+  const aiInsightsService = new AIInsightsService();
 
   useEffect(() => {
     if (user) {
@@ -40,21 +41,30 @@ export const AIInsightsPanel: React.FC<AIInsightsPanelProps> = ({ profile }) => 
     if (!user) return;
     
     try {
-      const existingInsights = await frameworkService.getExistingInsights(user.id);
+      console.log('Loading existing AI insights for user:', user.id);
+      const existingInsights = await aiInsightsService.getInsights(user.id);
       if (existingInsights) {
+        console.log('Loaded existing AI insights from database');
         setInsights(existingInsights);
+        setIsFromCache(true);
+      } else {
+        console.log('No existing AI insights found in database');
+        setIsFromCache(false);
       }
     } catch (error) {
       console.error('Error loading existing insights:', error);
+      setIsFromCache(false);
     }
   };
 
   const generateInsights = async () => {
     setLoading(true);
     setError(null);
+    setIsFromCache(false);
     
     try {
-      const newInsights = await frameworkService.generateComprehensiveInsights(profile, user?.id);
+      console.log('Generating new AI insights for profile');
+      const newInsights = await aiInsightsService.generateInsights(profile, user?.id);
       setInsights(newInsights);
       
       toast({
@@ -187,6 +197,12 @@ export const AIInsightsPanel: React.FC<AIInsightsPanelProps> = ({ profile }) => 
             <Sparkles className="w-3 h-3" />
             AI Generated
           </Badge>
+          {isFromCache && (
+            <Badge variant="outline" className="flex items-center gap-1">
+              <Database className="w-3 h-3" />
+              Cached
+            </Badge>
+          )}
           <HelpTooltip content="These insights integrate your personality framework correlations and core insights to provide comprehensive, personalized guidance." />
         </div>
         <Button onClick={generateInsights} disabled={loading} variant="outline" size="sm">

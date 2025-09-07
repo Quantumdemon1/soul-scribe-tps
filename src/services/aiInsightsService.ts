@@ -149,9 +149,11 @@ Keep it practical, empathetic, and actionable for building better relationships.
           cache_key: cacheKey,
           version: 1
         });
+        console.log('Successfully saved AI insights to database');
     } catch (error) {
-      console.error('Error saving insights:', error);
-      // Don't throw here - insights generation succeeded even if saving failed
+      console.error('Error saving insights to database:', error);
+      // Show visible error to user when database save fails
+      throw new Error(`Failed to save insights: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 

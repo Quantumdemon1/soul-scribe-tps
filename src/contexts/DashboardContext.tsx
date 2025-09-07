@@ -4,6 +4,7 @@ import { AIInsights, CoreInsight, FrameworkInsights } from '@/types/llm.types';
 import { FrameworkInsightsService } from '@/services/frameworkInsightsService';
 import { AIInsightsService } from '@/services/aiInsightsService';
 import { useAuth } from '@/hooks/useAuth';
+import { stableHash } from '@/utils/hash';
 
 interface DashboardData {
   coreInsights: CoreInsight | null;
@@ -286,18 +287,23 @@ export const DashboardProvider: React.FC<DashboardProviderProps> = ({ children, 
   });
 }, [user?.id]);
 
-  // Clear cache if profile changes significantly
+  // Clear cache only if profile structure changes significantly (not just timestamp)
   useEffect(() => {
-    const profileChanged = Object.values(timestamps).some(timestamp => {
-      if (!timestamp || !profile.timestamp) return false;
-      const profileTime = new Date(profile.timestamp).getTime();
-      return profileTime > timestamp;
+    const currentProfileHash = stableHash({
+      traitScores: profile.traitScores,
+      dominantTraits: profile.dominantTraits,
+      domainScores: profile.domainScores
     });
-
-    if (profileChanged) {
+    
+    const lastProfileHash = localStorage.getItem(`${STORAGE_KEY_PREFIX}profile_hash_${user?.id || 'anonymous'}`);
+    
+    if (lastProfileHash && lastProfileHash !== currentProfileHash) {
+      console.log('Profile structure changed significantly, clearing cache');
       clearCache();
     }
-  }, [profile.timestamp]);
+    
+    localStorage.setItem(`${STORAGE_KEY_PREFIX}profile_hash_${user?.id || 'anonymous'}`, currentProfileHash);
+  }, [profile.traitScores, profile.dominantTraits, profile.domainScores, user?.id]);
 
   return (
     <DashboardContext.Provider
