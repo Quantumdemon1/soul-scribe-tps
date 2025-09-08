@@ -27,6 +27,8 @@ export interface CuspAnalysis {
   requiresClarification: boolean;
   clarificationQuestions?: string[];
   importanceScore?: number;
+  integralLevel?: import('../mappings/integral.enhanced').IntegralLevel;
+  isRealityTriad?: boolean;
 }
 
 export interface SocraticSession {
