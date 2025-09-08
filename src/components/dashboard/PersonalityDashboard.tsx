@@ -26,6 +26,7 @@ import { RefinementModal } from './RefinementModal';
 
 import { InsightComparisonPanel } from './InsightComparisonPanel';
 import { PersonalityMatches } from './PersonalityMatches';
+import { IntegralInsightsPanel } from './IntegralInsightsPanel';
 import { 
   Brain, 
   Download, 
@@ -203,6 +204,26 @@ const DashboardContent: React.FC<{ profile: PersonalityProfile; onRetakeAssessme
 
           <LazyTabs.Content value="comparison" className={isMobile ? "px-4" : ""}>
             <InsightComparisonPanel currentProfile={profile} />
+          </LazyTabs.Content>
+
+          <LazyTabs.Content value="integral" className={isMobile ? "px-4" : ""}>
+            {profile.mappings.integralDetail ? (
+              <IntegralInsightsPanel integralDetail={profile.mappings.integralDetail} />
+            ) : (
+              <Card>
+                <CardContent className="p-8 text-center">
+                  <Brain className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold mb-2">Take the Integral Level Assessment</h3>
+                  <p className="text-muted-foreground mb-4">
+                    Discover your cognitive development level based on Integral Theory and Spiral Dynamics.
+                  </p>
+                  <Button onClick={() => window.location.href = '/integral'}>
+                    <Brain className="w-4 h-4 mr-2" />
+                    Start Assessment
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
           </LazyTabs.Content>
 
           <LazyTabs.Content value="enhanced" className={isMobile ? "px-4" : ""}>

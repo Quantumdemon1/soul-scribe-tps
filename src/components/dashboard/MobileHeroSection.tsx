@@ -55,7 +55,7 @@ export const MobileHeroSection: React.FC<MobileHeroSectionProps> = ({
           </div>
 
           {/* Quick Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-6 mb-8">
             {Object.entries(profile.domainScores).map(([domain, score]) => {
               const domainDescriptions = {
                 External: "How we deal with our outside world",
@@ -84,6 +84,27 @@ export const MobileHeroSection: React.FC<MobileHeroSectionProps> = ({
                 </Card>
               );
             })}
+            
+            {/* Integral Level Card */}
+            {profile.mappings.integralDetail && (
+              <Card className="bg-white/10 border-white/20 text-center">
+                <CardContent className="p-4">
+                  <h3 className="font-semibold mb-2">Integral Level</h3>
+                  <div className="text-3xl font-bold mb-2">
+                    {profile.mappings.integralDetail.primaryLevel.number}
+                  </div>
+                  <p className="text-sm opacity-80 mb-3">
+                    {profile.mappings.integralDetail.primaryLevel.color} - {profile.mappings.integralDetail.primaryLevel.name}
+                  </p>
+                  <div className="w-full bg-white/20 rounded-full h-2">
+                    <div 
+                      className="bg-white h-2 rounded-full transition-all duration-500"
+                      style={{ width: `${profile.mappings.integralDetail.cognitiveComplexity}%` }}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
 
           {/* Action Buttons */}
@@ -159,8 +180,8 @@ export const MobileHeroSection: React.FC<MobileHeroSectionProps> = ({
           </p>
         </div>
 
-        {/* Domain Scores - 2x2 Grid */}
-        <div className="grid grid-cols-2 gap-3 mb-6">
+        {/* Domain Scores - Dynamic Grid */}
+        <div className={`grid gap-3 mb-6 ${profile.mappings.integralDetail ? 'grid-cols-3' : 'grid-cols-2'}`}>
           {Object.entries(profile.domainScores).map(([domain, score]) => {
             const domainDescriptions = {
               External: "Outside world",
@@ -189,6 +210,27 @@ export const MobileHeroSection: React.FC<MobileHeroSectionProps> = ({
               </Card>
             );
           })}
+          
+          {/* Integral Level Card for Mobile */}
+          {profile.mappings.integralDetail && (
+            <Card className="bg-white/10 border-white/20 col-span-1">
+              <CardContent className="p-3 text-center">
+                <h3 className="font-semibold text-sm mb-1">Level</h3>
+                <div className="text-2xl font-bold mb-1">
+                  {profile.mappings.integralDetail.primaryLevel.number}
+                </div>
+                <p className="text-xs opacity-80 mb-2">
+                  {profile.mappings.integralDetail.primaryLevel.color}
+                </p>
+                <div className="w-full bg-white/20 rounded-full h-1.5">
+                  <div 
+                    className="bg-white h-1.5 rounded-full transition-all duration-500"
+                    style={{ width: `${profile.mappings.integralDetail.cognitiveComplexity}%` }}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         {/* Primary Action */}

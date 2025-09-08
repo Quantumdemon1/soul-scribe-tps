@@ -9,7 +9,8 @@ import {
   Target, 
   TrendingUp, 
   Briefcase, 
-  GitCompare 
+  GitCompare,
+  Layers
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -24,6 +25,7 @@ const tabConfig = [
   { value: 'overview', icon: User, label: 'Overview' },
   { value: 'insights', icon: Brain, label: 'Insights' },
   { value: 'ai-insights', icon: Sparkles, label: 'AI' },
+  { value: 'integral', icon: Layers, label: 'Integral' },
   { value: 'types', icon: Target, label: 'Types' },
   { value: 'development', icon: TrendingUp, label: 'Growth' },
   { value: 'career', icon: Briefcase, label: 'Career' },

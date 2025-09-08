@@ -164,6 +164,7 @@ export interface SocionicsDetail {
 
 export interface IntegralDetail {
   primaryLevel: {
+    number: number;
     color: string;
     name: string;
     cognitiveStage: string;
@@ -176,6 +177,7 @@ export interface IntegralDetail {
     typicalConcerns: string[];
   };
   secondaryLevel?: {
+    number: number;
     color: string;
     name: string;
     cognitiveStage: string;
