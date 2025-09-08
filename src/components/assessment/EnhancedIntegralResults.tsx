@@ -14,6 +14,7 @@ import { IntegralLevelExplorer } from '@/components/assessment/IntegralLevelExpl
 import { IntegralPersonalityService, PersonalityIntegration } from '@/services/integralPersonalityService';
 import { useIntegralAssessment } from '@/hooks/useIntegralAssessment';
 import { useToast } from '@/hooks/use-toast';
+import { IntegralPDFGenerator } from '@/utils/integralPdfGenerator';
 import { logScoringDetails } from '@/utils/integralValidation';
 
 interface EnhancedIntegralResultsProps {
@@ -32,6 +33,7 @@ export const EnhancedIntegralResults: React.FC<EnhancedIntegralResultsProps> = (
   const [activeTab, setActiveTab] = useState('overview');
   const [personalityIntegration, setPersonalityIntegration] = useState<PersonalityIntegration | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [personalityService] = useState(() => new IntegralPersonalityService());
   const { saveIntegralResults, isLoading: isSaving } = useIntegralAssessment();
   const { toast } = useToast();
@@ -80,6 +82,59 @@ export const EnhancedIntegralResults: React.FC<EnhancedIntegralResultsProps> = (
         title: 'Save Failed',
         description: 'Unable to save results. Please try again.',
         variant: 'destructive'
+      });
+    }
+  };
+
+  const handleDownloadPDF = async () => {
+    setIsGeneratingPDF(true);
+    try {
+      await IntegralPDFGenerator.generateIntegralPDFReport(
+        integralDetail,
+        personalityProfile,
+        personalityIntegration
+      );
+      
+      toast({
+        title: "PDF Generated",
+        description: "Your Integral assessment report has been downloaded successfully.",
+      });
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      toast({
+        title: "PDF Generation Failed",
+        description: "Failed to generate PDF. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGeneratingPDF(false);
+    }
+  };
+
+  const handleShare = async () => {
+    const shareData = {
+      title: 'My Integral Level Assessment Results',
+      text: `I just completed an Integral Level assessment! My primary level is ${integralDetail.primaryLevel.name} (Level ${integralDetail.primaryLevel.number}) with ${integralDetail.confidence.toFixed(1)}% confidence.`,
+      url: window.location.href
+    };
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        // Fallback: copy to clipboard
+        await navigator.clipboard.writeText(`${shareData.title}\n\n${shareData.text}\n\nLearn more: ${shareData.url}`);
+        toast({
+          title: "Copied to clipboard",
+          description: "Your results summary has been copied to clipboard.",
+        });
+      }
+    } catch (error) {
+      console.error('Error sharing:', error);
+      toast({
+        title: "Share failed",
+        description: "Unable to share results. Please try again.",
+        variant: "destructive",
       });
     }
   };
@@ -489,11 +544,18 @@ export const EnhancedIntegralResults: React.FC<EnhancedIntegralResultsProps> = (
             >
               {isSaving ? 'Saving...' : 'Save Results'}
             </Button>
-            <Button variant="outline">
+            <Button 
+              variant="outline"
+              onClick={handleDownloadPDF}
+              disabled={isGeneratingPDF}
+            >
               <Download className="w-4 h-4 mr-2" />
-              Download PDF
+              {isGeneratingPDF ? 'Generating...' : 'Download PDF'}
             </Button>
-            <Button variant="outline">
+            <Button 
+              variant="outline"
+              onClick={handleShare}
+            >
               <Share2 className="w-4 h-4 mr-2" />
               Share
             </Button>
