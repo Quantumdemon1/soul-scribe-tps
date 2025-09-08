@@ -6,6 +6,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { INTEGRAL_QUESTIONS, calculateIntegralScores } from '@/data/integralQuestions';
 import { logScoringDetails, explainScores } from '@/utils/integralValidation';
+import { logger } from '@/utils/structuredLogging';
 import { ChevronLeft, ChevronRight, Brain } from 'lucide-react';
 
 interface IntegralInitialAssessmentProps {
@@ -44,7 +45,13 @@ export const IntegralInitialAssessment: React.FC<IntegralInitialAssessmentProps>
       
       // Log scoring details for debugging
       logScoringDetails('Initial Assessment Complete', scores);
-      console.log('🎓 Score Explanation:', explainScores(scores));
+      logger.debug('Integral assessment score explanation', { 
+        component: 'IntegralInitialAssessment',
+        metadata: { 
+          scores, 
+          explanation: explainScores(scores) 
+        }
+      });
       
       onComplete(scores);
     } else {

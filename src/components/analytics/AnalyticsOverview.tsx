@@ -6,6 +6,7 @@ import { BarChart, Bar, XAxis, YAxis, LineChart, Line, PieChart, Pie, Cell, Resp
 import { supabase } from '@/integrations/supabase/client';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Users, Brain, TrendingUp, Calendar, Activity, Target } from 'lucide-react';
+import { logger } from '@/utils/structuredLogging';
 
 interface AnalyticsData {
   totalUsers: number;
@@ -84,7 +85,10 @@ export const AnalyticsOverview: React.FC = () => {
 
       setAnalytics(processedData);
     } catch (error) {
-      console.error('Error loading analytics:', error);
+      logger.error('Failed to load analytics data', {
+        component: 'AnalyticsOverview',
+        metadata: { error: error.message }
+      });
     } finally {
       setLoading(false);
     }

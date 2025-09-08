@@ -18,6 +18,7 @@ import { SystemHealth } from '@/components/analytics/SystemHealth';
 import { CacheIntegrationTest } from '@/components/test/CacheIntegrationTest';
 import { PerformanceMonitor } from '@/components/ui/performance-monitor';
 import { AlignmentTest } from '@/components/test/AlignmentTest';
+import { logger } from '@/utils/structuredLogging';
 import { DataConsistencyPanel } from './DataConsistencyPanel';
 import { DEFAULT_SYSTEM_PROMPTS } from '@/config/systemPrompts';
 const BulkImportLazy = React.lazy(() => import('@/components/admin/BulkImport'));
@@ -90,7 +91,10 @@ export const AdminPanel: React.FC = () => {
       if (data && !error) {
         setConfig(data.config as unknown as LLMConfig);
       } else if (error) {
-        console.error('Error loading config:', error);
+        logger.error('Failed to load admin config', { 
+          component: 'AdminPanel',
+          metadata: { error: error.message }
+        });
         toast({
           title: "Configuration Error",
           description: "Failed to load LLM configuration. Using default settings.",
@@ -98,7 +102,10 @@ export const AdminPanel: React.FC = () => {
         });
       }
     } catch (error) {
-      console.log('Using default config:', error);
+      logger.warn('Using default admin config', { 
+        component: 'AdminPanel',
+        metadata: { error: error.message }
+      });
       toast({
         title: "Configuration Warning",
         description: "Using default LLM configuration.",
@@ -121,7 +128,10 @@ export const AdminPanel: React.FC = () => {
         totalSessions: sessions.data?.length || 0
       });
     } catch (error) {
-      console.error('Error loading stats:', error);
+      logger.error('Failed to load admin stats', { 
+        component: 'AdminPanel',
+        metadata: { error: error.message }
+      });
     }
   };
 

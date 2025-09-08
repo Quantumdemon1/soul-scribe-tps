@@ -5,6 +5,7 @@ import './index.css'
 import { MobileOptimizationProvider } from './utils/mobileOptimization'
 import { PerformanceMonitor } from './components/ui/performance-monitor'
 import { logger } from './utils/structuredLogging'
+import './utils/productionOptimization'
 
 // Initialize performance monitoring
 logger.info('Application starting', {

@@ -8,6 +8,7 @@ import { MessageCircle, Brain, Lightbulb, ArrowRight } from 'lucide-react';
 import { LLMService } from '@/services/llmService';
 import { INTEGRAL_LEVELS, calculateIntegralDevelopment, IntegralDetail, IntegralLevel } from '@/mappings/integral.enhanced';
 import { logScoringDetails, validateScores, explainScores } from '@/utils/integralValidation';
+import { logger } from '@/utils/structuredLogging';
 
 // Helper function to map question level keys to enhanced mapping keys
 function mapQuestionKeyToEnhancedKey(questionKey: string): string {
@@ -58,7 +59,10 @@ export const IntegralSocraticClarification: React.FC<IntegralSocraticClarificati
       const validation = validateScores(preliminaryScores);
       
       if (!validation.isValid) {
-        console.warn('⚠️ Preliminary scores validation failed:', validation.issues);
+        logger.warn('Preliminary integral scores validation failed', { 
+          component: 'IntegralSocraticClarification',
+          metadata: { issues: validation.issues }
+        });
       }
       // Identify top 2-3 levels from preliminary scores
       const levelEntries = Object.entries(preliminaryScores)

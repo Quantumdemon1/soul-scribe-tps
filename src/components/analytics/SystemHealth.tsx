@@ -16,6 +16,7 @@ import {
   Cpu,
   HardDrive
 } from 'lucide-react';
+import { logger } from '@/utils/structuredLogging';
 
 interface SystemMetrics {
   databaseHealth: 'healthy' | 'warning' | 'critical';
@@ -102,7 +103,10 @@ export const SystemHealth: React.FC = () => {
 
       setMetrics(mockMetrics);
     } catch (error) {
-      console.error('Error loading system metrics:', error);
+      logger.error('Failed to load system health metrics', {
+        component: 'SystemHealth',
+        metadata: { error: error.message }
+      });
     } finally {
       setLoading(false);
     }

@@ -13,6 +13,7 @@ import { PDFReportGenerator } from '@/utils/pdfGenerator';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
+import { logger } from '@/utils/structuredLogging';
 
 interface AssessmentResultsProps {
   profile: PersonalityProfile;
@@ -65,7 +66,10 @@ export const AssessmentResults: React.FC<AssessmentResultsProps> = ({
         description: "Your personalized framework explanations are ready to explore."
       });
     } catch (error) {
-      console.error('Error generating framework insights:', error);
+      logger.error('Failed to generate framework insights', {
+        component: 'AssessmentResults',
+        metadata: { error: error.message }
+      });
       toast({
         title: "Insights Generation Failed", 
         description: "Using basic results. Framework insights will be generated later.",
@@ -99,7 +103,10 @@ export const AssessmentResults: React.FC<AssessmentResultsProps> = ({
         localStorage.setItem('tps-profile', JSON.stringify(updatedProfile));
       }
     } catch (error) {
-      console.error('Error persisting enhanced profile:', error);
+      logger.error('Failed to persist enhanced profile', {
+        component: 'AssessmentResults',
+        metadata: { error: error.message }
+      });
       // Don't throw - this shouldn't block the UI
     }
   };
@@ -122,7 +129,10 @@ export const AssessmentResults: React.FC<AssessmentResultsProps> = ({
         description: "Your personality report has been downloaded."
       });
     } catch (error) {
-      console.error('Error generating PDF:', error);
+      logger.error('Failed to generate PDF report', {
+        component: 'AssessmentResults',
+        metadata: { error: error.message }
+      });
       toast({
         title: "PDF Generation Failed",
         description: "There was an error generating your PDF. Please try again.",
