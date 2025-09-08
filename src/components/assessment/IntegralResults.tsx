@@ -57,10 +57,11 @@ export const IntegralResults: React.FC<IntegralResultsProps> = ({
     const colorMap: Record<string, string> = {
       'Red': '#e74c3c',
       'Amber': '#f39c12',
-      'Orange': '#e67e22', 
-      'Green': '#27ae60',
-      'Teal': '#16a085',
-      'Turquoise': '#1abc9c'
+      'Orange': '#f97316',
+      'Green': '#22c55e',
+      'Yellow': '#eab308',
+      'Turquoise': '#06b6d4',
+      'Coral': '#fb7185'
     };
     return colorMap[color] || '#6b7280';
   };

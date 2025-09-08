@@ -1,0 +1,322 @@
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
+import { Brain, Target, TrendingUp, CheckCircle, ArrowRight } from 'lucide-react';
+import { IntegralDetail } from '@/mappings/integral.enhanced';
+import { PersonalityProfile } from '@/types/tps.types';
+import { IntegralConfidenceService, ConfidenceAnalysis, DynamicQuestion } from '@/services/integralConfidenceService';
+import { useToast } from '@/hooks/use-toast';
+
+interface IntegralConfidenceEnhancementProps {
+  integralDetail: IntegralDetail;
+  personalityProfile?: PersonalityProfile;
+  onConfidenceImproved: (updatedAssessment: IntegralDetail) => void;
+  onSkip: () => void;
+}
+
+export const IntegralConfidenceEnhancement: React.FC<IntegralConfidenceEnhancementProps> = ({
+  integralDetail,
+  personalityProfile,
+  onConfidenceImproved,
+  onSkip
+}) => {
+  const [confidenceService] = useState(() => new IntegralConfidenceService());
+  const [analysis, setAnalysis] = useState<ConfidenceAnalysis | null>(null);
+  const [questions, setQuestions] = useState<DynamicQuestion[]>([]);
+  const [responses, setResponses] = useState<Record<string, string>>({});
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    initializeConfidenceAnalysis();
+  }, [integralDetail]);
+
+  const initializeConfidenceAnalysis = async () => {
+    try {
+      setIsLoading(true);
+      const confidenceAnalysis = confidenceService.analyzeConfidence(integralDetail);
+      setAnalysis(confidenceAnalysis);
+
+      if (confidenceAnalysis.needsAdditionalQuestions) {
+        const generatedQuestions = await confidenceService.generateClarificationQuestions(
+          integralDetail,
+          confidenceAnalysis.uncertainAreas,
+          personalityProfile
+        );
+        setQuestions(generatedQuestions);
+      }
+    } catch (error) {
+      console.error('Error initializing confidence analysis:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to analyze confidence. Please try again.',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleResponseChange = (questionId: string, response: string) => {
+    setResponses(prev => ({
+      ...prev,
+      [questionId]: response
+    }));
+  };
+
+  const handleNextQuestion = () => {
+    if (currentQuestionIndex < questions.length - 1) {
+      setCurrentQuestionIndex(prev => prev + 1);
+    }
+  };
+
+  const handlePreviousQuestion = () => {
+    if (currentQuestionIndex > 0) {
+      setCurrentQuestionIndex(prev => prev - 1);
+    }
+  };
+
+  const handleProcessResponses = async () => {
+    try {
+      setIsProcessing(true);
+      const updatedAssessment = await confidenceService.processConfidenceEnhancement(
+        integralDetail,
+        responses,
+        questions
+      );
+      
+      toast({
+        title: 'Confidence Enhanced!',
+        description: `Your assessment confidence improved to ${Math.round(updatedAssessment.confidence)}%`,
+      });
+      
+      onConfidenceImproved(updatedAssessment);
+    } catch (error) {
+      console.error('Error processing confidence enhancement:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to process responses. Please try again.',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const getQuestionTypeIcon = (type: string) => {
+    switch (type) {
+      case 'scenario': return <Target className="w-4 h-4" />;
+      case 'values': return <Brain className="w-4 h-4" />;
+      case 'behavior': return <TrendingUp className="w-4 h-4" />;
+      default: return <CheckCircle className="w-4 h-4" />;
+    }
+  };
+
+  const getQuestionTypeBadge = (type: string) => {
+    const variants: Record<string, 'default' | 'secondary' | 'outline'> = {
+      scenario: 'default',
+      values: 'secondary',
+      behavior: 'outline',
+      preference: 'outline'
+    };
+    return variants[type] || 'outline';
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Card className="w-full max-w-md">
+          <CardContent className="p-6 text-center">
+            <Brain className="w-12 h-12 text-primary mx-auto mb-4 animate-pulse" />
+            <h3 className="text-lg font-semibold mb-2">Analyzing Assessment</h3>
+            <p className="text-muted-foreground">Determining confidence enhancement needs...</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (!analysis?.needsAdditionalQuestions) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Card className="w-full max-w-md">
+          <CardContent className="p-6 text-center">
+            <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold mb-2">Assessment Complete</h3>
+            <p className="text-muted-foreground mb-4">
+              Your assessment has sufficient confidence ({Math.round(integralDetail.confidence)}%). 
+              No additional questions needed.
+            </p>
+            <Button onClick={onSkip} className="w-full">
+              Continue to Results
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  const currentQuestion = questions[currentQuestionIndex];
+  const allQuestionsAnswered = questions.every(q => responses[q.id]?.trim());
+  const progressPercentage = ((currentQuestionIndex + 1) / questions.length) * 100;
+
+  return (
+    <div className="min-h-screen bg-background">
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <div className="flex items-center justify-center mb-4">
+            <TrendingUp className="w-8 h-8 text-primary mr-3" />
+            <h1 className="text-2xl font-bold text-foreground">
+              Confidence Enhancement
+            </h1>
+          </div>
+          <p className="text-muted-foreground">
+            Let's ask a few targeted questions to increase your assessment confidence
+          </p>
+        </div>
+
+        {/* Progress */}
+        <Card className="mb-6">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium">Progress</span>
+              <span className="text-sm text-muted-foreground">
+                {currentQuestionIndex + 1} of {questions.length}
+              </span>
+            </div>
+            <Progress value={progressPercentage} className="w-full" />
+          </CardContent>
+        </Card>
+
+        {/* Current Confidence Analysis */}
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Brain className="w-5 h-5" />
+              Current Assessment Status
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-primary">
+                  {Math.round(integralDetail.confidence)}%
+                </div>
+                <div className="text-sm text-muted-foreground">Current Confidence</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-primary">
+                  Level {integralDetail.primaryLevel.number}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  {integralDetail.primaryLevel.color}
+                </div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-primary">
+                  {analysis?.uncertainAreas.length || 0}
+                </div>
+                <div className="text-sm text-muted-foreground">Areas to Clarify</div>
+              </div>
+            </div>
+            
+            {analysis?.uncertainAreas && analysis.uncertainAreas.length > 0 && (
+              <div>
+                <p className="text-sm font-medium mb-2">Areas needing clarification:</p>
+                <div className="flex flex-wrap gap-2">
+                  {analysis.uncertainAreas.map((area, index) => (
+                    <Badge key={index} variant="outline">
+                      {area}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Current Question */}
+        {currentQuestion && (
+          <Card className="mb-6">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  {getQuestionTypeIcon(currentQuestion.type)}
+                  Question {currentQuestionIndex + 1}
+                </CardTitle>
+                <Badge variant={getQuestionTypeBadge(currentQuestion.type)}>
+                  {currentQuestion.type}
+                </Badge>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <p className="text-lg">{currentQuestion.question}</p>
+                
+                {currentQuestion.context && (
+                  <div className="bg-muted/50 p-3 rounded-lg">
+                    <p className="text-sm text-muted-foreground">
+                      <strong>Context:</strong> {currentQuestion.context}
+                    </p>
+                  </div>
+                )}
+
+                <Textarea
+                  placeholder="Share your thoughts and perspective..."
+                  value={responses[currentQuestion.id] || ''}
+                  onChange={(e) => handleResponseChange(currentQuestion.id, e.target.value)}
+                  className="min-h-[120px]"
+                />
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Navigation */}
+        <div className="flex items-center justify-between">
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={handlePreviousQuestion}
+              disabled={currentQuestionIndex === 0}
+            >
+              Previous
+            </Button>
+            <Button
+              variant="outline"
+              onClick={onSkip}
+            >
+              Skip Enhancement
+            </Button>
+          </div>
+
+          <div className="flex gap-2">
+            {currentQuestionIndex < questions.length - 1 ? (
+              <Button
+                onClick={handleNextQuestion}
+                disabled={!responses[currentQuestion?.id]?.trim()}
+              >
+                Next Question
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
+            ) : (
+              <Button
+                onClick={handleProcessResponses}
+                disabled={!allQuestionsAnswered || isProcessing}
+              >
+                {isProcessing ? 'Processing...' : 'Enhance Confidence'}
+                <TrendingUp className="w-4 h-4 ml-2" />
+              </Button>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};

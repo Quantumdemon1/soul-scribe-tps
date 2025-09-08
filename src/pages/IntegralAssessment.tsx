@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { IntegralInitialAssessment } from '@/components/assessment/IntegralInitialAssessment';
 import { IntegralSocraticClarification } from '@/components/assessment/IntegralSocraticClarification';
-import { IntegralResults } from '@/components/assessment/IntegralResults';
+import { IntegralConfidenceEnhancement } from '@/components/assessment/IntegralConfidenceEnhancement';
+import { EnhancedIntegralResults } from '@/components/assessment/EnhancedIntegralResults';
 import { IntegralDetail } from '@/mappings/integral.enhanced';
 import { useAssessments } from '@/hooks/useAssessments';
 import { PersonalityProfile } from '@/types/tps.types';
 
-type AssessmentStage = 'initial' | 'clarification' | 'results';
+type AssessmentStage = 'initial' | 'clarification' | 'confidence' | 'results';
 
 export const IntegralAssessment: React.FC = () => {
   const [currentStage, setCurrentStage] = useState<AssessmentStage>('initial');
@@ -22,6 +23,20 @@ export const IntegralAssessment: React.FC = () => {
 
   const handleClarificationComplete = (assessment: IntegralDetail) => {
     setFinalAssessment(assessment);
+    // Check if confidence enhancement is needed
+    if (assessment.confidence < 75) {
+      setCurrentStage('confidence');
+    } else {
+      setCurrentStage('results');
+    }
+  };
+
+  const handleConfidenceImproved = (updatedAssessment: IntegralDetail) => {
+    setFinalAssessment(updatedAssessment);
+    setCurrentStage('results');
+  };
+
+  const handleSkipConfidence = () => {
     setCurrentStage('results');
   };
 
@@ -69,9 +84,21 @@ export const IntegralAssessment: React.FC = () => {
         />
       );
 
+    case 'confidence':
+      return finalAssessment ? (
+        <IntegralConfidenceEnhancement
+          integralDetail={finalAssessment}
+          personalityProfile={personalityProfile}
+          onConfidenceImproved={handleConfidenceImproved}
+          onSkip={handleSkipConfidence}
+        />
+      ) : (
+        <div>Error: No assessment results available</div>
+      );
+
     case 'results':
       return finalAssessment ? (
-        <IntegralResults
+        <EnhancedIntegralResults
           integralDetail={finalAssessment}
           onRetakeAssessment={handleRetakeAssessment}
           onBackToSelection={handleBackToSelection}
