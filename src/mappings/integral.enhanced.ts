@@ -2,7 +2,7 @@
 // Based on Ken Wilber's Integral Theory and Spiral Dynamics
 
 import { TPSScores } from '../types/tps.types';
-import { calculateConfidence, calculateWeightedScore } from './index';
+import { calculateConfidence, calculateWeightedScore } from './utils';
 
 export interface IntegralLevel {
   number: number;
