@@ -15,6 +15,10 @@ import { PersonalityProfile } from '@/types/tps.types';
 import { useAssessments } from '@/hooks/useAssessments';
 import { supabase } from '@/integrations/supabase/client';
 import { IntegralLevelBadge } from '@/components/dashboard/IntegralLevelBadge';
+import { MobileResponsiveWrapper } from '@/components/ui/mobile-responsive-wrapper';
+import { useErrorHandler } from '@/hooks/useErrorHandler';
+import { ErrorRecovery } from '@/components/ui/error-recovery';
+import { EnhancedLoadingSpinner } from '@/components/ui/enhanced-loading-spinner';
 
 interface AIMentorProps {
   initialProfile?: PersonalityProfile;
@@ -28,11 +32,16 @@ export const AIMentor: React.FC<AIMentorProps> = ({ initialProfile }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingConversations, setIsLoadingConversations] = useState(true);
   const [showSidebar, setShowSidebar] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const mentorService = new MentorService();
   const { assessments } = useAssessments();
+  const { handleError, handleAsyncError } = useErrorHandler({
+    showToast: true,
+    onError: (error) => setError(error.message)
+  });
 
   // Get the latest assessment profile if no initial profile provided
   const profile = initialProfile || (assessments.length > 0 ? assessments[0].profile : null);
@@ -199,9 +208,34 @@ export const AIMentor: React.FC<AIMentorProps> = ({ initialProfile }) => {
     }
   };
 
+  if (error) {
+    return (
+      <MobileResponsiveWrapper
+        className="container mx-auto px-4 py-8"
+        mobileClassName="px-2 py-4"
+        enableTouchOptimization
+      >
+        <ErrorRecovery
+          title="AI Mentor Error"
+          message={error}
+          onRetry={() => {
+            setError(null);
+            loadConversations();
+          }}
+          onGoHome={() => window.location.href = '/'}
+          variant="detailed"
+        />
+      </MobileResponsiveWrapper>
+    );
+  }
+
   if (!profile) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <MobileResponsiveWrapper
+        className="container mx-auto px-4 py-8"
+        mobileClassName="px-2 py-4"
+        enableTouchOptimization
+      >
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <Brain className="w-16 h-16 text-muted-foreground mb-4" />
@@ -214,14 +248,18 @@ export const AIMentor: React.FC<AIMentorProps> = ({ initialProfile }) => {
             </Button>
           </CardContent>
         </Card>
-      </div>
+      </MobileResponsiveWrapper>
     );
   }
 
   return (
-    <div className="flex h-[calc(100vh-4rem)]">
-      {/* Sidebar */}
-      <div className={`${showSidebar ? 'w-80' : 'w-0'} transition-all duration-300 overflow-hidden border-r bg-background`}>
+    <MobileResponsiveWrapper
+      enableTouchOptimization
+      optimizeForOrientation
+    >
+      <div className="flex h-[calc(100vh-4rem)] sm:h-[calc(100vh-4rem)]">
+        {/* Sidebar */}
+        <div className={`${showSidebar ? 'w-80 sm:w-80' : 'w-0'} transition-all duration-300 overflow-hidden border-r bg-background`}>
         <div className="p-4">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold">AI Mentor</h2>
@@ -427,5 +465,6 @@ export const AIMentor: React.FC<AIMentorProps> = ({ initialProfile }) => {
         )}
       </div>
     </div>
+    </MobileResponsiveWrapper>
   );
 };

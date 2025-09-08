@@ -6,6 +6,10 @@ import { EnhancedIntegralResults } from '@/components/assessment/EnhancedIntegra
 import { IntegralDetail } from '@/mappings/integral.enhanced';
 import { useAssessments } from '@/hooks/useAssessments';
 import { PersonalityProfile } from '@/types/tps.types';
+import { MobileResponsiveWrapper } from '@/components/ui/mobile-responsive-wrapper';
+import { useErrorHandler } from '@/hooks/useErrorHandler';
+import { ErrorRecovery } from '@/components/ui/error-recovery';
+import { EnhancedLoadingSpinner } from '@/components/ui/enhanced-loading-spinner';
 
 type AssessmentStage = 'initial' | 'clarification' | 'confidence' | 'results';
 
@@ -14,26 +18,48 @@ export const IntegralAssessment: React.FC = () => {
   const [preliminaryScores, setPreliminaryScores] = useState<Record<string, number>>({});
   const [finalAssessment, setFinalAssessment] = useState<IntegralDetail | null>(null);
   const [personalityProfile, setPersonalityProfile] = useState<PersonalityProfile | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  
   const { assessments } = useAssessments();
+  const { handleError, handleAsyncError } = useErrorHandler({
+    showToast: true,
+    onError: (error) => setError(error.message)
+  });
 
-  const handleInitialComplete = (scores: Record<string, number>) => {
-    setPreliminaryScores(scores);
-    setCurrentStage('clarification');
+  const handleInitialComplete = async (scores: Record<string, number>) => {
+    await handleAsyncError(async () => {
+      setIsLoading(true);
+      setPreliminaryScores(scores);
+      setCurrentStage('clarification');
+      setError(null);
+    }, 'Failed to proceed to clarification stage');
+    setIsLoading(false);
   };
 
-  const handleClarificationComplete = (assessment: IntegralDetail) => {
-    setFinalAssessment(assessment);
-    // Check if confidence enhancement is needed
-    if (assessment.confidence < 75) {
-      setCurrentStage('confidence');
-    } else {
+  const handleClarificationComplete = async (assessment: IntegralDetail) => {
+    await handleAsyncError(async () => {
+      setIsLoading(true);
+      setFinalAssessment(assessment);
+      setError(null);
+      // Check if confidence enhancement is needed
+      if (assessment.confidence < 75) {
+        setCurrentStage('confidence');
+      } else {
+        setCurrentStage('results');
+      }
+    }, 'Failed to complete clarification stage');
+    setIsLoading(false);
+  };
+
+  const handleConfidenceImproved = async (updatedAssessment: IntegralDetail) => {
+    await handleAsyncError(async () => {
+      setIsLoading(true);
+      setFinalAssessment(updatedAssessment);
       setCurrentStage('results');
-    }
-  };
-
-  const handleConfidenceImproved = (updatedAssessment: IntegralDetail) => {
-    setFinalAssessment(updatedAssessment);
-    setCurrentStage('results');
+      setError(null);
+    }, 'Failed to improve confidence');
+    setIsLoading(false);
   };
 
   const handleSkipConfidence = () => {
@@ -68,50 +94,129 @@ export const IntegralAssessment: React.FC = () => {
     setFinalAssessment(null);
   };
 
+  if (error) {
+    return (
+      <MobileResponsiveWrapper
+        className="container mx-auto px-4 py-8"
+        mobileClassName="px-2 py-4"
+        enableTouchOptimization
+      >
+        <ErrorRecovery
+          title="Assessment Error"
+          message={error}
+          onRetry={() => {
+            setError(null);
+            setCurrentStage('initial');
+          }}
+          onGoHome={() => window.location.href = '/'}
+          variant="detailed"
+        />
+      </MobileResponsiveWrapper>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <MobileResponsiveWrapper
+        className="container mx-auto px-4 py-8 flex items-center justify-center min-h-[60vh]"
+        enableTouchOptimization
+      >
+        <EnhancedLoadingSpinner
+          size="lg"
+          variant="brain"
+          message="Processing your assessment..."
+        />
+      </MobileResponsiveWrapper>
+    );
+  }
+
   switch (currentStage) {
     case 'initial':
       return (
-        <IntegralInitialAssessment
-          onComplete={handleInitialComplete}
-          onBack={handleBackToSelection}
-        />
+        <MobileResponsiveWrapper
+          enableTouchOptimization
+          optimizeForOrientation
+        >
+          <IntegralInitialAssessment
+            onComplete={handleInitialComplete}
+            onBack={handleBackToSelection}
+          />
+        </MobileResponsiveWrapper>
       );
 
     case 'clarification':
       return (
-        <IntegralSocraticClarification
-          preliminaryScores={preliminaryScores}
-          onComplete={handleClarificationComplete}
-          onBack={handleBackToInitial}
-        />
+        <MobileResponsiveWrapper
+          enableTouchOptimization
+          optimizeForOrientation
+        >
+          <IntegralSocraticClarification
+            preliminaryScores={preliminaryScores}
+            onComplete={handleClarificationComplete}
+            onBack={handleBackToInitial}
+          />
+        </MobileResponsiveWrapper>
       );
 
     case 'confidence':
       return finalAssessment ? (
-        <IntegralConfidenceEnhancement
-          integralDetail={finalAssessment}
-          personalityProfile={personalityProfile}
-          onConfidenceImproved={handleConfidenceImproved}
-          onSkip={handleSkipConfidence}
-        />
+        <MobileResponsiveWrapper
+          enableTouchOptimization
+          optimizeForOrientation
+        >
+          <IntegralConfidenceEnhancement
+            integralDetail={finalAssessment}
+            personalityProfile={personalityProfile}
+            onConfidenceImproved={handleConfidenceImproved}
+            onSkip={handleSkipConfidence}
+          />
+        </MobileResponsiveWrapper>
       ) : (
-        <div>Error: No assessment results available</div>
+        <MobileResponsiveWrapper className="container mx-auto px-4 py-8">
+          <ErrorRecovery
+            title="Assessment Data Missing"
+            message="No assessment results available to enhance confidence"
+            onRetry={handleBackToInitial}
+            onGoHome={() => window.location.href = '/'}
+          />
+        </MobileResponsiveWrapper>
       );
 
     case 'results':
       return finalAssessment ? (
-        <EnhancedIntegralResults
-          integralDetail={finalAssessment}
-          onRetakeAssessment={handleRetakeAssessment}
-          onBackToSelection={handleBackToSelection}
-          personalityProfile={personalityProfile}
-        />
+        <MobileResponsiveWrapper
+          enableTouchOptimization
+          optimizeForOrientation
+        >
+          <EnhancedIntegralResults
+            integralDetail={finalAssessment}
+            onRetakeAssessment={handleRetakeAssessment}
+            onBackToSelection={handleBackToSelection}
+            personalityProfile={personalityProfile}
+          />
+        </MobileResponsiveWrapper>
       ) : (
-        <div>Error: No assessment results available</div>
+        <MobileResponsiveWrapper className="container mx-auto px-4 py-8">
+          <ErrorRecovery
+            title="Assessment Results Missing"
+            message="No assessment results available to display"
+            onRetry={handleBackToInitial}
+            onGoHome={() => window.location.href = '/'}
+          />
+        </MobileResponsiveWrapper>
       );
 
     default:
-      return <div>Invalid assessment stage</div>;
+      return (
+        <MobileResponsiveWrapper className="container mx-auto px-4 py-8">
+          <ErrorRecovery
+            title="Invalid Assessment Stage"
+            message="An unexpected error occurred in the assessment flow"
+            onRetry={handleBackToInitial}
+            onGoHome={() => window.location.href = '/'}
+          />
+        </MobileResponsiveWrapper>
+      );
   }
 };
 
