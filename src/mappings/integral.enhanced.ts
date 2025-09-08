@@ -32,12 +32,60 @@ export interface IntegralDetail {
 }
 
 export const INTEGRAL_LEVELS = {
-  red: {
+  beige: {
+    number: 1,
+    color: 'Beige',
+    name: 'Survive',
+    cognitiveStage: 'Archaic-Instinctual',
+    worldview: 'Basic survival instincts, automatic responses to biological needs',
+    thinkingPattern: 'Instinctual, reactive, basic survival focus',
+    characteristics: [
+      'Basic survival instincts',
+      'Immediate biological needs focus',
+      'Limited cognitive processing',
+      'Reactive rather than proactive'
+    ],
+    growthEdge: [
+      'Develop basic social bonds',
+      'Learn simple cause-and-effect',
+      'Build basic trust',
+      'Form tribal connections'
+    ],
+    typicalConcerns: ['Survival', 'Food', 'Shelter', 'Safety'],
+    strong_indicators: ['Physical', 'Reactive', 'Basic'],
+    moderate_indicators: ['Immediate', 'Instinctual']
+  },
+
+  purple: {
     number: 2,
+    color: 'Purple',
+    name: 'Bond',
+    cognitiveStage: 'Magical-Animistic',
+    worldview: 'Magical thinking, animistic beliefs, tribal bonds and rituals',
+    thinkingPattern: 'Magical, ritualistic, group-centered',
+    characteristics: [
+      'Strong tribal and family bonds',
+      'Magical thinking and superstitions',
+      'Ritual and ceremony importance',
+      'Group safety and belonging'
+    ],
+    growthEdge: [
+      'Develop individual identity',
+      'Build personal power',
+      'Question magical thinking',
+      'Assert individual needs'
+    ],
+    typicalConcerns: ['Tribal safety', 'Ancestral spirits', 'Group harmony', 'Magical protection'],
+    strong_indicators: ['Mystical', 'Tribal', 'Protective', 'Traditional'],
+    moderate_indicators: ['Communal', 'Ritualistic', 'Bonding']
+  },
+
+  red: {
+    number: 3,
     color: 'Red',
-    name: 'Power/Control',
-    cognitiveStage: 'Preoperational to early Concrete',
-    worldview: 'Egocentric, immediate gratification - "I live in a world full of different people..."',
+    name: 'Power',
+    cognitiveStage: 'Power Gods',
+    worldview: 'Egocentric, immediate gratification, power and dominance focused',
     thinkingPattern: 'Impulsive, power-based, here-and-now',
     characteristics: [
       'Immediate gratification focus',
@@ -56,12 +104,12 @@ export const INTEGRAL_LEVELS = {
     moderate_indicators: ['Direct', 'Independent', 'Turbulent']
   },
   
-  amber: {
-    number: 3,
+  blue: {
+    number: 4,
     color: 'Blue',
-    name: 'Order/Belong',
-    cognitiveStage: 'Concrete Operational',
-    worldview: 'Ethnocentric, rule-based order - "We all have our own lives to deal with..."',
+    name: 'Order',
+    cognitiveStage: 'Mythic Order',
+    worldview: 'Absolutistic, rule-based order, traditional hierarchy and morality',
     thinkingPattern: 'Rule-based, hierarchical, conformist',
     characteristics: [
       'Strong adherence to rules and authority',
@@ -81,11 +129,11 @@ export const INTEGRAL_LEVELS = {
   },
   
   orange: {
-    number: 4,
+    number: 5,
     color: 'Orange',
     name: 'Achieve',
-    cognitiveStage: 'Early Formal Operational',
-    worldview: 'World-centric, rational, achievement-focused - "Everyone\'s unique, and we should all be allowed..."',
+    cognitiveStage: 'Rational Achievement',
+    worldview: 'Multiplistic, rational, achievement-focused, scientific materialism',
     thinkingPattern: 'Strategic, analytical, goal-oriented',
     characteristics: [
       'Rational, scientific thinking',
@@ -105,11 +153,11 @@ export const INTEGRAL_LEVELS = {
   },
   
   green: {
-    number: 5,
+    number: 6,
     color: 'Green',
-    name: 'Understand',
-    cognitiveStage: 'Formal Operational',
-    worldview: 'World-centric, pluralistic, community-focused - "When you think about what\'s \'good\' and \'bad\'..."',
+    name: 'Community',
+    cognitiveStage: 'Pluralistic',
+    worldview: 'Relativistic, pluralistic, community-focused, egalitarian values',
     thinkingPattern: 'Relativistic, consensus-seeking, inclusive',
     characteristics: [
       'Egalitarian and inclusive values',
@@ -128,12 +176,12 @@ export const INTEGRAL_LEVELS = {
     moderate_indicators: ['Communal Navigate', 'Mixed Communication', 'Optimistic']
   },
   
-  teal: {
-    number: 6,
+  yellow: {
+    number: 7,
     color: 'Yellow',
-    name: 'Harmonize',
-    cognitiveStage: 'Post-Formal/Integral',
-    worldview: 'Integral, systematic, holistic - "You can\'t know for sure what will happen before you act..."',
+    name: 'Integrate',
+    cognitiveStage: 'Systemic/Integral',
+    worldview: 'Integral, systematic, holistic, natural hierarchies and systems',
     thinkingPattern: 'Integrative, systematic, paradox-comfortable',
     characteristics: [
       'Integrates multiple perspectives',
@@ -153,11 +201,11 @@ export const INTEGRAL_LEVELS = {
   },
   
   turquoise: {
-    number: 7,
+    number: 8,
     color: 'Turquoise',
-    name: 'Sanctify',
-    cognitiveStage: 'Meta-Systematic/Transpersonal',
-    worldview: 'Kosmo-centric, holistic, transpersonal - "The world is too complex to control..."',
+    name: 'Holistic',
+    cognitiveStage: 'Meta-Systemic/Holistic',
+    worldview: 'Holistic, transpersonal, cosmic consciousness, global networks',
     thinkingPattern: 'Holistic, transpersonal, cosmic',
     characteristics: [
       'Cosmic and transpersonal perspective',
@@ -174,6 +222,30 @@ export const INTEGRAL_LEVELS = {
     typicalConcerns: ['Cosmic harmony', 'Universal consciousness', 'Ecological wholeness', 'Transpersonal evolution'],
     strong_indicators: ['Universal', 'Self-Mastery', 'Intuitive', 'Stoic'],
     moderate_indicators: ['Self-Aware', 'Intrinsic', 'Independent Navigate']
+  },
+
+  coral: {
+    number: 9,
+    color: 'Coral',
+    name: 'Global',
+    cognitiveStage: 'Meta-Meta-Systemic/Cosmic',
+    worldview: 'Planetary consciousness, cosmic-planetary integration, universal love',
+    thinkingPattern: 'Meta-systemic, cosmic-planetary, universal',
+    characteristics: [
+      'Planetary and cosmic consciousness',
+      'Universal love and compassion',
+      'Meta-systemic integration',
+      'Transcendent yet grounded perspective'
+    ],
+    growthEdge: [
+      'Embody cosmic love',
+      'Integrate universal wisdom',
+      'Transcend all limitations',
+      'Serve planetary evolution'
+    ],
+    typicalConcerns: ['Planetary wellbeing', 'Universal love', 'Cosmic evolution', 'Transcendent service'],
+    strong_indicators: ['Cosmic', 'Universal', 'Transcendent', 'Loving'],
+    moderate_indicators: ['Meta-Systemic', 'Planetary', 'Evolutionary']
   }
 };
 
@@ -228,9 +300,9 @@ export function calculateIntegralDevelopment(traitScores: TPSScores): IntegralDe
 }
 
 function calculatePhysicalTriadLevel(traitScores: TPSScores): number {
-  // Physical triad maps to Red/Amber levels (concrete operational)
+  // Physical triad maps to Red/Blue levels (concrete operational)
   const redScore = calculateWeightedScore(traitScores, INTEGRAL_LEVELS.red);
-  const amberScore = calculateWeightedScore(traitScores, INTEGRAL_LEVELS.amber);
+  const blueScore = calculateWeightedScore(traitScores, INTEGRAL_LEVELS.blue);
   
   // Weight toward concrete, rule-based thinking
   const physicalWeight = (
@@ -241,7 +313,7 @@ function calculatePhysicalTriadLevel(traitScores: TPSScores): number {
     (traitScores['Direct'] * 0.10)
   );
   
-  return Math.max(redScore, amberScore) * (physicalWeight / 10);
+  return Math.max(redScore, blueScore) * (physicalWeight / 10);
 }
 
 function calculateSocialTriadLevel(traitScores: TPSScores): number {
@@ -262,8 +334,8 @@ function calculateSocialTriadLevel(traitScores: TPSScores): number {
 }
 
 function calculateUniversalTriadLevel(traitScores: TPSScores): number {
-  // Universal triad maps to Teal/Turquoise levels (post-formal)
-  const tealScore = calculateWeightedScore(traitScores, INTEGRAL_LEVELS.teal);
+  // Universal triad maps to Yellow/Turquoise levels (post-formal)
+  const yellowScore = calculateWeightedScore(traitScores, INTEGRAL_LEVELS.yellow);
   const turquoiseScore = calculateWeightedScore(traitScores, INTEGRAL_LEVELS.turquoise);
   
   // Weight toward abstract, integral thinking
@@ -275,18 +347,21 @@ function calculateUniversalTriadLevel(traitScores: TPSScores): number {
     (traitScores['Intrinsic'] * 0.10)
   );
   
-  return Math.max(tealScore, turquoiseScore) * (universalWeight / 10);
+  return Math.max(yellowScore, turquoiseScore) * (universalWeight / 10);
 }
 
 function calculateCognitiveComplexity(traitScores: TPSScores, primaryLevel: IntegralLevel): number {
   // Cognitive complexity increases with developmental level
   const levelComplexity = {
+    'Beige': 1,
+    'Purple': 2,
     'Red': 2,
-    'Amber': 3,
+    'Blue': 3,
     'Orange': 5,
     'Green': 6,
-    'Teal': 8,
-    'Turquoise': 10
+    'Yellow': 8,
+    'Turquoise': 9,
+    'Coral': 10
   }[primaryLevel.color] || 5;
 
   // Adjust for thinking style traits
@@ -308,7 +383,7 @@ function determineDevelopmentalEdge(primaryLevel: IntegralLevel, secondaryLevel?
   }
 
   // If secondary level is higher, that's the growth edge
-  const levelOrder = ['Red', 'Amber', 'Orange', 'Green', 'Teal', 'Turquoise'];
+  const levelOrder = ['Beige', 'Purple', 'Red', 'Blue', 'Orange', 'Green', 'Yellow', 'Turquoise', 'Coral'];
   const primaryIndex = levelOrder.indexOf(primaryLevel.color);
   const secondaryIndex = levelOrder.indexOf(secondaryLevel.color);
 
@@ -337,12 +412,22 @@ function calculateOverallConfidence(levelScores: any[]): number {
 // Socratic clarification helpers for integral development
 export function getIntegralClarificationQuestions(level: IntegralLevel): string[] {
   const clarificationPrompts = {
+    'Beige': [
+      "What drives your most immediate daily decisions and priorities?",
+      "How do you typically respond when your basic needs feel threatened?",
+      "What gives you the strongest sense of safety and security?"
+    ],
+    'Purple': [
+      "How important are family traditions and group rituals in your life?",
+      "When making decisions, how much do you consider the impact on your closest community?",
+      "How do you handle situations that feel mysterious or beyond rational explanation?"
+    ],
     'Red': [
       "When you want something, how important is it to get it right away versus waiting?",
       "How do you typically handle situations where someone tells you what to do?",
       "When making decisions, how much do you consider the long-term consequences?"
     ],
-    'Amber': [
+    'Blue': [
       "How important are rules and traditions in guiding your decisions?",
       "When there's a conflict between personal preference and group expectations, which do you typically choose?",
       "How do you feel about questioning established authorities or procedures?"
@@ -357,7 +442,7 @@ export function getIntegralClarificationQuestions(level: IntegralLevel): string[
       "When there are cultural differences, how do you navigate finding common ground?",
       "How comfortable are you with the idea that different perspectives can be equally valid?"
     ],
-    'Teal': [
+    'Yellow': [
       "How do you handle situations where you need to integrate seemingly contradictory viewpoints?",
       "When solving complex problems, how do you account for multiple systems and levels of influence?",
       "How do you balance rational analysis with intuitive understanding in your decision-making?"
@@ -366,6 +451,11 @@ export function getIntegralClarificationQuestions(level: IntegralLevel): string[
       "How do you experience your connection to larger patterns or cosmic processes?",
       "In what ways do you integrate spiritual or transcendent perspectives into practical decisions?",
       "How do you hold both local concerns and universal wellbeing in your awareness?"
+    ],
+    'Coral': [
+      "How do you experience your connection to planetary and cosmic consciousness?",
+      "In what ways do you serve the evolution of humanity and the planet?",
+      "How do you integrate universal love and wisdom into your daily actions?"
     ]
   };
 
@@ -378,12 +468,15 @@ export function validateIntegralAssessment(responses: string[], level: IntegralL
   
   const responseText = responses.join(' ').toLowerCase();
   const levelKeywords = {
+    'Beige': ['survive', 'basic', 'needs', 'immediate', 'safety', 'instinct'],
+    'Purple': ['family', 'tribe', 'ritual', 'tradition', 'magical', 'ancestors'],
     'Red': ['power', 'control', 'immediate', 'want', 'strong', 'force'],
-    'Amber': ['rules', 'tradition', 'should', 'proper', 'authority', 'order'],
+    'Blue': ['rules', 'tradition', 'should', 'proper', 'authority', 'order'],
     'Orange': ['achieve', 'success', 'logical', 'efficient', 'rational', 'goal'],
     'Green': ['community', 'together', 'feelings', 'inclusive', 'caring', 'harmony'],
-    'Teal': ['integrate', 'systems', 'complex', 'balance', 'paradox', 'holistic'],
-    'Turquoise': ['cosmic', 'universal', 'transcendent', 'spiritual', 'consciousness', 'unity']
+    'Yellow': ['integrate', 'systems', 'complex', 'balance', 'paradox', 'holistic'],
+    'Turquoise': ['cosmic', 'universal', 'transcendent', 'spiritual', 'consciousness', 'unity'],
+    'Coral': ['planetary', 'global', 'cosmic', 'universal', 'love', 'evolution']
   };
 
   const keywords = levelKeywords[level.color] || [];

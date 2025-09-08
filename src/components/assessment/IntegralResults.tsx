@@ -18,6 +18,8 @@ import {
   ArrowLeft,
   Save
 } from 'lucide-react';
+import { ComplexityTooltip } from '@/components/ui/complexity-tooltip';
+import { AssessmentValidation } from '@/components/assessment/AssessmentValidation';
 import { INTEGRAL_LEVELS } from '@/mappings/integral.enhanced';
 
 interface IntegralResultsProps {
@@ -110,7 +112,10 @@ export const IntegralResults: React.FC<IntegralResultsProps> = ({
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-primary">{Math.round(integralDetail.cognitiveComplexity)}</div>
-                <div className="text-sm text-muted-foreground">Complexity</div>
+                <ComplexityTooltip 
+                  score={Math.round(integralDetail.cognitiveComplexity)} 
+                  className="text-sm text-muted-foreground justify-center"
+                />
               </div>
             </div>
           </CardHeader>
@@ -154,6 +159,12 @@ export const IntegralResults: React.FC<IntegralResultsProps> = ({
             ))}
           </div>
         </div>
+
+        {/* Assessment Validation */}
+        <AssessmentValidation 
+          integralDetail={integralDetail}
+          className="mb-6"
+        />
 
         {/* Tab Content */}
         <div className="grid md:grid-cols-2 gap-6 mb-8">

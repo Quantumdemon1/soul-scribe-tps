@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { IntegralInitialAssessment } from '@/components/assessment/IntegralInitialAssessment';
 import { IntegralSocraticClarification } from '@/components/assessment/IntegralSocraticClarification';
 import { IntegralResults } from '@/components/assessment/IntegralResults';
 import { IntegralDetail } from '@/mappings/integral.enhanced';
+import { useAssessments } from '@/hooks/useAssessments';
+import { PersonalityProfile } from '@/types/tps.types';
 
 type AssessmentStage = 'initial' | 'clarification' | 'results';
 
@@ -10,6 +12,8 @@ export const IntegralAssessment: React.FC = () => {
   const [currentStage, setCurrentStage] = useState<AssessmentStage>('initial');
   const [preliminaryScores, setPreliminaryScores] = useState<Record<string, number>>({});
   const [finalAssessment, setFinalAssessment] = useState<IntegralDetail | null>(null);
+  const [personalityProfile, setPersonalityProfile] = useState<PersonalityProfile | null>(null);
+  const { assessments } = useAssessments();
 
   const handleInitialComplete = (scores: Record<string, number>) => {
     setPreliminaryScores(scores);
@@ -20,6 +24,17 @@ export const IntegralAssessment: React.FC = () => {
     setFinalAssessment(assessment);
     setCurrentStage('results');
   };
+
+  // Load existing personality profile
+  useEffect(() => {
+    if (assessments.length > 0) {
+      // Get the most recent personality assessment
+      const latestAssessment = assessments[0];
+      if (latestAssessment?.profile) {
+        setPersonalityProfile(latestAssessment.profile);
+      }
+    }
+  }, [assessments]);
 
   const handleRetakeAssessment = () => {
     setCurrentStage('initial');
@@ -60,6 +75,7 @@ export const IntegralAssessment: React.FC = () => {
           integralDetail={finalAssessment}
           onRetakeAssessment={handleRetakeAssessment}
           onBackToSelection={handleBackToSelection}
+          personalityProfile={personalityProfile}
         />
       ) : (
         <div>Error: No assessment results available</div>

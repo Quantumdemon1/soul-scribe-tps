@@ -231,13 +231,15 @@ Be definitive in your assessment while acknowledging the confidence level.`;
             ? { ...baseSecondary, score: Math.round(combined[secondaryKey] * 1000) / 10, confidence: Math.max(30, Math.round((1 - separation) * 70)) }
             : undefined;
 
-          const levelComplexity: Record<string, number> = { Red: 2, Amber: 3, Blue: 3, Orange: 5, Green: 6, Teal: 8, Yellow: 8, Turquoise: 10 };
+          const levelComplexity: Record<string, number> = { 
+            Beige: 1, Purple: 2, Red: 2, Blue: 3, Orange: 5, Green: 6, Yellow: 8, Turquoise: 9, Coral: 10 
+          };
           const cognitiveComplexity = Math.min(10, levelComplexity[basePrimary.color] || 5);
 
           const realityTriadMapping = {
-            physical: Math.round((((combined['red'] || 0) + (combined['amber'] || 0)) * 10) * 10) / 10,
+            physical: Math.round((((combined['beige'] || 0) + (combined['purple'] || 0) + (combined['red'] || 0) + (combined['blue'] || 0)) * 10) * 10) / 10,
             social: Math.round((((combined['orange'] || 0) + (combined['green'] || 0)) * 10) * 10) / 10,
-            universal: Math.round((((combined['teal'] || 0) + (combined['turquoise'] || 0)) * 10) * 10) / 10
+            universal: Math.round((((combined['yellow'] || 0) + (combined['turquoise'] || 0) + (combined['coral'] || 0)) * 10) * 10) / 10
           };
 
           const developmentalEdge = secondaryLevel && (baseSecondary.number > basePrimary.number)
@@ -270,12 +272,14 @@ Be definitive in your assessment while acknowledging the confidence level.`;
         const separation = Math.max(0, dist[primaryKey] - dist[secondaryKey]);
         const primaryLevel: IntegralLevel = { ...basePrimary, score: Math.round(dist[primaryKey] * 1000) / 10, confidence: Math.round(separation * 100) };
         const secondaryLevel: IntegralLevel | undefined = baseSecondary ? { ...baseSecondary, score: Math.round(dist[secondaryKey] * 1000) / 10, confidence: Math.max(30, Math.round((1 - separation) * 70)) } : undefined;
-        const levelComplexity: Record<string, number> = { Red: 2, Amber: 3, Blue: 3, Orange: 5, Green: 6, Teal: 8, Yellow: 8, Turquoise: 10 };
+        const levelComplexity: Record<string, number> = { 
+          Beige: 1, Purple: 2, Red: 2, Blue: 3, Orange: 5, Green: 6, Yellow: 8, Turquoise: 9, Coral: 10 
+        };
         const cognitiveComplexity = Math.min(10, levelComplexity[basePrimary.color] || 5);
         const realityTriadMapping = {
-          physical: Math.round((((dist['red'] || 0) + (dist['amber'] || 0)) * 10) * 10) / 10,
+          physical: Math.round((((dist['beige'] || 0) + (dist['purple'] || 0) + (dist['red'] || 0) + (dist['blue'] || 0)) * 10) * 10) / 10,
           social: Math.round((((dist['orange'] || 0) + (dist['green'] || 0)) * 10) * 10) / 10,
-          universal: Math.round((((dist['teal'] || 0) + (dist['turquoise'] || 0)) * 10) * 10) / 10
+          universal: Math.round((((dist['yellow'] || 0) + (dist['turquoise'] || 0) + (dist['coral'] || 0)) * 10) * 10) / 10
         };
         const developmentalEdge = secondaryLevel && (baseSecondary.number > basePrimary.number)
           ? `Developing toward ${baseSecondary.name}: ${baseSecondary.growthEdge[0]}`
