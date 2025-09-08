@@ -5,7 +5,7 @@ import { AssessmentVariations } from '../../utils/assessmentVariations';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Clock, Target, Zap, Star, User, LogOut, History, LogIn } from 'lucide-react';
+import { Clock, Target, Zap, Star, User, LogOut, History, LogIn, Brain } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { Header } from '@/components/layout/Header';
 import { useNavigate } from 'react-router-dom';
@@ -83,6 +83,54 @@ const AssessmentSelection: React.FC = () => {
               into your personality across multiple established frameworks.
             </p>
           </div>
+
+        {/* Integral Assessment Card */}
+        <div className="mb-12">
+          <Card 
+            className="relative overflow-hidden transition-all duration-300 hover:shadow-lg cursor-pointer bg-gradient-to-br from-primary/5 to-secondary/5 border-2 border-primary/20"
+            onClick={() => navigate('/integral')}
+          >
+            <div className="absolute top-4 right-4">
+              <Badge variant="default" className="bg-gradient-to-r from-primary to-secondary text-white">
+                <Brain className="w-3 h-3 mr-1" />
+                New: Cognitive Development
+              </Badge>
+            </div>
+            
+            <CardHeader className="text-center">
+              <div className="flex justify-center mb-4">
+                <Brain className="w-12 h-12 text-primary" />
+              </div>
+              <CardTitle className="text-2xl mb-2">Integral Level Assessment</CardTitle>
+              <p className="text-muted-foreground">
+                Discover your cognitive development level through Integral Theory and Spiral Dynamics
+              </p>
+            </CardHeader>
+            
+            <CardContent className="text-center space-y-4">
+              <div className="space-y-2">
+                <div className="flex items-center justify-center gap-2">
+                  <Clock className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-sm text-muted-foreground">15-20 minutes</span>
+                </div>
+                <div className="text-3xl font-bold text-primary">
+                  Separate Assessment
+                </div>
+                <Badge variant="outline">AI-Enhanced Clarification</Badge>
+              </div>
+              
+              <div className="text-sm text-muted-foreground space-y-1">
+                <p>• Two-stage assessment with AI-guided Socratic questions</p>
+                <p>• Discover your Integral Level (Red, Amber, Orange, Green, Teal, Turquoise)</p>
+                <p>• Optional integration with existing personality profile</p>
+              </div>
+              
+              <Button className="w-full bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90">
+                Discover Your Integral Level
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
 
         {/* Assessment Options */}
         <div className="grid md:grid-cols-3 gap-8 mb-12">

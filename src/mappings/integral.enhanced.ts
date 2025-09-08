@@ -5,6 +5,7 @@ import { TPSScores } from '../types/tps.types';
 import { calculateConfidence, calculateWeightedScore } from './index';
 
 export interface IntegralLevel {
+  number: number;
   color: string;
   name: string;
   cognitiveStage: string;
@@ -30,12 +31,13 @@ export interface IntegralDetail {
   confidence: number;
 }
 
-const INTEGRAL_LEVELS = {
+export const INTEGRAL_LEVELS = {
   red: {
+    number: 2,
     color: 'Red',
-    name: 'Power/Impulsive',
+    name: 'Power/Control',
     cognitiveStage: 'Preoperational to early Concrete',
-    worldview: 'Egocentric, immediate gratification',
+    worldview: 'Egocentric, immediate gratification - "I live in a world full of different people..."',
     thinkingPattern: 'Impulsive, power-based, here-and-now',
     characteristics: [
       'Immediate gratification focus',
@@ -55,10 +57,11 @@ const INTEGRAL_LEVELS = {
   },
   
   amber: {
-    color: 'Amber',
-    name: 'Conformist/Traditional',
+    number: 3,
+    color: 'Blue',
+    name: 'Order/Belong',
     cognitiveStage: 'Concrete Operational',
-    worldview: 'Ethnocentric, rule-based order',
+    worldview: 'Ethnocentric, rule-based order - "We all have our own lives to deal with..."',
     thinkingPattern: 'Rule-based, hierarchical, conformist',
     characteristics: [
       'Strong adherence to rules and authority',
@@ -78,10 +81,11 @@ const INTEGRAL_LEVELS = {
   },
   
   orange: {
+    number: 4,
     color: 'Orange',
-    name: 'Achievement/Strategic',
+    name: 'Achieve',
     cognitiveStage: 'Early Formal Operational',
-    worldview: 'World-centric, rational, achievement-focused',
+    worldview: 'World-centric, rational, achievement-focused - "Everyone\'s unique, and we should all be allowed..."',
     thinkingPattern: 'Strategic, analytical, goal-oriented',
     characteristics: [
       'Rational, scientific thinking',
@@ -101,10 +105,11 @@ const INTEGRAL_LEVELS = {
   },
   
   green: {
+    number: 5,
     color: 'Green',
-    name: 'Communitarian/Egalitarian',
+    name: 'Understand',
     cognitiveStage: 'Formal Operational',
-    worldview: 'World-centric, pluralistic, community-focused',
+    worldview: 'World-centric, pluralistic, community-focused - "When you think about what\'s \'good\' and \'bad\'..."',
     thinkingPattern: 'Relativistic, consensus-seeking, inclusive',
     characteristics: [
       'Egalitarian and inclusive values',
@@ -124,10 +129,11 @@ const INTEGRAL_LEVELS = {
   },
   
   teal: {
-    color: 'Teal',
-    name: 'Integral/Systematic',
+    number: 6,
+    color: 'Yellow',
+    name: 'Harmonize',
     cognitiveStage: 'Post-Formal/Integral',
-    worldview: 'Integral, systematic, holistic',
+    worldview: 'Integral, systematic, holistic - "You can\'t know for sure what will happen before you act..."',
     thinkingPattern: 'Integrative, systematic, paradox-comfortable',
     characteristics: [
       'Integrates multiple perspectives',
@@ -147,10 +153,11 @@ const INTEGRAL_LEVELS = {
   },
   
   turquoise: {
+    number: 7,
     color: 'Turquoise',
-    name: 'Holistic/Global',
+    name: 'Sanctify',
     cognitiveStage: 'Meta-Systematic/Transpersonal',
-    worldview: 'Kosmo-centric, holistic, transpersonal',
+    worldview: 'Kosmo-centric, holistic, transpersonal - "The world is too complex to control..."',
     thinkingPattern: 'Holistic, transpersonal, cosmic',
     characteristics: [
       'Cosmic and transpersonal perspective',
