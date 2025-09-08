@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { IntegralDetail } from '@/types/tps.types';
+import { IntegralDetail } from '@/mappings/integral.enhanced';
 import { Brain, TrendingUp, Target, Lightbulb } from 'lucide-react';
 
 interface IntegralInsightsProps {

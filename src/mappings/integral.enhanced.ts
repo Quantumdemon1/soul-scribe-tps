@@ -300,7 +300,9 @@ export function calculateIntegralDevelopment(traitScores: TPSScores): IntegralDe
 }
 
 function calculatePhysicalTriadLevel(traitScores: TPSScores): number {
-  // Physical triad maps to Red/Blue levels (concrete operational)
+  // Physical triad maps to Beige/Purple/Red/Blue levels (concrete operational)
+  const beigeScore = calculateWeightedScore(traitScores, INTEGRAL_LEVELS.beige);
+  const purpleScore = calculateWeightedScore(traitScores, INTEGRAL_LEVELS.purple);
   const redScore = calculateWeightedScore(traitScores, INTEGRAL_LEVELS.red);
   const blueScore = calculateWeightedScore(traitScores, INTEGRAL_LEVELS.blue);
   
@@ -313,7 +315,8 @@ function calculatePhysicalTriadLevel(traitScores: TPSScores): number {
     (traitScores['Direct'] * 0.10)
   );
   
-  return Math.max(redScore, blueScore) * (physicalWeight / 10);
+  const maxScore = Math.max(beigeScore, purpleScore, redScore, blueScore);
+  return maxScore * (physicalWeight / 10);
 }
 
 function calculateSocialTriadLevel(traitScores: TPSScores): number {
@@ -334,9 +337,10 @@ function calculateSocialTriadLevel(traitScores: TPSScores): number {
 }
 
 function calculateUniversalTriadLevel(traitScores: TPSScores): number {
-  // Universal triad maps to Yellow/Turquoise levels (post-formal)
+  // Universal triad maps to Yellow/Turquoise/Coral levels (post-formal)
   const yellowScore = calculateWeightedScore(traitScores, INTEGRAL_LEVELS.yellow);
   const turquoiseScore = calculateWeightedScore(traitScores, INTEGRAL_LEVELS.turquoise);
+  const coralScore = calculateWeightedScore(traitScores, INTEGRAL_LEVELS.coral);
   
   // Weight toward abstract, integral thinking
   const universalWeight = (
@@ -347,7 +351,8 @@ function calculateUniversalTriadLevel(traitScores: TPSScores): number {
     (traitScores['Intrinsic'] * 0.10)
   );
   
-  return Math.max(yellowScore, turquoiseScore) * (universalWeight / 10);
+  const maxScore = Math.max(yellowScore, turquoiseScore, coralScore);
+  return maxScore * (universalWeight / 10);
 }
 
 function calculateCognitiveComplexity(traitScores: TPSScores, primaryLevel: IntegralLevel): number {

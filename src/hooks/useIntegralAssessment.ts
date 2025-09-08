@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useAuth } from './useAuth';
 import { useToast } from './use-toast';
-import { IntegralDetail } from '@/types/tps.types';
+import { IntegralDetail } from '@/mappings/integral.enhanced';
 import { PersonalityProfile } from '@/types/tps.types';
 import { supabase } from '@/integrations/supabase/client';
 

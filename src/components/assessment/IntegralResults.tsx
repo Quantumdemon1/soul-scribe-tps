@@ -134,6 +134,29 @@ export const IntegralResults: React.FC<IntegralResultsProps> = ({
                 <h4 className="font-semibold mb-2">Developmental Edge</h4>
                 <p className="text-muted-foreground">{integralDetail.developmentalEdge}</p>
               </div>
+
+              <Separator />
+              
+              <div>
+                <h4 className="font-semibold mb-2">Reality Triad Mapping</h4>
+                <div className="grid grid-cols-3 gap-4 text-sm">
+                  <div className="text-center">
+                    <div className="font-medium text-primary">Physical</div>
+                    <div className="text-2xl font-bold">{Math.round(integralDetail.realityTriadMapping.physical)}</div>
+                    <div className="text-xs text-muted-foreground">Concrete Thinking</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="font-medium text-primary">Social</div>
+                    <div className="text-2xl font-bold">{Math.round(integralDetail.realityTriadMapping.social)}</div>
+                    <div className="text-xs text-muted-foreground">Systems Thinking</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="font-medium text-primary">Universal</div>
+                    <div className="text-2xl font-bold">{Math.round(integralDetail.realityTriadMapping.universal)}</div>
+                    <div className="text-xs text-muted-foreground">Integral Thinking</div>
+                  </div>
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>
