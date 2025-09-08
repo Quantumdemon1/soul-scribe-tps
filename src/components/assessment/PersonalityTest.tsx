@@ -14,6 +14,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useAssessments } from '@/hooks/useAssessments';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { toast } from '@/hooks/use-toast';
+import { logger } from '@/utils/structuredLogging';
 
 interface PersonalityTestProps {
   assessmentType?: string;
@@ -148,7 +149,10 @@ export const PersonalityTest: React.FC<PersonalityTestProps> = ({ assessmentType
         await saveAssessment(personalityProfile, fullResponses, assessmentType);
       } catch (error) {
         // Error handling is done in useAssessments hook
-        console.log('Assessment not saved to cloud, but available locally');
+        logger.info('Assessment saved locally only', {
+          component: 'PersonalityTest',
+          metadata: { userAuthenticated: !!user, assessmentType }
+        });
       }
     } else {
       toast({

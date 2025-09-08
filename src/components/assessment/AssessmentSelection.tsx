@@ -23,7 +23,7 @@ const AssessmentSelection: React.FC = () => {
       <AssessmentResults 
         profile={completedProfile}
         onSave={(profile) => {
-          console.log('Saving enhanced profile:', profile);
+          // Profile saved successfully
           setCompletedProfile(null);
           setSelectedAssessment(null);
         }}

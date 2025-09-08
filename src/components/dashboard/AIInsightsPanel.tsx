@@ -11,6 +11,7 @@ import { HelpTooltip } from '@/components/ui/help-tooltip';
 import { Brain, Briefcase, TrendingUp, Heart, Sparkles, ChevronDown, RefreshCw, Target, Database } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/hooks/use-toast';
+import { logger } from '@/utils/structuredLogging';
 
 interface AIInsightsPanelProps {
   profile: PersonalityProfile;
@@ -41,18 +42,31 @@ export const AIInsightsPanel: React.FC<AIInsightsPanelProps> = ({ profile }) => 
     if (!user) return;
     
     try {
-      console.log('Loading existing AI insights for user:', user.id);
+      logger.info('Loading existing AI insights', {
+        component: 'AIInsightsPanel',
+        userId: user.id
+      });
       const existingInsights = await aiInsightsService.getInsights(user.id);
       if (existingInsights) {
-        console.log('Loaded existing AI insights from database');
+        logger.info('Loaded existing AI insights from database', {
+          component: 'AIInsightsPanel',
+          userId: user.id
+        });
         setInsights(existingInsights);
         setIsFromCache(true);
       } else {
-        console.log('No existing AI insights found in database');
+        logger.info('No existing AI insights found in database', {
+          component: 'AIInsightsPanel',
+          userId: user.id
+        });
         setIsFromCache(false);
       }
     } catch (error) {
-      console.error('Error loading existing insights:', error);
+      logger.error('Error loading existing insights', {
+        component: 'AIInsightsPanel',
+        userId: user?.id,
+        metadata: { errorMessage: error instanceof Error ? error.message : 'Unknown error' }
+      });
       setIsFromCache(false);
     }
   };
@@ -63,7 +77,11 @@ export const AIInsightsPanel: React.FC<AIInsightsPanelProps> = ({ profile }) => 
     setIsFromCache(false);
     
     try {
-      console.log('Generating new AI insights for profile');
+      logger.info('Generating new AI insights', {
+        component: 'AIInsightsPanel',
+        userId: user?.id,
+        metadata: { hasProfile: !!profile }
+      });
       const newInsights = await aiInsightsService.generateInsights(profile, user?.id);
       setInsights(newInsights);
       
@@ -72,7 +90,11 @@ export const AIInsightsPanel: React.FC<AIInsightsPanelProps> = ({ profile }) => 
         description: "Your personalized insights are ready!"
       });
     } catch (error) {
-      console.error('Error generating insights:', error);
+      logger.error('Error generating insights', {
+        component: 'AIInsightsPanel',
+        userId: user?.id,
+        metadata: { errorMessage: error instanceof Error ? error.message : 'Unknown error' }
+      });
       const errorMessage = error instanceof Error ? error.message : 'Failed to generate insights';
       setError(`Failed to generate insights: ${errorMessage}. Please check your internet connection and try again.`);
       

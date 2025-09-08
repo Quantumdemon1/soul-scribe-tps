@@ -21,6 +21,7 @@ import {
 import { ComplexityTooltip } from '@/components/ui/complexity-tooltip';
 import { AssessmentValidation } from '@/components/assessment/AssessmentValidation';
 import { INTEGRAL_LEVELS } from '@/mappings/integral.enhanced';
+import { logger } from '@/utils/structuredLogging';
 
 interface IntegralResultsProps {
   integralDetail: IntegralDetail;
@@ -49,7 +50,10 @@ export const IntegralResults: React.FC<IntegralResultsProps> = ({
         description: "Your Integral Level assessment has been saved to your profile.",
       });
     } catch (error) {
-      console.error('Failed to save results:', error);
+      logger.error('Failed to save integral results', {
+        component: 'IntegralResults',
+        metadata: { errorMessage: error.message }
+      });
     }
   };
   

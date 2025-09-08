@@ -21,6 +21,7 @@ import { AlignmentTest } from '@/components/test/AlignmentTest';
 import { logger } from '@/utils/structuredLogging';
 import { DataConsistencyPanel } from './DataConsistencyPanel';
 import { DEFAULT_SYSTEM_PROMPTS } from '@/config/systemPrompts';
+import { MobileTestIntegration } from '../mobile/MobileTestIntegration';
 const BulkImportLazy = React.lazy(() => import('@/components/admin/BulkImport'));
 
 interface LLMConfig {
@@ -282,7 +283,7 @@ export const AdminPanel: React.FC = () => {
         </div>
 
         <Tabs defaultValue="llm" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="llm" className="flex items-center gap-2">
               <Brain className="w-4 h-4" />
               LLM Configuration
@@ -306,6 +307,10 @@ export const AdminPanel: React.FC = () => {
             <TabsTrigger value="bulk" className="flex items-center gap-2">
               <Upload className="w-4 h-4" />
               Bulk Import
+            </TabsTrigger>
+            <TabsTrigger value="mobile" className="flex items-center gap-2">
+              <Shield className="w-4 h-4" />
+              Mobile
             </TabsTrigger>
           </TabsList>
 
@@ -589,6 +594,10 @@ export const AdminPanel: React.FC = () => {
             <React.Suspense fallback={<div className="text-sm text-muted-foreground">Loading bulk import...</div>}>
               <BulkImportLazy />
             </React.Suspense>
+          </TabsContent>
+
+          <TabsContent value="mobile" className="space-y-6">
+            <MobileTestIntegration />
           </TabsContent>
         </Tabs>
       </div>

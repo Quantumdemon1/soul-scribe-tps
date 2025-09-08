@@ -16,6 +16,7 @@ import { useIntegralAssessment } from '@/hooks/useIntegralAssessment';
 import { useToast } from '@/hooks/use-toast';
 import { IntegralPDFGenerator } from '@/utils/integralPdfGenerator';
 import { logScoringDetails } from '@/utils/integralValidation';
+import { logger } from '@/utils/structuredLogging';
 
 interface EnhancedIntegralResultsProps {
   integralDetail: IntegralDetail;
@@ -59,7 +60,13 @@ export const EnhancedIntegralResults: React.FC<EnhancedIntegralResultsProps> = (
       );
       setPersonalityIntegration(integration);
     } catch (error) {
-      console.error('Error generating personality integration:', error);
+      logger.error('Error generating personality integration', {
+        component: 'EnhancedIntegralResults',
+        metadata: { 
+          hasPersonalityProfile: !!personalityProfile,
+          errorMessage: error.message 
+        }
+      });
       toast({
         title: 'Integration Note',
         description: 'Some personality integration features may be limited.',
@@ -100,7 +107,10 @@ export const EnhancedIntegralResults: React.FC<EnhancedIntegralResultsProps> = (
         description: "Your Integral assessment report has been downloaded successfully.",
       });
     } catch (error) {
-      console.error('Error generating PDF:', error);
+      logger.error('Error generating PDF', {
+        component: 'EnhancedIntegralResults',
+        metadata: { errorMessage: error.message }
+      });
       toast({
         title: "PDF Generation Failed",
         description: "Failed to generate PDF. Please try again.",
@@ -130,7 +140,10 @@ export const EnhancedIntegralResults: React.FC<EnhancedIntegralResultsProps> = (
         });
       }
     } catch (error) {
-      console.error('Error sharing:', error);
+      logger.error('Error sharing results', {
+        component: 'EnhancedIntegralResults',
+        metadata: { errorMessage: error.message }
+      });
       toast({
         title: "Share failed",
         description: "Unable to share results. Please try again.",
