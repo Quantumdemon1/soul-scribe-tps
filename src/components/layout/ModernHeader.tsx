@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Brain, Menu, User, LogIn } from 'lucide-react';
+import { Brain, Menu, User, LogIn, Layers } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
@@ -21,6 +21,7 @@ export const ModernHeader: React.FC = () => {
 
   const navItems = [
     { path: '/', label: 'Take Test' },
+    { path: '/integral', label: 'Integral Level' },
     { path: '/mentor', label: 'AI Coach' },
     { path: '/history', label: 'Connection' },
     { path: '/careers', label: 'Careers' },

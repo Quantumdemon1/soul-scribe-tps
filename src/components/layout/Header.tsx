@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger } from '@/components/ui/navigation-menu';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Settings, User, Home, History, BookOpen, HelpCircle, LogOut, Brain, Menu, Shield } from 'lucide-react';
+import { Settings, User, Home, History, BookOpen, HelpCircle, LogOut, Brain, Menu, Shield, Layers } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { GuidedTour } from '@/components/help/GuidedTour';
@@ -22,6 +22,7 @@ export const Header: React.FC = () => {
 
   const navItems = [
     { path: '/', label: 'Assessment', icon: Home },
+    { path: '/integral', label: 'Integral Level', icon: Layers },
     { path: '/history', label: 'History', icon: History },
     { path: '/mentor', label: 'AI Mentor', icon: Brain },
   ];
