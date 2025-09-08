@@ -274,10 +274,16 @@ export function calculateIntegralDevelopment(traitScores: TPSScores): IntegralDe
   const secondaryLevel = levelScores.length > 1 ? levelScores[1].level : undefined;
 
   // Map Reality Triad to Integral Levels
+  const physicalTriad = calculatePhysicalTriadLevel(traitScores);
+  const socialTriad = calculateSocialTriadLevel(traitScores);
+  const universalTriad = calculateUniversalTriadLevel(traitScores);
+  
+  // Normalize to ensure values sum to 1.0
+  const triadSum = physicalTriad + socialTriad + universalTriad;
   const realityTriadMapping = {
-    physical: calculatePhysicalTriadLevel(traitScores),
-    social: calculateSocialTriadLevel(traitScores), 
-    universal: calculateUniversalTriadLevel(traitScores)
+    physical: triadSum > 0 ? physicalTriad / triadSum : 0.33,
+    social: triadSum > 0 ? socialTriad / triadSum : 0.33,
+    universal: triadSum > 0 ? universalTriad / triadSum : 0.34
   };
 
   // Calculate overall cognitive complexity
@@ -313,10 +319,10 @@ function calculatePhysicalTriadLevel(traitScores: TPSScores): number {
     (traitScores['Lawful'] * 0.20) +
     (traitScores['Self-Indulgent'] * 0.10) +
     (traitScores['Direct'] * 0.10)
-  );
+  ) / 10; // Normalize to 0-1 range
   
   const maxScore = Math.max(beigeScore, purpleScore, redScore, blueScore);
-  return maxScore * (physicalWeight / 10);
+  return maxScore * physicalWeight;
 }
 
 function calculateSocialTriadLevel(traitScores: TPSScores): number {
@@ -331,9 +337,9 @@ function calculateSocialTriadLevel(traitScores: TPSScores): number {
     (traitScores['Analytical'] * 0.15) +
     (traitScores['Communal Navigate'] * 0.15) +
     (traitScores['Responsive'] * 0.10)
-  );
+  ) / 10; // Normalize to 0-1 range
   
-  return Math.max(orangeScore, greenScore) * (socialWeight / 10);
+  return Math.max(orangeScore, greenScore) * socialWeight;
 }
 
 function calculateUniversalTriadLevel(traitScores: TPSScores): number {
@@ -349,10 +355,10 @@ function calculateUniversalTriadLevel(traitScores: TPSScores): number {
     (traitScores['Self-Aware'] * 0.15) +
     (traitScores['Varied'] * 0.15) +
     (traitScores['Intrinsic'] * 0.10)
-  );
+  ) / 10; // Normalize to 0-1 range
   
   const maxScore = Math.max(yellowScore, turquoiseScore, coralScore);
-  return maxScore * (universalWeight / 10);
+  return maxScore * universalWeight;
 }
 
 function calculateCognitiveComplexity(traitScores: TPSScores, primaryLevel: IntegralLevel): number {
