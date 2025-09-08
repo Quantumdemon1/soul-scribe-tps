@@ -9,13 +9,14 @@ import { useAssessments } from '@/hooks/useAssessments';
 import { useAuth } from '@/hooks/useAuth';
 import { PersonalityDashboard } from '@/components/dashboard/PersonalityDashboard';
 import { AssessmentComparison } from '@/components/analytics/AssessmentComparison';
-import { ArrowLeft, Calendar, Trash2, Eye, History, User, TrendingUp, LogIn, Download, GitCompare, RefreshCw, ChevronDown, ChevronUp } from 'lucide-react';
+import { ArrowLeft, Calendar, Trash2, Eye, History, User, TrendingUp, LogIn, Download, GitCompare, RefreshCw, ChevronDown, ChevronUp, Brain } from 'lucide-react';
 import { format } from 'date-fns';
 import { PDFReportGenerator } from '@/utils/pdfGenerator';
 import { supabase } from '@/integrations/supabase/client';
 import { TPSScoring } from '@/utils/tpsScoring';
 import { useToast } from '@/hooks/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { IntegralLevelBadge } from '@/components/dashboard/IntegralLevelBadge';
 import { 
   Collapsible,
   CollapsibleContent,
@@ -255,12 +256,32 @@ const AssessmentHistory: React.FC = () => {
               <Card>
                 <CardContent className={`${isMobile ? 'p-4' : 'p-6'} text-center`}>
                   <div className={`${isMobile ? 'text-2xl' : 'text-3xl'} font-bold text-primary mb-2`}>
-                    {assessments.length > 0 ? format(new Date(assessments[0].created_at), 'MMM yyyy') : '-'}
+                    {assessments.filter(a => (a.profile as any).integralDetail).length}
                   </div>
-                  <p className="text-sm text-muted-foreground">Latest Assessment</p>
+                  <p className="text-sm text-muted-foreground">With Integral Levels</p>
                 </CardContent>
               </Card>
             </div>
+
+            {/* Integral Assessment Callout */}
+            {assessments.some(a => !(a.profile as any).integralDetail) && (
+              <Card className="mb-6 border-primary/20">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <Brain className="w-8 h-8 text-primary" />
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-primary">Unlock Integral Level Insights</h3>
+                      <p className="text-sm text-muted-foreground mb-3">
+                        Discover your cognitive development level and consciousness stage with the Integral Assessment.
+                      </p>
+                      <Button size="sm" onClick={() => navigate('/integral')}>
+                        Take Integral Assessment
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Main Content */}
             <Tabs defaultValue="history" className="w-full">
@@ -305,11 +326,20 @@ const AssessmentHistory: React.FC = () => {
                                 <div className="text-xs text-muted-foreground">
                                   {format(new Date(assessment.created_at), 'MMM d, yyyy')}
                                 </div>
-                                {assessment.profile.mappings && (
-                                  <div className="text-xs text-muted-foreground mt-1 truncate">
-                                    {assessment.profile.mappings.mbti} • {assessment.profile.mappings.enneagram}
-                                  </div>
-                                )}
+                                 {assessment.profile.mappings && (
+                                   <div className="text-xs text-muted-foreground mt-1 truncate">
+                                     {assessment.profile.mappings.mbti} • {assessment.profile.mappings.enneagram}
+                                   </div>
+                                 )}
+                                 {(assessment.profile as any).integralDetail && (
+                                   <div className="mt-1">
+                                     <IntegralLevelBadge 
+                                       level={(assessment.profile as any).integralDetail.primaryLevel} 
+                                       size="sm" 
+                                       showName={false}
+                                     />
+                                   </div>
+                                 )}
                               </div>
                             </div>
                             
@@ -334,12 +364,24 @@ const AssessmentHistory: React.FC = () => {
                                 <div>D&D: {assessment.profile.mappings.dndAlignment}</div>
                                 <div>Holland: {assessment.profile.mappings.hollandCode}</div>
                               </div>
-                              {assessment.profile.frameworkInsights && (
-                                <Badge variant="secondary" className="text-xs mt-2">Enhanced Insights</Badge>
-                              )}
-                              {assessment.profile.version && (
-                                <Badge variant="outline" className="text-xs mt-2 ml-1">v{assessment.profile.version}</Badge>
-                              )}
+                               {(assessment.profile as any).integralDetail && (
+                                 <div className="mt-2">
+                                   <div className="text-xs font-medium mb-1">Integral Level</div>
+                                   <IntegralLevelBadge 
+                                     level={(assessment.profile as any).integralDetail.primaryLevel} 
+                                     size="sm"
+                                   />
+                                   <div className="text-xs text-muted-foreground mt-1">
+                                     {(assessment.profile as any).integralDetail.primaryLevel.name}
+                                   </div>
+                                 </div>
+                               )}
+                               {assessment.profile.frameworkInsights && (
+                                 <Badge variant="secondary" className="text-xs mt-2">Enhanced Insights</Badge>
+                               )}
+                               {assessment.profile.version && (
+                                 <Badge variant="outline" className="text-xs mt-2 ml-1">v{assessment.profile.version}</Badge>
+                               )}
                             </div>
                           )}
                           
@@ -425,23 +467,32 @@ const AssessmentHistory: React.FC = () => {
                                 <Calendar className="w-4 h-4" />
                                 {format(new Date(assessment.created_at), 'MMM d, yyyy \'at\' h:mm a')}
                               </div>
-                              {assessment.profile.mappings && (
-                                <div>
-                                  MBTI: {assessment.profile.mappings.mbti} | 
-                                  Enneagram: {assessment.profile.mappings.enneagram} |
-                                  D&D: {assessment.profile.mappings.dndAlignment}
-                                  {assessment.profile.frameworkInsights && (
-                                    <span className="ml-2 text-xs">
-                                      <Badge variant="secondary" className="text-xs">Enhanced Insights</Badge>
-                                    </span>
-                                  )}
-                                  {assessment.profile.version && (
-                                    <span className="ml-2 text-xs">
-                                      <Badge variant="outline" className="text-xs">v{assessment.profile.version}</Badge>
-                                    </span>
-                                  )}
-                                </div>
-                              )}
+                               {assessment.profile.mappings && (
+                                 <div>
+                                   MBTI: {assessment.profile.mappings.mbti} | 
+                                   Enneagram: {assessment.profile.mappings.enneagram} |
+                                   D&D: {assessment.profile.mappings.dndAlignment}
+                                   {(assessment.profile as any).integralDetail && (
+                                     <span className="ml-2">
+                                       | <IntegralLevelBadge 
+                                         level={(assessment.profile as any).integralDetail.primaryLevel} 
+                                         size="sm" 
+                                         className="inline-flex"
+                                       />
+                                     </span>
+                                   )}
+                                   {assessment.profile.frameworkInsights && (
+                                     <span className="ml-2 text-xs">
+                                       <Badge variant="secondary" className="text-xs">Enhanced Insights</Badge>
+                                     </span>
+                                   )}
+                                   {assessment.profile.version && (
+                                     <span className="ml-2 text-xs">
+                                       <Badge variant="outline" className="text-xs">v{assessment.profile.version}</Badge>
+                                     </span>
+                                   )}
+                                 </div>
+                               )}
                             </div>
                           </div>
                         </div>

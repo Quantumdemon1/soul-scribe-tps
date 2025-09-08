@@ -132,13 +132,22 @@ export class MentorService {
       conversationHistory
     );
 
-    // Add AI response to database
+    // Add AI response to database with enhanced context
+    const profileContext = {
+      mbti: profile.mappings.mbti,
+      enneagram: profile.mappings.enneagram,
+      dominant_traits: profile.dominantTraits,
+      ...(profile.mappings.integralDetail && {
+        integral_level: {
+          number: profile.mappings.integralDetail.primaryLevel.number,
+          color: profile.mappings.integralDetail.primaryLevel.color,
+          name: profile.mappings.integralDetail.primaryLevel.name
+        }
+      })
+    };
+
     await this.addMessage(conversationId, 'assistant', response, {
-      profile_context: {
-        mbti: profile.mappings.mbti,
-        enneagram: profile.mappings.enneagram,
-        dominant_traits: profile.dominantTraits
-      }
+      profile_context: profileContext
     });
 
     return response;

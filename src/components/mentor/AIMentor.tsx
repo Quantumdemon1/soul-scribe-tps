@@ -14,6 +14,7 @@ import { MarkdownRenderer } from '@/components/ui/markdown-renderer';
 import { PersonalityProfile } from '@/types/tps.types';
 import { useAssessments } from '@/hooks/useAssessments';
 import { supabase } from '@/integrations/supabase/client';
+import { IntegralLevelBadge } from '@/components/dashboard/IntegralLevelBadge';
 
 interface AIMentorProps {
   initialProfile?: PersonalityProfile;
@@ -244,10 +245,22 @@ export const AIMentor: React.FC<AIMentorProps> = ({ initialProfile }) => {
               <div className="flex items-center gap-2">
                 <Badge variant="secondary">{profile.mappings.mbti}</Badge>
                 <Badge variant="outline">{profile.mappings.enneagram}</Badge>
+                {(profile.mappings as any).integralDetail && (
+                  <IntegralLevelBadge 
+                    level={(profile.mappings as any).integralDetail.primaryLevel}
+                    size="sm"
+                    showName={false}
+                  />
+                )}
               </div>
               <div className="text-xs text-muted-foreground">
                 Dominant Traits: {Object.values(profile.dominantTraits).join(', ')}
               </div>
+              {(profile.mappings as any).integralDetail && (
+                <div className="text-xs text-muted-foreground">
+                  Level: {(profile.mappings as any).integralDetail.primaryLevel.name}
+                </div>
+              )}
             </CardContent>
           </Card>
 

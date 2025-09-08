@@ -110,6 +110,18 @@ export const ConversationStarters: React.FC<ConversationStartersProps> = ({
       // Add more cases as needed
     }
 
+    // Add integral development conversation starter if available
+    if ((profile.mappings as any).integralDetail) {
+      const integralLevel = (profile.mappings as any).integralDetail.primaryLevel;
+      baseStarters.push({
+        icon: Brain,
+        title: "Integral Development", 
+        description: "Explore higher levels of consciousness and development",
+        message: `I'm currently at Integral Level ${integralLevel.number} (${integralLevel.color}). How can I continue growing and developing to higher levels of consciousness?`,
+        category: 'growth'
+      });
+    }
+
     return baseStarters.slice(0, 6); // Limit to 6 starters
   };
 
