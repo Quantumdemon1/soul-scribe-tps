@@ -179,7 +179,8 @@ class AccessibilityManager {
 
   private enhanceButtons(): void {
     const buttons = document.querySelectorAll('button:not([aria-label]):not([aria-labelledby])');
-    buttons.forEach(button => {
+    buttons.forEach((buttonElement) => {
+      const button = buttonElement as HTMLButtonElement;
       if (!button.textContent?.trim()) {
         const icon = button.querySelector('svg, i, .icon');
         if (icon) {
@@ -192,13 +193,15 @@ class AccessibilityManager {
   private enhanceNavigationElements(): void {
     // Add navigation landmarks
     const navs = document.querySelectorAll('nav:not([aria-label]):not([aria-labelledby])');
-    navs.forEach((nav, index) => {
+    navs.forEach((navElement, index) => {
+      const nav = navElement as HTMLElement;
       nav.setAttribute('aria-label', `Navigation ${index + 1}`);
     });
 
     // Enhance breadcrumbs
     const breadcrumbs = document.querySelectorAll('[aria-label*="breadcrumb"], .breadcrumb');
-    breadcrumbs.forEach(breadcrumb => {
+    breadcrumbs.forEach((breadcrumbElement) => {
+      const breadcrumb = breadcrumbElement as HTMLElement;
       if (!breadcrumb.hasAttribute('role')) {
         breadcrumb.setAttribute('role', 'navigation');
         breadcrumb.setAttribute('aria-label', 'Breadcrumb');
