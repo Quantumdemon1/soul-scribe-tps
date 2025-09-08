@@ -21,10 +21,19 @@ export const ModernHeader: React.FC = () => {
   
   const isActive = (path: string) => location.pathname === path;
   const hasCompletedAssessment = assessments.length > 0;
+  
+  // Check if user has completed integral assessment and get their level
+  const integralAssessment = assessments.find(assessment => 
+    assessment.profile?.mappings?.integralDetail?.primaryLevel
+  );
+  const integralLevel = integralAssessment?.profile?.mappings?.integralDetail?.primaryLevel;
+  const integralLevelText = integralLevel 
+    ? `Level ${integralLevel.number} (${integralLevel.color})`
+    : 'Integral Level';
 
   const navItems = [
     { path: '/', label: hasCompletedAssessment ? 'Overview' : 'Take Test' },
-    { path: '/integral', label: 'Integral Level' },
+    { path: '/integral', label: integralLevelText },
     { path: '/mentor', label: 'AI Coach' },
     { path: '/history', label: 'Connection' },
     { path: '/careers', label: 'Careers' },
