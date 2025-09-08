@@ -2,34 +2,21 @@ import React, { useState } from 'react';
 import { IntegralInitialAssessment } from '@/components/assessment/IntegralInitialAssessment';
 import { IntegralSocraticClarification } from '@/components/assessment/IntegralSocraticClarification';
 import { IntegralResults } from '@/components/assessment/IntegralResults';
+import { IntegralDetail } from '@/mappings/integral.enhanced';
 
 type AssessmentStage = 'initial' | 'clarification' | 'results';
-
-interface IntegralLevel {
-  number: number;
-  color: string;
-  name: string;
-  score: number;
-  confidence: number;
-}
-
-interface FinalAssessment {
-  primaryLevel: IntegralLevel;
-  confidence: number;
-  reasoning: string;
-}
 
 export const IntegralAssessment: React.FC = () => {
   const [currentStage, setCurrentStage] = useState<AssessmentStage>('initial');
   const [preliminaryScores, setPreliminaryScores] = useState<Record<string, number>>({});
-  const [finalAssessment, setFinalAssessment] = useState<FinalAssessment | null>(null);
+  const [finalAssessment, setFinalAssessment] = useState<IntegralDetail | null>(null);
 
   const handleInitialComplete = (scores: Record<string, number>) => {
     setPreliminaryScores(scores);
     setCurrentStage('clarification');
   };
 
-  const handleClarificationComplete = (assessment: FinalAssessment) => {
+  const handleClarificationComplete = (assessment: IntegralDetail) => {
     setFinalAssessment(assessment);
     setCurrentStage('results');
   };
@@ -70,9 +57,7 @@ export const IntegralAssessment: React.FC = () => {
     case 'results':
       return finalAssessment ? (
         <IntegralResults
-          primaryLevel={finalAssessment.primaryLevel}
-          confidence={finalAssessment.confidence}
-          reasoning={finalAssessment.reasoning}
+          integralDetail={finalAssessment}
           onRetakeAssessment={handleRetakeAssessment}
           onBackToSelection={handleBackToSelection}
         />

@@ -6,23 +6,12 @@ import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { MessageCircle, Brain, Lightbulb, ArrowRight } from 'lucide-react';
 import { LLMService } from '@/services/llmService';
-import { INTEGRAL_LEVELS } from '@/mappings/integral.enhanced';
+import { INTEGRAL_LEVELS, calculateIntegralDevelopment, IntegralDetail, IntegralLevel } from '@/mappings/integral.enhanced';
 
-interface IntegralLevel {
-  number: number;
-  color: string;
-  name: string;
-  score: number;
-  confidence: number;
-}
 
 interface IntegralSocraticClarificationProps {
   preliminaryScores: Record<string, number>;
-  onComplete: (finalAssessment: {
-    primaryLevel: IntegralLevel;
-    confidence: number;
-    reasoning: string;
-  }) => void;
+  onComplete: (finalAssessment: IntegralDetail) => void;
   onBack: () => void;
 }
 
@@ -58,9 +47,7 @@ export const IntegralSocraticClarification: React.FC<IntegralSocraticClarificati
         .slice(0, 3);
 
       const topLevelsData = levelEntries.map(({ level, score }) => ({
-        number: level.number,
-        color: level.color,
-        name: level.name,
+        ...level,
         score,
         confidence: Math.min(100, Math.max(50, (score / Math.max(...Object.values(preliminaryScores))) * 100))
       }));
@@ -192,31 +179,23 @@ Be definitive in your assessment while acknowledging the confidence level.`;
             level.color.toLowerCase() === analysis.primaryLevel.toLowerCase()
           ) || topLevels[0];
 
-          onComplete({
-            primaryLevel: selectedLevel,
-            confidence: analysis.confidence || 75,
-            reasoning: analysis.reasoning || "Assessment based on cognitive complexity and thinking patterns demonstrated in responses."
-          });
+          // Create proper IntegralDetail object using the calculated development
+          const integralDetail = calculateIntegralDevelopment(preliminaryScores);
+          onComplete(integralDetail);
         } else {
           throw new Error('No valid JSON in response');
         }
       } catch (parseError) {
         console.error('Error parsing LLM assessment:', parseError);
-        // Fallback to highest scored level
-        onComplete({
-          primaryLevel: topLevels[0],
-          confidence: 70,
-          reasoning: "Assessment based on preliminary scores with clarification input."
-        });
+        // Fallback to calculated assessment
+        const integralDetail = calculateIntegralDevelopment(preliminaryScores);
+        onComplete(integralDetail);
       }
     } catch (error) {
       console.error('Error generating final assessment:', error);
-      // Fallback
-      onComplete({
-        primaryLevel: topLevels[0],
-        confidence: 65,
-        reasoning: "Assessment completed with preliminary scoring."
-      });
+      // Fallback to calculated assessment
+      const integralDetail = calculateIntegralDevelopment(preliminaryScores);
+      onComplete(integralDetail);
     }
     setIsLoading(false);
   };

@@ -5,7 +5,8 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { Target, ChevronDown, ChevronUp } from 'lucide-react';
+import { Target, ChevronDown, ChevronUp, Layers } from 'lucide-react';
+import { IntegralLevelBadge } from './IntegralLevelBadge';
 import { 
   Collapsible,
   CollapsibleContent,
@@ -119,6 +120,13 @@ export const MobileFrameworkCards: React.FC<MobileFrameworkCardsProps> = ({ prof
                   {profile.mappings.mbti}
                 </Badge>
                 <span className="font-medium">MBTI Type</span>
+                {profile.mappings.integralDetail && (
+                  <IntegralLevelBadge 
+                    level={profile.mappings.integralDetail.primaryLevel} 
+                    size="sm" 
+                    showName={false}
+                  />
+                )}
               </div>
               {expandedCards.mbti ? (
                 <ChevronUp className="w-4 h-4" />
@@ -129,9 +137,22 @@ export const MobileFrameworkCards: React.FC<MobileFrameworkCardsProps> = ({ prof
           </CollapsibleTrigger>
           <CollapsibleContent>
             <div className="px-4 pb-4">
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-muted-foreground mb-2">
                 Your personality preferences in how you interact, process information, make decisions, and approach life
               </p>
+              {profile.mappings.integralDetail && (
+                <div className="mt-3 p-3 bg-muted/30 rounded-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Layers className="h-4 w-4 text-primary" />
+                    <span className="text-sm font-medium">
+                      At Level {profile.mappings.integralDetail.primaryLevel.number} ({profile.mappings.integralDetail.primaryLevel.color})
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground italic">
+                    Your {profile.mappings.mbti} type expresses through {profile.mappings.integralDetail.primaryLevel.thinkingPattern.toLowerCase()}
+                  </p>
+                </div>
+              )}
             </div>
           </CollapsibleContent>
         </Collapsible>
@@ -150,6 +171,13 @@ export const MobileFrameworkCards: React.FC<MobileFrameworkCardsProps> = ({ prof
                   {profile.mappings.enneagram}
                 </Badge>
                 <span className="font-medium">Enneagram</span>
+                {profile.mappings.integralDetail && (
+                  <IntegralLevelBadge 
+                    level={profile.mappings.integralDetail.primaryLevel} 
+                    size="sm" 
+                    showName={false}
+                  />
+                )}
               </div>
               {expandedCards.enneagram ? (
                 <ChevronUp className="w-4 h-4" />
@@ -166,6 +194,19 @@ export const MobileFrameworkCards: React.FC<MobileFrameworkCardsProps> = ({ prof
               <div className="text-xs text-muted-foreground">
                 Tritype: {profile.mappings.enneagramDetails.tritype}
               </div>
+              {profile.mappings.integralDetail && (
+                <div className="mt-3 p-3 bg-muted/30 rounded-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Layers className="h-4 w-4 text-primary" />
+                    <span className="text-sm font-medium">
+                      At Level {profile.mappings.integralDetail.primaryLevel.number} ({profile.mappings.integralDetail.primaryLevel.color})
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground italic">
+                    Type {profile.mappings.enneagram} operating through {profile.mappings.integralDetail.primaryLevel.worldview.toLowerCase()}
+                  </p>
+                </div>
+              )}
             </div>
           </CollapsibleContent>
         </Collapsible>

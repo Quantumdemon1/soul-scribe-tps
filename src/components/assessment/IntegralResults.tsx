@@ -4,6 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
+import { IntegralDetail } from '@/mappings/integral.enhanced';
+import { useIntegralAssessment } from '@/hooks/useIntegralAssessment';
+import { useToast } from '@/hooks/use-toast';
 import { 
   Brain, 
   TrendingUp, 
@@ -12,47 +15,50 @@ import {
   Download, 
   Share2,
   RefreshCw,
-  ArrowLeft 
+  ArrowLeft,
+  Save
 } from 'lucide-react';
 import { INTEGRAL_LEVELS } from '@/mappings/integral.enhanced';
 
-interface IntegralLevel {
-  number: number;
-  color: string;
-  name: string;
-  score: number;
-  confidence: number;
-}
-
 interface IntegralResultsProps {
-  primaryLevel: IntegralLevel;
-  confidence: number;
-  reasoning: string;
+  integralDetail: IntegralDetail;
   onRetakeAssessment: () => void;
   onBackToSelection: () => void;
   personalityProfile?: any; // Optional existing personality profile for context
 }
 
 export const IntegralResults: React.FC<IntegralResultsProps> = ({
-  primaryLevel,
-  confidence,
-  reasoning,
+  integralDetail,
   onRetakeAssessment,
   onBackToSelection,
   personalityProfile
 }) => {
   const [activeTab, setActiveTab] = useState<'overview' | 'development' | 'integration'>('overview');
+  const { saveIntegralResults, isLoading } = useIntegralAssessment();
+  const { toast } = useToast();
 
-  const levelDetails = INTEGRAL_LEVELS[primaryLevel.color.toLowerCase() as keyof typeof INTEGRAL_LEVELS];
+  const levelDetails = INTEGRAL_LEVELS[integralDetail.primaryLevel.color.toLowerCase() as keyof typeof INTEGRAL_LEVELS];
+  
+  const handleSaveResults = async () => {
+    try {
+      await saveIntegralResults(integralDetail);
+      toast({
+        title: "Results Saved",
+        description: "Your Integral Level assessment has been saved to your profile.",
+      });
+    } catch (error) {
+      console.error('Failed to save results:', error);
+    }
+  };
   
   const getLevelColor = (color: string) => {
     const colorMap: Record<string, string> = {
       'Red': '#e74c3c',
-      'Blue': '#3498db', 
-      'Orange': '#f39c12',
+      'Amber': '#f39c12',
+      'Orange': '#e67e22', 
       'Green': '#27ae60',
-      'Yellow': '#f1c40f',
-      'Turquoise': '#16a085'
+      'Teal': '#16a085',
+      'Turquoise': '#1abc9c'
     };
     return colorMap[color] || '#6b7280';
   };
@@ -77,34 +83,34 @@ export const IntegralResults: React.FC<IntegralResultsProps> = ({
         <Card className="mb-8 overflow-hidden">
           <div 
             className="h-2"
-            style={{ backgroundColor: getLevelColor(primaryLevel.color) }}
+            style={{ backgroundColor: getLevelColor(integralDetail.primaryLevel.color) }}
           />
           <CardHeader className="text-center pb-4">
             <div className="flex items-center justify-center gap-4 mb-4">
               <div 
                 className="w-16 h-16 rounded-full flex items-center justify-center text-white font-bold text-2xl"
-                style={{ backgroundColor: getLevelColor(primaryLevel.color) }}
+                style={{ backgroundColor: getLevelColor(integralDetail.primaryLevel.color) }}
               >
-                {primaryLevel.number}
+                {integralDetail.primaryLevel.number}
               </div>
               <div className="text-left">
                 <CardTitle className="text-2xl">
-                  Level {primaryLevel.number} - {primaryLevel.color}
+                  Level {integralDetail.primaryLevel.number} - {integralDetail.primaryLevel.color}
                 </CardTitle>
                 <p className="text-xl text-muted-foreground">
-                  {primaryLevel.name}
+                  {integralDetail.primaryLevel.name}
                 </p>
               </div>
             </div>
             
             <div className="flex items-center justify-center gap-6">
               <div className="text-center">
-                <div className="text-2xl font-bold text-primary">{confidence}%</div>
+                <div className="text-2xl font-bold text-primary">{Math.round(integralDetail.confidence)}%</div>
                 <div className="text-sm text-muted-foreground">Confidence</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-primary">{levelDetails?.cognitiveStage || 'Advanced'}</div>
-                <div className="text-sm text-muted-foreground">Cognitive Stage</div>
+                <div className="text-2xl font-bold text-primary">{Math.round(integralDetail.cognitiveComplexity)}</div>
+                <div className="text-sm text-muted-foreground">Complexity</div>
               </div>
             </div>
           </CardHeader>
@@ -113,15 +119,15 @@ export const IntegralResults: React.FC<IntegralResultsProps> = ({
             <div className="space-y-4">
               <div>
                 <h4 className="font-semibold mb-2">Worldview & Thinking Pattern</h4>
-                <p className="text-muted-foreground">{levelDetails?.worldview}</p>
-                <p className="text-sm text-muted-foreground mt-2">{levelDetails?.thinkingPattern}</p>
+                <p className="text-muted-foreground">{integralDetail.primaryLevel.worldview}</p>
+                <p className="text-sm text-muted-foreground mt-2">{integralDetail.primaryLevel.thinkingPattern}</p>
               </div>
               
               <Separator />
               
               <div>
-                <h4 className="font-semibold mb-2">Assessment Reasoning</h4>
-                <p className="text-muted-foreground">{reasoning}</p>
+                <h4 className="font-semibold mb-2">Developmental Edge</h4>
+                <p className="text-muted-foreground">{integralDetail.developmentalEdge}</p>
               </div>
             </div>
           </CardContent>
@@ -162,7 +168,7 @@ export const IntegralResults: React.FC<IntegralResultsProps> = ({
                 </CardHeader>
                 <CardContent>
                   <ul className="space-y-2">
-                    {levelDetails?.characteristics.map((characteristic, index) => (
+                    {integralDetail.primaryLevel.characteristics.map((characteristic, index) => (
                       <li key={index} className="flex items-start gap-2">
                         <div className="w-2 h-2 rounded-full bg-primary mt-2 flex-shrink-0" />
                         <span className="text-sm">{characteristic}</span>
@@ -181,7 +187,7 @@ export const IntegralResults: React.FC<IntegralResultsProps> = ({
                 </CardHeader>
                 <CardContent>
                   <div className="flex flex-wrap gap-2">
-                    {levelDetails?.typicalConcerns.map((concern, index) => (
+                    {integralDetail.primaryLevel.typicalConcerns.map((concern, index) => (
                       <Badge key={index} variant="outline" className="text-xs">
                         {concern}
                       </Badge>
@@ -206,11 +212,11 @@ export const IntegralResults: React.FC<IntegralResultsProps> = ({
                     Areas for continued development and evolution:
                   </p>
                   <ul className="space-y-3">
-                    {levelDetails?.growthEdge.map((edge, index) => (
+                    {integralDetail.primaryLevel.growthEdge.map((edge, index) => (
                       <li key={index} className="flex items-start gap-3">
                         <div 
                           className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-semibold flex-shrink-0"
-                          style={{ backgroundColor: getLevelColor(primaryLevel.color) }}
+                          style={{ backgroundColor: getLevelColor(integralDetail.primaryLevel.color) }}
                         >
                           {index + 1}
                         </div>
@@ -230,15 +236,15 @@ export const IntegralResults: React.FC<IntegralResultsProps> = ({
                     <div className="text-sm">
                       <div className="font-semibold mb-2">Current Level</div>
                       <div className="pl-4 border-l-2 border-primary">
-                        Level {primaryLevel.number} - {primaryLevel.color} ({primaryLevel.name})
+                        Level {integralDetail.primaryLevel.number} - {integralDetail.primaryLevel.color} ({integralDetail.primaryLevel.name})
                       </div>
                     </div>
                     
-                    {primaryLevel.number < 7 && (
+                    {integralDetail.primaryLevel.number < 7 && (
                       <div className="text-sm">
                         <div className="font-semibold mb-2">Next Developmental Stage</div>
                         <div className="pl-4 border-l-2 border-muted text-muted-foreground">
-                          Level {primaryLevel.number + 1} - Evolution toward greater complexity and integration
+                          Level {integralDetail.primaryLevel.number + 1} - Evolution toward greater complexity and integration
                         </div>
                       </div>
                     )}
@@ -267,7 +273,7 @@ export const IntegralResults: React.FC<IntegralResultsProps> = ({
                         <div className="p-3 bg-muted/50 rounded-lg">
                           <div className="font-semibold text-sm mb-1">MBTI: {personalityProfile.mbti.type}</div>
                           <div className="text-xs text-muted-foreground">
-                            Your {personalityProfile.mbti.type} type at the {primaryLevel.color} level typically focuses on {levelDetails?.typicalConcerns[0]?.toLowerCase()}
+                            Your {personalityProfile.mbti.type} type at the {integralDetail.primaryLevel.color} level typically focuses on {integralDetail.primaryLevel.typicalConcerns[0]?.toLowerCase()}
                           </div>
                         </div>
                       )}
@@ -275,7 +281,7 @@ export const IntegralResults: React.FC<IntegralResultsProps> = ({
                         <div className="p-3 bg-muted/50 rounded-lg">
                           <div className="font-semibold text-sm mb-1">Enneagram: Type {personalityProfile.enneagram.type}</div>
                           <div className="text-xs text-muted-foreground">
-                            Type {personalityProfile.enneagram.type} at this developmental level emphasizes {levelDetails?.thinkingPattern?.toLowerCase()}
+                            Type {personalityProfile.enneagram.type} at this developmental level emphasizes {integralDetail.primaryLevel.thinkingPattern?.toLowerCase()}
                           </div>
                         </div>
                       )}
@@ -338,6 +344,14 @@ export const IntegralResults: React.FC<IntegralResultsProps> = ({
 
         {/* Actions */}
         <div className="flex flex-wrap justify-center gap-4">
+          <Button 
+            onClick={handleSaveResults} 
+            disabled={isLoading}
+            className="bg-green-600 hover:bg-green-700"
+          >
+            <Save className="w-4 h-4 mr-2" />
+            {isLoading ? 'Saving...' : 'Save to Profile'}
+          </Button>
           <Button variant="outline" onClick={onBackToSelection}>
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Assessments
@@ -350,7 +364,18 @@ export const IntegralResults: React.FC<IntegralResultsProps> = ({
             <Download className="w-4 h-4 mr-2" />
             Download Results
           </Button>
-          <Button variant="outline">
+          <Button 
+            variant="outline"
+            onClick={() => {
+              if (navigator.share) {
+                navigator.share({
+                  title: `My Integral Level: ${integralDetail.primaryLevel.color}`,
+                  text: `I just completed an Integral Level assessment! My cognitive development level is ${integralDetail.primaryLevel.number} (${integralDetail.primaryLevel.color}) - ${integralDetail.primaryLevel.name}.`,
+                  url: window.location.href
+                });
+              }
+            }}
+          >
             <Share2 className="w-4 h-4 mr-2" />
             Share Results
           </Button>
