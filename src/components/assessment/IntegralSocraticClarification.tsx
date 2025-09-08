@@ -369,20 +369,20 @@ Be definitive in your assessment while acknowledging the confidence level.`;
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         {/* Header */}
-        <div className="text-center mb-8">
+        <div className="text-center mb-6 md:mb-8">
           <div className="flex items-center justify-center mb-4">
-            <MessageCircle className="w-12 h-12 text-primary mr-3" />
-            <h1 className="text-3xl font-bold text-foreground">
+            <MessageCircle className="w-8 h-8 md:w-12 md:h-12 text-primary mr-2 md:mr-3" />
+            <h1 className="text-2xl md:text-3xl font-bold text-foreground">
               Enhanced Clarification
             </h1>
           </div>
-          <p className="text-lg text-muted-foreground mb-6">
+          <p className="text-base md:text-lg text-muted-foreground mb-4 md:mb-6 px-4">
             AI-guided questions to refine your cognitive development assessment
           </p>
           
           {/* Progress */}
-          <div className="mb-6">
-            <div className="flex justify-between text-sm text-muted-foreground mb-2">
+          <div className="mb-4 md:mb-6 px-4">
+            <div className="flex justify-between text-xs md:text-sm text-muted-foreground mb-2">
               <span>Question {currentQuestionIndex + 1} of {questions.length}</span>
               <span>{Math.round(progress)}% Complete</span>
             </div>
@@ -419,17 +419,17 @@ Be definitive in your assessment while acknowledging the confidence level.`;
 
         {/* Current Question */}
         {questions.length > 0 && (
-          <Card className="mb-8">
-            <CardHeader>
-              <CardTitle className="text-xl flex items-start gap-3">
-                <span className="flex-shrink-0 w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center text-sm font-semibold text-primary">
+          <Card className="mb-6 md:mb-8 mx-4 md:mx-0">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-lg md:text-xl flex items-start gap-2 md:gap-3">
+                <span className="flex-shrink-0 w-6 h-6 md:w-8 md:h-8 bg-primary/10 rounded-full flex items-center justify-center text-xs md:text-sm font-semibold text-primary">
                   {currentQuestionIndex + 1}
                 </span>
-                <span className="flex-1">{questions[currentQuestionIndex]}</span>
+                <span className="flex-1 text-base md:text-xl">{questions[currentQuestionIndex]}</span>
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-sm text-muted-foreground">
+            <CardContent className="space-y-3 md:space-y-4">
+              <p className="text-xs md:text-sm text-muted-foreground px-2">
                 Take your time to reflect deeply on this question. There are no right or wrong answers - 
                 we're interested in how you think and approach complex situations.
               </p>
@@ -438,15 +438,17 @@ Be definitive in your assessment while acknowledging the confidence level.`;
                 value={currentResponse}
                 onChange={(e) => setCurrentResponse(e.target.value)}
                 placeholder="Share your thoughts in detail..."
-                className="min-h-32 resize-none"
+                className="min-h-24 md:min-h-32 resize-none text-sm md:text-base"
                 disabled={isLoading}
               />
               
-              <div className="flex justify-between items-center pt-4">
+              <div className="flex flex-col sm:flex-row justify-between items-center gap-3 pt-3 md:pt-4">
                 <Button 
                   variant="outline" 
                   onClick={onBack}
                   disabled={isLoading}
+                  size="sm"
+                  className="w-full sm:w-auto text-sm"
                 >
                   Back to Assessment
                 </Button>
@@ -454,14 +456,15 @@ Be definitive in your assessment while acknowledging the confidence level.`;
                 <Button 
                   onClick={handleResponseSubmit}
                   disabled={!currentResponse.trim() || isLoading}
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-2 w-full sm:w-auto text-sm"
+                  size="sm"
                 >
                   {isLoading ? (
                     'Processing...'
                   ) : currentQuestionIndex === questions.length - 1 ? (
                     'Complete Assessment'
                   ) : (
-                    <>Next Question <ArrowRight className="w-4 h-4" /></>
+                    <>Next Question <ArrowRight className="w-3 h-3 md:w-4 md:h-4" /></>
                   )}
                 </Button>
               </div>

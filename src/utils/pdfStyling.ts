@@ -12,14 +12,14 @@ export interface PDFTheme {
 }
 
 export const defaultTheme: PDFTheme = {
-  primary: '#667eea',
-  secondary: '#764ba2',
-  accent: '#f093fb',
-  text: '#1f2937',
-  textLight: '#6b7280',
-  background: '#ffffff',
-  surface: '#f9fafb',
-  border: '#e5e7eb'
+  primary: '#3b82f6', // Professional blue
+  secondary: '#1e40af', // Darker blue
+  accent: '#06b6d4', // Cyan accent
+  text: '#111827', // Dark gray text
+  textLight: '#6b7280', // Medium gray
+  background: '#ffffff', // White
+  surface: '#f8fafc', // Light gray surface
+  border: '#e2e8f0' // Light border
 };
 
 export class PDFStyling {
@@ -47,32 +47,32 @@ export class PDFStyling {
 
   // Header with gradient background
   addHeader(title: string, subtitle: string, y: number = 20): number {
-    const headerHeight = 40;
+    const headerHeight = 45;
     
-    // Gradient background effect (simulated with rectangles)
-    this.pdf.setFillColor(102, 126, 234); // Primary color
+    // Professional gradient background
+    this.pdf.setFillColor(59, 130, 246); // Primary blue
     this.pdf.rect(0, y, this.pageWidth, headerHeight, 'F');
     
-    // Overlay for gradient effect
-    this.pdf.setFillColor(118, 75, 162); // Secondary color
-    this.pdf.setGState(this.pdf.GState({ opacity: 0.3 }));
+    // Subtle overlay for depth
+    this.pdf.setFillColor(30, 64, 175); // Darker blue
+    this.pdf.setGState(this.pdf.GState({ opacity: 0.2 }));
     this.pdf.rect(0, y, this.pageWidth, headerHeight, 'F');
     this.pdf.setGState(this.pdf.GState({ opacity: 1 }));
 
-    // Header text
+    // Header text with better spacing
     this.pdf.setTextColor(255, 255, 255);
-    this.pdf.setFontSize(24);
+    this.pdf.setFontSize(26);
     this.pdf.setFont('helvetica', 'bold');
-    this.pdf.text(title, this.pageWidth / 2, y + 18, { align: 'center' });
+    this.pdf.text(title, this.pageWidth / 2, y + 20, { align: 'center' });
     
-    this.pdf.setFontSize(14);
+    this.pdf.setFontSize(12);
     this.pdf.setFont('helvetica', 'normal');
-    this.pdf.text(subtitle, this.pageWidth / 2, y + 30, { align: 'center' });
+    this.pdf.text(subtitle, this.pageWidth / 2, y + 33, { align: 'center' });
     
     // Reset text color
     this.pdf.setTextColor(this.theme.text);
     
-    return y + headerHeight + 10;
+    return y + headerHeight + 15;
   }
 
   // Section header with underline
