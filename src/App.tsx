@@ -6,7 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { usePerformanceOptimization } from "@/hooks/usePerformanceOptimization";
-import { LazyIndex, LazyAuth, LazyAdmin, LazyAssessmentHistory, LazyProfile, LazyMentor, LazyNotFound, PageWrapper } from './components/layout/LazyPages';
+import { LazyIndex, LazyAuth, LazyAdmin, LazyAssessmentHistory, LazyAssessments, LazyProfile, LazyMentor, LazyNotFound, PageWrapper } from './components/layout/LazyPages';
 import { lazy } from 'react';
 
 const LazyIntegralAssessment = lazy(() => import('./pages/IntegralAssessment'));
@@ -67,6 +67,12 @@ const AppContent = () => {
               path="/integral" 
               element={
                 <PageWrapper><LazyIntegralAssessment /></PageWrapper>
+              } 
+            />
+            <Route 
+              path="/assessments" 
+              element={
+                <PageWrapper><LazyAssessments /></PageWrapper>
               } 
             />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

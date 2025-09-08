@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Brain, Menu, User, LogIn, Layers } from 'lucide-react';
+import { Brain, Menu, User, LogIn, History, FileText } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
@@ -35,8 +35,11 @@ export const ModernHeader: React.FC = () => {
     { path: '/', label: hasCompletedAssessment ? 'Overview' : 'Take Test' },
     { path: '/integral', label: integralLevelText },
     { path: '/mentor', label: 'AI Coach' },
-    { path: '/history', label: 'Connection' },
-    { path: '/careers', label: 'Careers' },
+    { 
+      path: hasCompletedAssessment ? '/history' : '/assessments', 
+      label: hasCompletedAssessment ? 'My Assessments' : 'About Assessments',
+      icon: hasCompletedAssessment ? History : FileText
+    },
   ];
 
   const MobileNav = () => (
@@ -57,7 +60,7 @@ export const ModernHeader: React.FC = () => {
           </div>
           
           <nav className="flex-1 space-y-2">
-            {navItems.map(({ path, label }) => (
+            {navItems.map(({ path, label, icon: Icon }) => (
               <Link
                 key={path}
                 to={path}
@@ -69,6 +72,7 @@ export const ModernHeader: React.FC = () => {
                     : 'text-muted-foreground hover:text-foreground hover:bg-accent'
                 )}
               >
+                {Icon && <Icon className="mr-3 h-4 w-4" />}
                 {label}
               </Link>
             ))}
@@ -147,15 +151,16 @@ export const ModernHeader: React.FC = () => {
         {/* Desktop Navigation */}
         {!isMobile && (
           <nav className="hidden md:flex items-center space-x-8">
-            {navItems.map(({ path, label }) => (
+            {navItems.map(({ path, label, icon: Icon }) => (
               <Link
                 key={path}
                 to={path}
                 className={cn(
-                  "text-sm font-medium transition-colors hover:text-primary",
+                  "text-sm font-medium transition-colors hover:text-primary flex items-center",
                   isActive(path) ? 'text-primary' : 'text-muted-foreground'
                 )}
               >
+                {Icon && <Icon className="mr-1 h-4 w-4" />}
                 {label}
               </Link>
             ))}

@@ -7,6 +7,7 @@ export const LazyIndex = lazy(() => import('../../pages/Index'));
 export const LazyAuth = lazy(() => import('../../pages/Auth'));
 export const LazyAdmin = lazy(() => import('../../pages/Admin'));
 export const LazyAssessmentHistory = lazy(() => import('../../pages/AssessmentHistory'));
+export const LazyAssessments = lazy(() => import('../../pages/Assessments'));
 export const LazyProfile = lazy(() => import('../../pages/Profile'));
 export const LazyMentor = lazy(() => import('../../pages/Mentor'));
 export const LazyNotFound = lazy(() => import('../../pages/NotFound'));
