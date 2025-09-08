@@ -173,22 +173,114 @@ Be definitive in your assessment while acknowledging the confidence level.`;
         const jsonMatch = response.match(/\{[\s\S]*\}/);
         if (jsonMatch) {
           const analysis = JSON.parse(jsonMatch[0]);
-          
-          // Find the selected level details
-          const selectedLevel = topLevels.find(level => 
-            level.color.toLowerCase() === analysis.primaryLevel.toLowerCase()
-          ) || topLevels[0];
 
-          // Create proper IntegralDetail object using the calculated development
-          const integralDetail = calculateIntegralDevelopment(preliminaryScores);
+          // Map LLM-selected primary level (by color/name) back to our level keys
+          const keys = Object.keys(INTEGRAL_LEVELS) as Array<keyof typeof INTEGRAL_LEVELS>;
+          const directKey = keys.find(k => k.toLowerCase() === String(analysis.primaryLevel || '').toLowerCase());
+          const levelEntries = Object.entries(INTEGRAL_LEVELS);
+          const selectedEntry = directKey
+            ? [directKey, INTEGRAL_LEVELS[directKey]] as const
+            : (
+                levelEntries.find(([, lvl]) =>
+                  lvl.color.toLowerCase() === String(analysis.primaryLevel || '').toLowerCase() ||
+                  lvl.name.toLowerCase() === String(analysis.primaryLevel || '').toLowerCase()
+                ) || levelEntries.find(([, lvl]) => lvl.color === topLevels[0].color) || levelEntries[0]
+              );
+
+          const selectedKey = selectedEntry[0] as keyof typeof INTEGRAL_LEVELS;
+
+          // Build normalized distributions
+          const prelimRaw: Record<string, number> = {};
+          keys.forEach(k => { prelimRaw[k] = Math.max(0, Number((preliminaryScores as any)[k] || 0)); });
+          const prelimSum = Object.values(prelimRaw).reduce((a, b) => a + b, 0);
+          const prelim: Record<string, number> = {};
+          if (prelimSum > 0) {
+            keys.forEach(k => { prelim[k] = prelimRaw[k] / prelimSum; });
+          } else {
+            const uniform = 1 / keys.length; keys.forEach(k => { prelim[k] = uniform; });
+          }
+
+          const socratic: Record<string, number> = {}; keys.forEach(k => { socratic[k] = 0; });
+          socratic[selectedKey] = 1;
+
+          // Weighted blend (60% initial, 40% Socratic)
+          const combinedRaw: Record<string, number> = {};
+          keys.forEach(k => { combinedRaw[k] = 0.6 * prelim[k] + 0.4 * socratic[k]; });
+          const combinedSum = Object.values(combinedRaw).reduce((a, b) => a + b, 0) || 1;
+          const combined: Record<string, number> = {}; keys.forEach(k => { combined[k] = combinedRaw[k] / combinedSum; });
+
+          // Determine primary/secondary
+          const sortedKeys = [...keys].sort((a, b) => combined[b] - combined[a]);
+          const primaryKey = sortedKeys[0];
+          const secondaryKey = sortedKeys[1];
+          const separation = Math.max(0, combined[primaryKey] - combined[secondaryKey]);
+
+          // Build IntegralDetail from distribution
+          const basePrimary = INTEGRAL_LEVELS[primaryKey];
+          const baseSecondary = INTEGRAL_LEVELS[secondaryKey];
+          const llmConfidence = Math.min(100, Math.max(0, Number(analysis.confidence) || 70));
+          const primaryConfidence = Math.min(100, Math.round(0.5 * llmConfidence + 0.5 * separation * 100));
+
+          const primaryLevel: IntegralLevel = {
+            ...basePrimary,
+            score: Math.round(combined[primaryKey] * 1000) / 10,
+            confidence: primaryConfidence
+          };
+
+          const secondaryLevel: IntegralLevel | undefined = baseSecondary
+            ? { ...baseSecondary, score: Math.round(combined[secondaryKey] * 1000) / 10, confidence: Math.max(30, Math.round((1 - separation) * 70)) }
+            : undefined;
+
+          const levelComplexity: Record<string, number> = { Red: 2, Amber: 3, Blue: 3, Orange: 5, Green: 6, Teal: 8, Yellow: 8, Turquoise: 10 };
+          const cognitiveComplexity = Math.min(10, levelComplexity[basePrimary.color] || 5);
+
+          const realityTriadMapping = {
+            physical: Math.round((((combined['red'] || 0) + (combined['amber'] || 0)) * 10) * 10) / 10,
+            social: Math.round((((combined['orange'] || 0) + (combined['green'] || 0)) * 10) * 10) / 10,
+            universal: Math.round((((combined['teal'] || 0) + (combined['turquoise'] || 0)) * 10) * 10) / 10
+          };
+
+          const developmentalEdge = secondaryLevel && (baseSecondary.number > basePrimary.number)
+            ? `Developing toward ${baseSecondary.name}: ${baseSecondary.growthEdge[0]}`
+            : `Strengthening current level while preparing for next: ${basePrimary.growthEdge[0]}`;
+
+          const integralDetail: IntegralDetail = {
+            primaryLevel,
+            secondaryLevel,
+            realityTriadMapping,
+            cognitiveComplexity,
+            developmentalEdge,
+            confidence: primaryConfidence
+          };
+
           onComplete(integralDetail);
         } else {
           throw new Error('No valid JSON in response');
         }
       } catch (parseError) {
         console.error('Error parsing LLM assessment:', parseError);
-        // Fallback to calculated assessment
-        const integralDetail = calculateIntegralDevelopment(preliminaryScores);
+        // Fallback: use only preliminary distribution
+        const keys = Object.keys(INTEGRAL_LEVELS) as Array<keyof typeof INTEGRAL_LEVELS>;
+        const prelimRaw: Record<string, number> = {}; keys.forEach(k => { prelimRaw[k] = Math.max(0, Number((preliminaryScores as any)[k] || 0)); });
+        const sum = Object.values(prelimRaw).reduce((a, b) => a + b, 0) || 1;
+        const dist: Record<string, number> = {}; keys.forEach(k => { dist[k] = prelimRaw[k] / sum; });
+        const sorted = [...keys].sort((a, b) => dist[b] - dist[a]);
+        const primaryKey = sorted[0]; const secondaryKey = sorted[1];
+        const basePrimary = INTEGRAL_LEVELS[primaryKey]; const baseSecondary = INTEGRAL_LEVELS[secondaryKey];
+        const separation = Math.max(0, dist[primaryKey] - dist[secondaryKey]);
+        const primaryLevel: IntegralLevel = { ...basePrimary, score: Math.round(dist[primaryKey] * 1000) / 10, confidence: Math.round(separation * 100) };
+        const secondaryLevel: IntegralLevel | undefined = baseSecondary ? { ...baseSecondary, score: Math.round(dist[secondaryKey] * 1000) / 10, confidence: Math.max(30, Math.round((1 - separation) * 70)) } : undefined;
+        const levelComplexity: Record<string, number> = { Red: 2, Amber: 3, Blue: 3, Orange: 5, Green: 6, Teal: 8, Yellow: 8, Turquoise: 10 };
+        const cognitiveComplexity = Math.min(10, levelComplexity[basePrimary.color] || 5);
+        const realityTriadMapping = {
+          physical: Math.round((((dist['red'] || 0) + (dist['amber'] || 0)) * 10) * 10) / 10,
+          social: Math.round((((dist['orange'] || 0) + (dist['green'] || 0)) * 10) * 10) / 10,
+          universal: Math.round((((dist['teal'] || 0) + (dist['turquoise'] || 0)) * 10) * 10) / 10
+        };
+        const developmentalEdge = secondaryLevel && (baseSecondary.number > basePrimary.number)
+          ? `Developing toward ${baseSecondary.name}: ${baseSecondary.growthEdge[0]}`
+          : `Strengthening current level while preparing for next: ${basePrimary.growthEdge[0]}`;
+        const integralDetail: IntegralDetail = { primaryLevel, secondaryLevel, realityTriadMapping, cognitiveComplexity, developmentalEdge, confidence: primaryLevel.confidence };
         onComplete(integralDetail);
       }
     } catch (error) {
