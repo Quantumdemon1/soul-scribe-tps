@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useAdminRole } from '@/hooks/useAdminRole';
+import { useAssessments } from '@/hooks/useAssessments';
 import { GuidedTour } from '@/components/help/GuidedTour';
 
 export const ModernHeader: React.FC = () => {
@@ -15,12 +16,14 @@ export const ModernHeader: React.FC = () => {
   const [showTour, setShowTour] = useState(false);
   const { user, signOut } = useAuth();
   const { isAdmin } = useAdminRole();
+  const { assessments } = useAssessments();
   const isMobile = useIsMobile();
   
   const isActive = (path: string) => location.pathname === path;
+  const hasCompletedAssessment = assessments.length > 0;
 
   const navItems = [
-    { path: '/', label: 'Take Test' },
+    { path: '/', label: hasCompletedAssessment ? 'Overview' : 'Take Test' },
     { path: '/integral', label: 'Integral Level' },
     { path: '/mentor', label: 'AI Coach' },
     { path: '/history', label: 'Connection' },
