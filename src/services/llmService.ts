@@ -43,7 +43,7 @@ export class LLMService {
     return this.config;
   }
 
-  async callLLM(prompt: string, promptType: keyof LLMConfig['systemPrompts']): Promise<string> {
+  async callLLM(prompt: string, promptType: keyof LLMConfig['systemPrompts'], retries = 3): Promise<string> {
     // Input validation and sanitization
     const sanitizedPrompt = InputValidator.validatePromptInput(prompt);
     
@@ -54,18 +54,38 @@ export class LLMService {
       throw new Error(`System prompt not found for type: ${promptType}`);
     }
     
-    if (config.provider === 'openai') {
-      return this.callOpenAI(sanitizedPrompt, systemPrompt, config);
-    } else if (config.provider === 'anthropic') {
-      return this.callClaude(sanitizedPrompt, systemPrompt, config);
+    let lastError: Error;
+    for (let attempt = 1; attempt <= retries; attempt++) {
+      try {
+        if (config.provider === 'openai') {
+          return await this.callOpenAI(sanitizedPrompt, systemPrompt, config);
+        } else if (config.provider === 'anthropic') {
+          return await this.callClaude(sanitizedPrompt, systemPrompt, config);
+        }
+        throw new Error('Invalid LLM provider');
+      } catch (error) {
+        lastError = error as Error;
+        console.warn(`LLM call attempt ${attempt}/${retries} failed:`, error);
+        
+        if (attempt === retries) {
+          throw lastError;
+        }
+        
+        // Exponential backoff
+        await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000));
+      }
     }
     
-    throw new Error('Invalid LLM provider');
+    throw lastError!;
   }
 
   private async callOpenAI(prompt: string, systemPrompt: string, config: LLMConfig): Promise<string> {
     try {
-      const response = await supabase.functions.invoke('llm-proxy', {
+      const timeout = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Request timeout')), 30000)
+      );
+
+      const request = supabase.functions.invoke('llm-proxy', {
         body: {
           provider: 'openai',
           model: config.model,
@@ -77,6 +97,8 @@ export class LLMService {
         }
       });
 
+      const response = await Promise.race([request, timeout]) as any;
+
       if (response.error) {
         console.error('LLM Proxy Error:', response.error);
         throw new Error(`OpenAI API error: ${response.error.message || 'Unknown error'}`);
@@ -87,7 +109,12 @@ export class LLMService {
         throw new Error('Invalid response from OpenAI API');
       }
 
-      return response.data.choices[0].message.content;
+      const content = response.data.choices[0].message.content;
+      if (!content || content.trim().length === 0) {
+        throw new Error('Empty response from OpenAI API');
+      }
+
+      return content;
     } catch (error) {
       console.error('Error calling OpenAI:', error);
       throw error;
@@ -96,7 +123,11 @@ export class LLMService {
 
   private async callClaude(prompt: string, systemPrompt: string, config: LLMConfig): Promise<string> {
     try {
-      const response = await supabase.functions.invoke('llm-proxy', {
+      const timeout = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Request timeout')), 30000)
+      );
+
+      const request = supabase.functions.invoke('llm-proxy', {
         body: {
           provider: 'anthropic',
           model: config.model,
@@ -109,6 +140,8 @@ export class LLMService {
         }
       });
 
+      const response = await Promise.race([request, timeout]) as any;
+
       if (response.error) {
         console.error('LLM Proxy Error:', response.error);
         throw new Error(`Claude API error: ${response.error.message || 'Unknown error'}`);
@@ -119,7 +152,12 @@ export class LLMService {
         throw new Error('Invalid response from Claude API');
       }
 
-      return response.data.content[0].text;
+      const content = response.data.content[0].text;
+      if (!content || content.trim().length === 0) {
+        throw new Error('Empty response from Claude API');
+      }
+
+      return content;
     } catch (error) {
       console.error('Error calling Claude:', error);
       throw error;

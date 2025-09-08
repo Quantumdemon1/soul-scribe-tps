@@ -64,6 +64,8 @@ export const IntegralAssessment: React.FC = () => {
 
   const handleBackToInitial = () => {
     setCurrentStage('initial');
+    setPreliminaryScores({});
+    setFinalAssessment(null);
   };
 
   switch (currentStage) {

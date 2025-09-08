@@ -9,6 +9,9 @@ import { IntegralDetail } from '@/mappings/integral.enhanced';
 import { PersonalityProfile } from '@/types/tps.types';
 import { IntegralConfidenceService, ConfidenceAnalysis, DynamicQuestion } from '@/services/integralConfidenceService';
 import { useToast } from '@/hooks/use-toast';
+import { useErrorHandler } from '@/hooks/useErrorHandler';
+import { EnhancedLoadingSpinner } from '@/components/ui/enhanced-loading-spinner';
+import { ErrorRecovery } from '@/components/ui/error-recovery';
 
 interface IntegralConfidenceEnhancementProps {
   integralDetail: IntegralDetail;
@@ -30,15 +33,19 @@ export const IntegralConfidenceEnhancement: React.FC<IntegralConfidenceEnhanceme
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
   const { toast } = useToast();
+  const { handleAsyncError } = useErrorHandler();
 
   useEffect(() => {
     initializeConfidenceAnalysis();
   }, [integralDetail]);
 
   const initializeConfidenceAnalysis = async () => {
-    try {
+    await handleAsyncError(async () => {
       setIsLoading(true);
+      setError(null);
+      
       const confidenceAnalysis = confidenceService.analyzeConfidence(integralDetail);
       setAnalysis(confidenceAnalysis);
 
@@ -50,16 +57,9 @@ export const IntegralConfidenceEnhancement: React.FC<IntegralConfidenceEnhanceme
         );
         setQuestions(generatedQuestions);
       }
-    } catch (error) {
-      console.error('Error initializing confidence analysis:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to analyze confidence. Please try again.',
-        variant: 'destructive'
-      });
-    } finally {
-      setIsLoading(false);
-    }
+    }, 'Failed to analyze confidence. Please try again.');
+    
+    setIsLoading(false);
   };
 
   const handleResponseChange = (questionId: string, response: string) => {
@@ -82,7 +82,7 @@ export const IntegralConfidenceEnhancement: React.FC<IntegralConfidenceEnhanceme
   };
 
   const handleProcessResponses = async () => {
-    try {
+    const result = await handleAsyncError(async () => {
       setIsProcessing(true);
       const updatedAssessment = await confidenceService.processConfidenceEnhancement(
         integralDetail,
@@ -96,16 +96,10 @@ export const IntegralConfidenceEnhancement: React.FC<IntegralConfidenceEnhanceme
       });
       
       onConfidenceImproved(updatedAssessment);
-    } catch (error) {
-      console.error('Error processing confidence enhancement:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to process responses. Please try again.',
-        variant: 'destructive'
-      });
-    } finally {
-      setIsProcessing(false);
-    }
+      return updatedAssessment;
+    }, 'Failed to process responses. Please try again.');
+    
+    setIsProcessing(false);
   };
 
   const getQuestionTypeIcon = (type: string) => {
@@ -127,16 +121,28 @@ export const IntegralConfidenceEnhancement: React.FC<IntegralConfidenceEnhanceme
     return variants[type] || 'outline';
   };
 
+  if (error && !isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <ErrorRecovery
+          title="Analysis Failed"
+          message="We couldn't analyze your assessment confidence. Please try again."
+          onRetry={initializeConfidenceAnalysis}
+          onGoBack={onSkip}
+          variant="detailed"
+        />
+      </div>
+    );
+  }
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <Card className="w-full max-w-md">
-          <CardContent className="p-6 text-center">
-            <Brain className="w-12 h-12 text-primary mx-auto mb-4 animate-pulse" />
-            <h3 className="text-lg font-semibold mb-2">Analyzing Assessment</h3>
-            <p className="text-muted-foreground">Determining confidence enhancement needs...</p>
-          </CardContent>
-        </Card>
+        <EnhancedLoadingSpinner
+          variant="brain"
+          size="lg"
+          message="Analyzing assessment confidence and determining enhancement needs..."
+        />
       </div>
     );
   }

@@ -18,6 +18,7 @@ import { SystemHealth } from '@/components/analytics/SystemHealth';
 import { CacheIntegrationTest } from '@/components/test/CacheIntegrationTest';
 import { PerformanceMonitor } from '@/components/ui/performance-monitor';
 import { AlignmentTest } from '@/components/test/AlignmentTest';
+import { DataConsistencyPanel } from './DataConsistencyPanel';
 import { DEFAULT_SYSTEM_PROMPTS } from '@/config/systemPrompts';
 const BulkImportLazy = React.lazy(() => import('@/components/admin/BulkImport'));
 
@@ -506,15 +507,16 @@ export const AdminPanel: React.FC = () => {
           </TabsContent>
 
           <TabsContent value="database" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {stats && (
-                <>
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">Total Assessments</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold">{stats.totalAssessments}</div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="space-y-6">
+                {stats && (
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <Card>
+                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Total Assessments</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-2xl font-bold">{stats.totalAssessments}</div>
                     </CardContent>
                   </Card>
 
@@ -527,16 +529,21 @@ export const AdminPanel: React.FC = () => {
                     </CardContent>
                   </Card>
 
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">Socratic Sessions</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold">{stats.totalSessions}</div>
-                    </CardContent>
-                  </Card>
-                </>
-              )}
+                    <Card>
+                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Socratic Sessions</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-2xl font-bold">{stats.totalSessions}</div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                )}
+              </div>
+              
+              <div className="space-y-6">
+                <DataConsistencyPanel />
+              </div>
             </div>
           </TabsContent>
 
