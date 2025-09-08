@@ -18,6 +18,7 @@ import { IntegralLevelBadge } from '@/components/dashboard/IntegralLevelBadge';
 import { MobileResponsiveWrapper } from '@/components/ui/mobile-responsive-wrapper';
 import { useErrorHandler } from '@/hooks/useErrorHandler';
 import { ErrorRecovery } from '@/components/ui/error-recovery';
+import { logger } from '@/utils/structuredLogging';
 import { EnhancedLoadingSpinner } from '@/components/ui/enhanced-loading-spinner';
 
 interface AIMentorProps {
@@ -86,7 +87,10 @@ export const AIMentor: React.FC<AIMentorProps> = ({ initialProfile }) => {
       const data = await mentorService.getConversations();
       setConversations(data);
     } catch (error) {
-      console.error('Error loading conversations:', error);
+      logger.error('Failed to load mentor conversations', {
+        component: 'AIMentor',
+        action: 'loadConversations'
+      }, error as Error);
       toast({
         title: 'Error',
         description: 'Failed to load conversations',
@@ -119,7 +123,10 @@ export const AIMentor: React.FC<AIMentorProps> = ({ initialProfile }) => {
       setMessages([]);
       setShowSidebar(false);
     } catch (error) {
-      console.error('Error creating conversation:', error);
+      logger.error('Failed to create mentor conversation', {
+        component: 'AIMentor',
+        action: 'createConversation'
+      }, error as Error);
       toast({
         title: 'Error',
         description: 'Failed to create new conversation',
@@ -135,7 +142,10 @@ export const AIMentor: React.FC<AIMentorProps> = ({ initialProfile }) => {
       setMessages(conversationMessages);
       setShowSidebar(false);
     } catch (error) {
-      console.error('Error loading messages:', error);
+      logger.error('Failed to load mentor messages', {
+        component: 'AIMentor',
+        action: 'loadMessages'
+      }, error as Error);
       toast({
         title: 'Error',
         description: 'Failed to load conversation',
@@ -163,7 +173,10 @@ export const AIMentor: React.FC<AIMentorProps> = ({ initialProfile }) => {
       const updatedMessages = await mentorService.getMessages(currentConversation.id);
       setMessages(updatedMessages);
     } catch (error) {
-      console.error('Error sending message:', error);
+      logger.error('Failed to send mentor message', {
+        component: 'AIMentor',
+        action: 'sendMessage'
+      }, error as Error);
       toast({
         title: 'Error',
         description: 'Failed to send message. Please try again.',
@@ -192,7 +205,10 @@ export const AIMentor: React.FC<AIMentorProps> = ({ initialProfile }) => {
       // Send the starter message
       setTimeout(() => sendMessage(message), 500);
     } catch (error) {
-      console.error('Error starting conversation:', error);
+      logger.error('Failed to start mentor conversation', {
+        component: 'AIMentor',
+        action: 'startConversation'
+      }, error as Error);
       toast({
         title: 'Error',
         description: 'Failed to start conversation',

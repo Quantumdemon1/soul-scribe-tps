@@ -8,6 +8,7 @@ import { MBTIDetail, EnneagramDetail, BigFiveDetail, AttachmentStyle, AlignmentD
 import { EnhancedInsightService, FrameworkExplanation } from '@/services/enhancedInsightService';
 import { MarkdownRenderer } from '@/components/ui/markdown-renderer';
 import { useAuth } from '@/hooks/useAuth';
+import { logger } from '@/utils/structuredLogging';
 
 interface EnhancedInsightsPanelProps {
   mbtiDetail?: MBTIDetail;
@@ -49,7 +50,11 @@ export const EnhancedInsightsPanel: React.FC<EnhancedInsightsPanelProps> = ({
       setExplanations(prev => ({ ...prev, ...result }));
       setHasGenerated(prev => ({ ...prev, [framework]: true }));
     } catch (error) {
-      console.error(`Error generating ${framework} explanation:`, error);
+      logger.error(`Failed to generate ${framework} explanation`, {
+        component: 'EnhancedInsightsPanel',
+        action: 'generateExplanation',
+        metadata: { framework }
+      }, error as Error);
     } finally {
       setIsGenerating(prev => ({ ...prev, [framework]: false }));
     }
@@ -89,7 +94,10 @@ export const EnhancedInsightsPanel: React.FC<EnhancedInsightsPanelProps> = ({
         return newState;
       });
     } catch (error) {
-      console.error('Error generating explanations:', error);
+      logger.error('Failed to generate framework explanations', {
+        component: 'EnhancedInsightsPanel',
+        action: 'generateExplanations'
+      }, error as Error);
     } finally {
       setIsGenerating(prev => {
         const newState = { ...prev };

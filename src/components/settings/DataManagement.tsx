@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { Trash2, Download, Shield } from 'lucide-react';
+import { logger } from '@/utils/structuredLogging';
 
 export const DataManagement: React.FC = () => {
   const { user } = useAuth();
@@ -47,7 +48,10 @@ export const DataManagement: React.FC = () => {
       await Promise.all(deletions);
       toast.success('All your data has been deleted successfully');
     } catch (error) {
-      console.error('Error deleting user data:', error);
+      logger.error('Failed to delete user data', {
+        component: 'DataManagement',
+        action: 'deleteUserData'
+      }, error as Error);
       toast.error('Failed to delete data. Please try again.');
     } finally {
       setIsDeleting(false);
@@ -101,7 +105,10 @@ export const DataManagement: React.FC = () => {
       
       toast.success('Data exported successfully');
     } catch (error) {
-      console.error('Error exporting data:', error);
+      logger.error('Failed to export user data', {
+        component: 'DataManagement',
+        action: 'exportData'
+      }, error as Error);
       toast.error('Failed to export data. Please try again.');
     } finally {
       setIsExporting(false);

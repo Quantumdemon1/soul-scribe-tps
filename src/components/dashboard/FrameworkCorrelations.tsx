@@ -9,6 +9,7 @@ import { ChevronDown, ChevronUp, Brain, Users, Star, Shield, Briefcase, Target }
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
+import { logger } from '@/utils/structuredLogging';
 
 interface FrameworkCorrelationsProps {
   profile: PersonalityProfile;
@@ -46,7 +47,10 @@ export const FrameworkCorrelations: React.FC<FrameworkCorrelationsProps> = ({ pr
         await persistInsightsToProfile(data);
       }
     } catch (err) {
-      console.error('Error loading framework insights:', err);
+      logger.error('Failed to load framework insights', {
+        component: 'FrameworkCorrelations',
+        action: 'loadInsights'
+      }, err as Error);
       setError(err instanceof Error ? err.message : 'Failed to load insights');
     } finally {
       setLoading(false);
@@ -86,7 +90,10 @@ export const FrameworkCorrelations: React.FC<FrameworkCorrelationsProps> = ({ pr
         localStorage.setItem('tps-profile', JSON.stringify(updatedProfile));
       }
     } catch (error) {
-      console.error('Error persisting insights to profile:', error);
+      logger.error('Failed to persist insights to profile', {
+        component: 'FrameworkCorrelations',
+        action: 'persistInsights'
+      }, error as Error);
       // Don't throw - this shouldn't block the UI
     }
   };

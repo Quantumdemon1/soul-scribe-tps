@@ -13,6 +13,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator 
 } from '@/components/ui/dropdown-menu';
+import { logger } from '@/utils/structuredLogging';
 
 interface DashboardControlsProps {
   profile: PersonalityProfile;
@@ -52,7 +53,10 @@ export const DashboardControls: React.FC<DashboardControlsProps> = ({
           url: window.location.href
         });
       } catch (error) {
-        console.log('Error sharing:', error);
+        logger.error('Failed to share dashboard content', {
+          component: 'DashboardControls',
+          action: 'share'
+        }, error as Error);
       }
     }
   };

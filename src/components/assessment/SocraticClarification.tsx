@@ -8,6 +8,7 @@ import { TPSScores } from '@/types/tps.types';
 import { CuspAnalysis, ConversationTurn } from '@/types/llm.types';
 import { SocraticClarificationService } from '@/services/socraticClarificationService';
 import { Loader2, MessageCircle, SkipForward } from 'lucide-react';
+import { logger } from '@/utils/structuredLogging';
 
 interface Props {
   initialScores: TPSScores;
@@ -42,7 +43,10 @@ export const SocraticClarification: React.FC<Props> = ({ initialScores, onComple
         return;
       }
     } catch (error) {
-      console.error('Error initializing clarification:', error);
+      logger.error('Failed to initialize clarification', {
+        component: 'SocraticClarification',
+        action: 'initialize'
+      }, error as Error);
       toast({
         title: "Error",
         description: "Failed to initialize clarification. Proceeding with original results.",
@@ -99,7 +103,10 @@ export const SocraticClarification: React.FC<Props> = ({ initialScores, onComple
       
       setUserResponse('');
     } catch (error) {
-      console.error('Error processing response:', error);
+      logger.error('Failed to process clarification response', {
+        component: 'SocraticClarification',
+        action: 'processResponse'
+      }, error as Error);
       toast({
         title: "Error",
         description: "Failed to process your response. Please try again.",

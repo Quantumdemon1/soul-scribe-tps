@@ -5,6 +5,7 @@ import { FrameworkInsightsService } from '@/services/frameworkInsightsService';
 import { AIInsightsService } from '@/services/aiInsightsService';
 import { useAuth } from '@/hooks/useAuth';
 import { stableHash } from '@/utils/hash';
+import { logger } from '@/utils/structuredLogging';
 
 interface DashboardData {
   coreInsights: CoreInsight | null;
@@ -88,7 +89,11 @@ export const DashboardProvider: React.FC<DashboardProviderProps> = ({ children, 
         }
       }
     } catch (error) {
-      console.error(`Error loading cache for ${section}:`, error);
+      logger.error(`Failed to load cache for ${section}`, {
+        component: 'DashboardContext',
+        action: 'loadCache',
+        metadata: { section }
+      }, error as Error);
     }
     return false;
   };
@@ -112,7 +117,11 @@ export const DashboardProvider: React.FC<DashboardProviderProps> = ({ children, 
         saveToDatabaseCache(section, sectionData, cacheKey);
       }
     } catch (error) {
-      console.error(`Error saving cache for ${section}:`, error);
+      logger.error(`Failed to save cache for ${section}`, {
+        component: 'DashboardContext',
+        action: 'saveCache',
+        metadata: { section }
+      }, error as Error);
     }
   };
 

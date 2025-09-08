@@ -9,6 +9,7 @@ import { TPSScores, PersonalityProfile } from '@/types/tps.types';
 import { SocraticSession, CuspAnalysis, ConversationTurn } from '@/types/llm.types';
 import { SocraticClarificationService } from '@/services/socraticClarificationService';
 import { Loader2, MessageCircle, SkipForward, Save } from 'lucide-react';
+import { logger } from '@/utils/structuredLogging';
 
 interface Props {
   isOpen: boolean;
@@ -74,7 +75,10 @@ export const RefinementModal: React.FC<Props> = ({
       createSession(profile.traitScores, detectedCusps);
       setHasStarted(true);
     } catch (error) {
-      console.error('Error initializing refinement:', error);
+      logger.error('Failed to initialize refinement', {
+        component: 'RefinementModal',
+        action: 'initialize'
+      }, error as Error);
       toast({
         title: "Error",
         description: "Failed to initialize refinement.",

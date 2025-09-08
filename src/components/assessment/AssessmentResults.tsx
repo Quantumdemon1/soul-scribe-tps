@@ -150,7 +150,10 @@ export const AssessmentResults: React.FC<AssessmentResultsProps> = ({
           url: window.location.href
         });
       } catch (error) {
-        console.error('Error sharing:', error);
+        logger.error('Failed to share assessment results', {
+          component: 'AssessmentResults',
+          action: 'share'
+        }, error as Error);
       }
     } else {
       // Fallback: copy to clipboard

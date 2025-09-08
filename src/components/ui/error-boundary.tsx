@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle, RefreshCw, Bug, Home } from 'lucide-react';
 import { errorLogger } from '@/services/errorLoggingService';
+import { logger } from '@/utils/structuredLogging';
 
 interface Props {
   children: ReactNode;
@@ -30,7 +31,11 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: any) {
-    console.error('Error caught by boundary:', error, errorInfo);
+    logger.error('Error caught by boundary', {
+      component: 'ErrorBoundary',
+      action: 'componentDidCatch',
+      metadata: { errorInfo }
+    }, error);
     
     // Log error with enhanced context
     errorLogger.logError({

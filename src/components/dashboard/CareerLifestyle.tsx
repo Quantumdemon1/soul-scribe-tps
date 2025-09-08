@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { FrameworkInsightsService } from '../../services/frameworkInsightsService';
 import { Briefcase, Building, Users, Home, Star, MapPin, ChevronDown, ChevronRight, TrendingUp, Heart, Shield, Zap } from 'lucide-react';
+import { logger } from '@/utils/structuredLogging';
 
 interface CareerLifestyleProps {
   profile: PersonalityProfile;
@@ -31,7 +32,10 @@ export const CareerLifestyle: React.FC<CareerLifestyleProps> = ({ profile }) => 
   useEffect(() => {
     if (!careerLifestyle && !isLoading) {
       generateSection('careerLifestyle', profile).catch((error) => {
-        console.error('Failed to generate career lifestyle:', error);
+        logger.error('Failed to generate career lifestyle content', {
+          component: 'CareerLifestyle',
+          action: 'generateContent'
+        }, error as Error);
       });
     }
   }, [profile]);

@@ -13,6 +13,7 @@ import { DomainCard } from './DomainCard';
 import { FrameworkCorrelations } from './FrameworkCorrelations';
 import { CoreInsights } from './CoreInsights';
 import { PersonalDevelopment } from './PersonalDevelopment';
+import { logger } from '@/utils/structuredLogging';
 import { AIInsightsPanel } from './AIInsightsPanel';
 import { CareerLifestyle } from './CareerLifestyle';
 import { DashboardControls } from './DashboardControls';
@@ -65,7 +66,10 @@ const DashboardContent: React.FC<{ profile: PersonalityProfile; onRetakeAssessme
     try {
       await PDFReportGenerator.generatePDFReport(profile);
     } catch (error) {
-      console.error('Error generating PDF:', error);
+      logger.error('Failed to generate PDF', {
+        component: 'PersonalityDashboard',
+        action: 'generatePDF'
+      }, error as Error);
     }
   };
 
@@ -87,7 +91,10 @@ const DashboardContent: React.FC<{ profile: PersonalityProfile; onRetakeAssessme
           url: window.location.href
         });
       } catch (error) {
-        console.log('Error sharing:', error);
+        logger.error('Failed to share dashboard', {
+          component: 'PersonalityDashboard',
+          action: 'share'
+        }, error as Error);
       }
     } else {
       // Fallback to clipboard

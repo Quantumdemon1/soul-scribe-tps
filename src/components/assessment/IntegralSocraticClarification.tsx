@@ -130,7 +130,10 @@ Return only the questions, one per line, numbered 1-5.`;
         ]);
       }
     } catch (error) {
-      console.error('Error generating clarification questions:', error);
+      logger.error('Failed to generate clarification questions', {
+        component: 'IntegralSocraticClarification',
+        action: 'generateQuestions'
+      }, error as Error);
       // Use fallback questions
       setQuestions([
         "Describe a time when you had to make a decision while holding multiple contradictory viewpoints. How did you navigate this?",
@@ -296,10 +299,14 @@ Be definitive in your assessment while acknowledging the confidence level.`;
 
           // Log final assessment details
           logScoringDetails('Socratic Assessment Complete', preliminaryScores, combined);
-          console.log('🏆 Final Assessment:', {
-            primary: `${primaryLevel.number} - ${primaryLevel.color}`,
-            confidence: primaryConfidence,
-            reasoning: 'LLM-guided assessment'
+          logger.info('Final assessment completed', {
+            component: 'IntegralSocraticClarification',
+            action: 'finalAssessment',
+            metadata: { 
+              primaryLevel: `${primaryLevel.number} - ${primaryLevel.color}`,
+              confidence: primaryConfidence,
+              reasoning: 'LLM-guided assessment'
+            }
           });
 
           onComplete(integralDetail);
@@ -307,7 +314,10 @@ Be definitive in your assessment while acknowledging the confidence level.`;
           throw new Error('No valid JSON in response');
         }
       } catch (parseError) {
-        console.error('Error parsing LLM assessment:', parseError);
+        logger.error('Failed to parse LLM assessment response', {
+          component: 'IntegralSocraticClarification',
+          action: 'parseAssessment'
+        }, parseError as Error);
         // Fallback: use only preliminary distribution - map question scores to enhanced keys
         const keys = Object.keys(INTEGRAL_LEVELS) as Array<keyof typeof INTEGRAL_LEVELS>;
         const prelimRaw: Record<string, number> = {};
@@ -341,7 +351,10 @@ Be definitive in your assessment while acknowledging the confidence level.`;
         onComplete(integralDetail);
       }
     } catch (error) {
-      console.error('Error generating final assessment:', error);
+      logger.error('Failed to generate final assessment', {
+        component: 'IntegralSocraticClarification',
+        action: 'generateFinalAssessment'
+      }, error as Error);
       // Fallback to calculated assessment
       const integralDetail = calculateIntegralDevelopment(preliminaryScores);
       onComplete(integralDetail);

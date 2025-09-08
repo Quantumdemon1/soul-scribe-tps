@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { PersonalityProfile } from '@/types/tps.types';
+import { logger } from '@/utils/structuredLogging';
 import { 
   GitCompare, 
   Calendar, 
@@ -73,7 +74,10 @@ export const InsightComparisonPanel: React.FC<InsightComparisonPanelProps> = ({
         profile: item.profile as unknown as PersonalityProfile
       })));
     } catch (error) {
-      console.error('Error fetching assessments:', error);
+      logger.error('Failed to fetch assessments for comparison', {
+        component: 'InsightComparisonPanel',
+        action: 'fetchAssessments'
+      }, error as Error);
     }
   };
 
@@ -90,7 +94,10 @@ export const InsightComparisonPanel: React.FC<InsightComparisonPanelProps> = ({
       if (error) throw error;
       setComparisons(data || []);
     } catch (error) {
-      console.error('Error fetching comparisons:', error);
+      logger.error('Failed to fetch insight comparisons', {
+        component: 'InsightComparisonPanel',
+        action: 'fetchComparisons'
+      }, error as Error);
     }
   };
 
@@ -151,7 +158,10 @@ export const InsightComparisonPanel: React.FC<InsightComparisonPanelProps> = ({
       if (error) throw error;
       await fetchComparisons();
     } catch (error) {
-      console.error('Error generating comparison:', error);
+      logger.error('Failed to generate insight comparison', {
+        component: 'InsightComparisonPanel',
+        action: 'generateComparison'
+      }, error as Error);
     } finally {
       setLoading(false);
     }

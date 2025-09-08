@@ -12,6 +12,7 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import { cn } from '@/lib/utils';
+import { logger } from '@/utils/structuredLogging';
 
 interface MobileDashboardControlsProps {
   profile: PersonalityProfile;
@@ -51,7 +52,10 @@ export const MobileDashboardControls: React.FC<MobileDashboardControlsProps> = (
           url: window.location.href
         });
       } catch (error) {
-        console.log('Error sharing:', error);
+        logger.error('Failed to share dashboard content', {
+          component: 'MobileDashboardControls',
+          action: 'share'
+        }, error as Error);
       }
     }
   };
