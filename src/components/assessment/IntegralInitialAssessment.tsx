@@ -5,6 +5,7 @@ import { Progress } from '@/components/ui/progress';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { INTEGRAL_QUESTIONS, calculateIntegralScores } from '@/data/integralQuestions';
+import { logScoringDetails, explainScores } from '@/utils/integralValidation';
 import { ChevronLeft, ChevronRight, Brain } from 'lucide-react';
 
 interface IntegralInitialAssessmentProps {
@@ -40,6 +41,11 @@ export const IntegralInitialAssessment: React.FC<IntegralInitialAssessmentProps>
   const handleNext = () => {
     if (isLastPage) {
       const scores = calculateIntegralScores(responses);
+      
+      // Log scoring details for debugging
+      logScoringDetails('Initial Assessment Complete', scores);
+      console.log('🎓 Score Explanation:', explainScores(scores));
+      
       onComplete(scores);
     } else {
       setCurrentPage(prev => prev + 1);

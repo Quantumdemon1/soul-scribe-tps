@@ -7,6 +7,23 @@ import { Badge } from '@/components/ui/badge';
 import { MessageCircle, Brain, Lightbulb, ArrowRight } from 'lucide-react';
 import { LLMService } from '@/services/llmService';
 import { INTEGRAL_LEVELS, calculateIntegralDevelopment, IntegralDetail, IntegralLevel } from '@/mappings/integral.enhanced';
+import { logScoringDetails, validateScores, explainScores } from '@/utils/integralValidation';
+
+// Helper function to map question level keys to enhanced mapping keys
+function mapQuestionKeyToEnhancedKey(questionKey: string): string {
+  const mapping: Record<string, string> = {
+    'beige': 'beige',
+    'purple': 'purple', 
+    'red': 'red',
+    'blue': 'blue',
+    'orange': 'orange',
+    'green': 'green',
+    'yellow': 'yellow',
+    'turquoise': 'turquoise',
+    'coral': 'coral'
+  };
+  return mapping[questionKey] || questionKey;
+}
 
 
 interface IntegralSocraticClarificationProps {
@@ -36,13 +53,25 @@ export const IntegralSocraticClarification: React.FC<IntegralSocraticClarificati
   const generateClarificationQuestions = async () => {
     setIsLoading(true);
     try {
+      // Log and validate preliminary scores
+      logScoringDetails('Socratic Clarification Started', preliminaryScores);
+      const validation = validateScores(preliminaryScores);
+      
+      if (!validation.isValid) {
+        console.warn('⚠️ Preliminary scores validation failed:', validation.issues);
+      }
       // Identify top 2-3 levels from preliminary scores
       const levelEntries = Object.entries(preliminaryScores)
-        .map(([key, score]) => ({
-          key,
-          score,
-          level: INTEGRAL_LEVELS[key as keyof typeof INTEGRAL_LEVELS]
-        }))
+        .map(([key, score]) => {
+          // Map question level keys to enhanced mapping keys
+          const mappedKey = mapQuestionKeyToEnhancedKey(key);
+          return {
+            key: mappedKey,
+            score,
+            level: INTEGRAL_LEVELS[mappedKey as keyof typeof INTEGRAL_LEVELS]
+          };
+        })
+        .filter(entry => entry.level) // Remove unmapped entries
         .sort((a, b) => b.score - a.score)
         .slice(0, 3);
 
@@ -189,9 +218,15 @@ Be definitive in your assessment while acknowledging the confidence level.`;
 
           const selectedKey = selectedEntry[0] as keyof typeof INTEGRAL_LEVELS;
 
-          // Build normalized distributions
+          // Build normalized distributions - map question scores to enhanced keys
           const prelimRaw: Record<string, number> = {};
-          keys.forEach(k => { prelimRaw[k] = Math.max(0, Number((preliminaryScores as any)[k] || 0)); });
+          keys.forEach(k => { 
+            // Find matching question score using reverse mapping
+            const questionScore = Object.entries(preliminaryScores).find(([qKey]) => 
+              mapQuestionKeyToEnhancedKey(qKey) === k
+            )?.[1] || 0;
+            prelimRaw[k] = Math.max(0, Number(questionScore)); 
+          });
           const prelimSum = Object.values(prelimRaw).reduce((a, b) => a + b, 0);
           const prelim: Record<string, number> = {};
           if (prelimSum > 0) {
@@ -255,15 +290,29 @@ Be definitive in your assessment while acknowledging the confidence level.`;
             confidence: primaryConfidence
           };
 
+          // Log final assessment details
+          logScoringDetails('Socratic Assessment Complete', preliminaryScores, combined);
+          console.log('🏆 Final Assessment:', {
+            primary: `${primaryLevel.number} - ${primaryLevel.color}`,
+            confidence: primaryConfidence,
+            reasoning: 'LLM-guided assessment'
+          });
+
           onComplete(integralDetail);
         } else {
           throw new Error('No valid JSON in response');
         }
       } catch (parseError) {
         console.error('Error parsing LLM assessment:', parseError);
-        // Fallback: use only preliminary distribution
+        // Fallback: use only preliminary distribution - map question scores to enhanced keys
         const keys = Object.keys(INTEGRAL_LEVELS) as Array<keyof typeof INTEGRAL_LEVELS>;
-        const prelimRaw: Record<string, number> = {}; keys.forEach(k => { prelimRaw[k] = Math.max(0, Number((preliminaryScores as any)[k] || 0)); });
+        const prelimRaw: Record<string, number> = {};
+        keys.forEach(k => { 
+          const questionScore = Object.entries(preliminaryScores).find(([qKey]) => 
+            mapQuestionKeyToEnhancedKey(qKey) === k
+          )?.[1] || 0;
+          prelimRaw[k] = Math.max(0, Number(questionScore)); 
+        });
         const sum = Object.values(prelimRaw).reduce((a, b) => a + b, 0) || 1;
         const dist: Record<string, number> = {}; keys.forEach(k => { dist[k] = prelimRaw[k] / sum; });
         const sorted = [...keys].sort((a, b) => dist[b] - dist[a]);
