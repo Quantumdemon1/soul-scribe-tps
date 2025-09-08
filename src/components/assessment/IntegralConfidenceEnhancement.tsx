@@ -167,16 +167,16 @@ export const IntegralConfidenceEnhancement: React.FC<IntegralConfidenceEnhanceme
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
+      <div className="container mx-auto px-4 py-4 sm:py-8 max-w-4xl">
         {/* Header */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-center mb-4">
-            <TrendingUp className="w-8 h-8 text-primary mr-3" />
-            <h1 className="text-2xl font-bold text-foreground">
+            <TrendingUp className="w-6 h-6 sm:w-8 sm:h-8 text-primary mr-2 sm:mr-3" />
+            <h1 className="text-xl sm:text-2xl font-bold text-foreground">
               Confidence Enhancement
             </h1>
           </div>
-          <p className="text-muted-foreground">
+          <p className="text-sm sm:text-base text-muted-foreground px-2">
             Let's ask a few targeted questions to increase your assessment confidence
           </p>
         </div>
@@ -197,32 +197,32 @@ export const IntegralConfidenceEnhancement: React.FC<IntegralConfidenceEnhanceme
         {/* Current Confidence Analysis */}
         <Card className="mb-6">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Brain className="w-5 h-5" />
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+              <Brain className="w-4 h-4 sm:w-5 sm:h-5" />
               Current Assessment Status
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-primary">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-4">
+              <div className="text-center p-3 bg-muted/30 rounded-lg">
+                <div className="text-xl sm:text-2xl font-bold text-primary">
                   {Math.round(integralDetail.confidence)}%
                 </div>
-                <div className="text-sm text-muted-foreground">Current Confidence</div>
+                <div className="text-xs sm:text-sm text-muted-foreground">Current Confidence</div>
               </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-primary">
+              <div className="text-center p-3 bg-muted/30 rounded-lg">
+                <div className="text-xl sm:text-2xl font-bold text-primary">
                   Level {integralDetail.primaryLevel.number}
                 </div>
-                <div className="text-sm text-muted-foreground">
+                <div className="text-xs sm:text-sm text-muted-foreground">
                   {integralDetail.primaryLevel.color}
                 </div>
               </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-primary">
+              <div className="text-center p-3 bg-muted/30 rounded-lg">
+                <div className="text-xl sm:text-2xl font-bold text-primary">
                   {analysis?.uncertainAreas.length || 0}
                 </div>
-                <div className="text-sm text-muted-foreground">Areas to Clarify</div>
+                <div className="text-xs sm:text-sm text-muted-foreground">Areas to Clarify</div>
               </div>
             </div>
             
@@ -279,39 +279,49 @@ export const IntegralConfidenceEnhancement: React.FC<IntegralConfidenceEnhanceme
         )}
 
         {/* Navigation */}
-        <div className="flex items-center justify-between">
-          <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-0 sm:items-center sm:justify-between">
+          <div className="flex flex-col sm:flex-row gap-2 order-2 sm:order-1">
             <Button
               variant="outline"
               onClick={handlePreviousQuestion}
               disabled={currentQuestionIndex === 0}
+              size="sm"
+              className="w-full sm:w-auto"
             >
               Previous
             </Button>
             <Button
               variant="outline"
               onClick={onSkip}
+              size="sm"
+              className="w-full sm:w-auto"
             >
               Skip Enhancement
             </Button>
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex gap-2 order-1 sm:order-2">
             {currentQuestionIndex < questions.length - 1 ? (
               <Button
                 onClick={handleNextQuestion}
                 disabled={!responses[currentQuestion?.id]?.trim()}
+                size="sm"
+                className="w-full sm:w-auto"
               >
-                Next Question
-                <ArrowRight className="w-4 h-4 ml-2" />
+                <span className="hidden sm:inline">Next Question</span>
+                <span className="sm:hidden">Next</span>
+                <ArrowRight className="w-4 h-4 ml-1 sm:ml-2" />
               </Button>
             ) : (
               <Button
                 onClick={handleProcessResponses}
                 disabled={!allQuestionsAnswered || isProcessing}
+                size="sm"
+                className="w-full sm:w-auto"
               >
-                {isProcessing ? 'Processing...' : 'Enhance Confidence'}
-                <TrendingUp className="w-4 h-4 ml-2" />
+                <span className="hidden sm:inline">{isProcessing ? 'Processing...' : 'Enhance Confidence'}</span>
+                <span className="sm:hidden">{isProcessing ? 'Processing...' : 'Enhance'}</span>
+                <TrendingUp className="w-4 h-4 ml-1 sm:ml-2" />
               </Button>
             )}
           </div>

@@ -48,7 +48,11 @@ export function useErrorHandler(options: UseErrorHandlerOptions = {}) {
     try {
       return await asyncOperation();
     } catch (error) {
-      handleError(error as Error, { operation: asyncOperation.name });
+      const errorObj = error as Error;
+      handleError(errorObj, { 
+        operation: asyncOperation.name || 'anonymous_operation',
+        timestamp: new Date().toISOString()
+      });
       
       if (showToast && errorMessage) {
         toast({
