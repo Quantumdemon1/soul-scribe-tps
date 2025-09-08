@@ -4,10 +4,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Brain, ArrowRight, Target, Users, Lightbulb, TrendingUp } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import SEO from '@/components/seo/SEO';
 
 const Assessments: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+      <SEO title="Assessments: Personality Tests & Integral Levels" description="Learn about our Personality Tests and Integral Levels assessments, and start your journey to deeper self-understanding." canonicalPath="/assessments" />
       <div className="container mx-auto px-4 py-8">
         {/* Hero Section */}
         <div className="text-center mb-12">
