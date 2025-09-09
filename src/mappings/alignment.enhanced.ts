@@ -1,5 +1,6 @@
 import { TPSScores, AlignmentDetail } from '../types/tps.types';
 import { calculateConfidence } from './index';
+import type { AlignmentAxisConfig } from '../types/mapping.types';
 
 export const TPS_TO_ALIGNMENT_COMPREHENSIVE = {
   ethical_axis: {
@@ -37,7 +38,7 @@ export const TPS_TO_ALIGNMENT_COMPREHENSIVE = {
   }
 };
 
-function calculateAxisScore(scores: TPSScores, axisConfig: any): { position: string; score: number; reasoning: string } {
+function calculateAxisScore(scores: TPSScores, axisConfig: AlignmentAxisConfig): { position: string; score: number; reasoning: string } {
   let positiveScore = 0;
   let negativeScore = 0;
   let neutralScore = 0;

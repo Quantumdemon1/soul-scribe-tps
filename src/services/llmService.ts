@@ -3,6 +3,8 @@ import { LLMConfig } from '@/types/llm.types';
 import { InputValidator } from '@/utils/inputValidation';
 import { DEFAULT_SYSTEM_PROMPTS } from '@/config/systemPrompts';
 import { logger } from '@/utils/structuredLogging';
+import { RobustJSONParser, LLMValidators } from '@/utils/robustJSONParser';
+import type { PersonalityProfile } from '@/types/tps.types';
 
 export class LLMService {
   private config: LLMConfig | null = null;
@@ -115,6 +117,18 @@ export class LLMService {
         throw new Error('Empty response from OpenAI API');
       }
 
+      // Parse response with robust JSON parser for structured responses
+      if (content.includes('{') && content.includes('}')) {
+        const parseResult = RobustJSONParser.parseWithFallback(
+          content,
+          content, // Use raw content as fallback
+          (data): data is Record<string, unknown> => 
+            typeof data === 'object' && data !== null
+        );
+
+        return parseResult.success ? JSON.stringify(parseResult.data) : content;
+      }
+
       return content;
     } catch (error) {
       logger.error('Error calling OpenAI', { component: 'LLMService', metadata: { provider: 'openai' } }, error as Error);
@@ -166,7 +180,7 @@ export class LLMService {
   }
 
   async generateInsight(
-    profile: any,
+    profile: PersonalityProfile,
     promptType: keyof LLMConfig['systemPrompts']
   ): Promise<string> {
     const prompt = this.buildInsightPrompt(profile, promptType);
@@ -175,7 +189,7 @@ export class LLMService {
 
   async generateMentorResponse(
     userMessage: string,
-    profile: any,
+    profile: PersonalityProfile,
     conversationHistory: Array<{role: string, content: string}> = []
   ): Promise<string> {
     const contextPrompt = this.buildMentorPrompt(profile, userMessage, conversationHistory);
@@ -183,7 +197,7 @@ export class LLMService {
   }
 
   private buildMentorPrompt(
-    profile: any, 
+    profile: PersonalityProfile,
     userMessage: string, 
     conversationHistory: Array<{role: string, content: string}>
   ): string {
@@ -220,7 +234,7 @@ Please respond as their AI Personality Mentor, taking into account their unique 
     return personalityContext;
   }
 
-  private buildInsightPrompt(profile: any, type: keyof LLMConfig['systemPrompts']): string {
+  private buildInsightPrompt(profile: PersonalityProfile, type: keyof LLMConfig['systemPrompts']): string {
     const { dominantTraits, traitScores, domainScores, mappings } = profile;
     
     const baseInfo = `

@@ -1,5 +1,6 @@
 import { TPSScores, BigFiveDetail } from '../types/tps.types';
 import { calculateConfidence } from './index';
+import type { DimensionConfig, FacetConfig } from '../types/mapping.types';
 
 export const TPS_TO_BIG_FIVE_FACETS = {
   Openness: {
@@ -156,11 +157,11 @@ function calculateFacetScore(scores: TPSScores, facetConfig: { high: string[]; l
   return (highScore + (10 - lowScore)) / 2;
 }
 
-function calculateDimensionScore(scores: TPSScores, dimensionConfig: any) {
+function calculateDimensionScore(scores: TPSScores, dimensionConfig: DimensionConfig) {
   const facetScores: Record<string, number> = {};
   let totalScore = 0;
   
-  Object.entries(dimensionConfig.facets).forEach(([facetName, facetConfig]: [string, any]) => {
+  Object.entries(dimensionConfig.facets).forEach(([facetName, facetConfig]: [string, FacetConfig]) => {
     const facetScore = calculateFacetScore(scores, facetConfig);
     facetScores[facetName] = facetScore;
     totalScore += facetScore;
@@ -175,7 +176,7 @@ function calculateDimensionScore(scores: TPSScores, dimensionConfig: any) {
 }
 
 export function calculateBigFiveEnhanced(scores: TPSScores): BigFiveDetail {
-  const dimensions: any = {};
+  const dimensions = {} as any; // Complex nested structure, using any for flexibility
   let totalConfidence = 0;
   
   Object.entries(TPS_TO_BIG_FIVE_FACETS).forEach(([dimensionName, dimensionConfig]) => {

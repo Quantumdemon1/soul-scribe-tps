@@ -1,5 +1,6 @@
 import { TPSScores, EnneagramDetail } from '../types/tps.types';
 import { calculateConfidence } from './index';
+import type { EnneagramTypeConfig } from '../types/mapping.types';
 
 export const TPS_TO_ENNEAGRAM_COMPREHENSIVE = {
   types: {
@@ -167,7 +168,7 @@ export const TPS_TO_ENNEAGRAM_COMPREHENSIVE = {
   }
 };
 
-function calculateTypeScore(scores: TPSScores, typeConfig: any): number {
+function calculateTypeScore(scores: TPSScores, typeConfig: EnneagramTypeConfig): number {
   const { core_traits } = typeConfig;
   let totalScore = 0;
   let totalWeight = 0;
@@ -193,11 +194,11 @@ function calculateTypeScore(scores: TPSScores, typeConfig: any): number {
   return totalScore / totalWeight;
 }
 
-function calculateInstinctualVariant(scores: TPSScores, typeConfig: any): { primary: 'self-preservation' | 'social' | 'sexual'; secondary: 'self-preservation' | 'social' | 'sexual' } {
-  const variants = typeConfig.instinctual_variants;
+function calculateInstinctualVariant(scores: TPSScores, typeConfig: EnneagramTypeConfig): { primary: 'self-preservation' | 'social' | 'sexual'; secondary: 'self-preservation' | 'social' | 'sexual' } {
+  const variants = typeConfig.instinctual_variants || {};
   const variantScores: Record<string, number> = {};
 
-  Object.entries(variants).forEach(([variant, traits]: [string, any]) => {
+  Object.entries(variants).forEach(([variant, traits]: [string, string[]]) => {
     variantScores[variant] = traits.reduce((sum: number, trait: string) => 
       sum + (scores[trait] || 5), 0) / traits.length;
   });
@@ -211,11 +212,11 @@ function calculateInstinctualVariant(scores: TPSScores, typeConfig: any): { prim
   };
 }
 
-function calculateHealthLevel(scores: TPSScores, typeConfig: any): 'healthy' | 'average' | 'unhealthy' {
-  const healthLevels = typeConfig.health_levels;
+function calculateHealthLevel(scores: TPSScores, typeConfig: EnneagramTypeConfig): 'healthy' | 'average' | 'unhealthy' {
+  const healthLevels = typeConfig.health_levels || {};
   const levelScores: Record<string, number> = {};
 
-  Object.entries(healthLevels).forEach(([level, traits]: [string, any]) => {
+  Object.entries(healthLevels).forEach(([level, traits]: [string, string[]]) => {
     levelScores[level] = traits.reduce((sum: number, trait: string) => 
       sum + (scores[trait] || 5), 0) / traits.length;
   });
