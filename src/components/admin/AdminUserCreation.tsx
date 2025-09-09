@@ -43,8 +43,9 @@ export const AdminUserCreation: React.FC = () => {
   ];
 
   const integralLevels = [
-    'Level 1 - Red', 'Level 2 - Amber', 'Level 3 - Orange', 
-    'Level 4 - Green', 'Level 5 - Teal', 'Level 6 - Turquoise'
+    'Level 1 - Beige', 'Level 2 - Purple', 'Level 3 - Red', 
+    'Level 4 - Blue', 'Level 5 - Orange', 'Level 6 - Green',
+    'Level 7 - Yellow', 'Level 8 - Turquoise', 'Level 9 - Coral'
   ];
 
   const alignments = [
