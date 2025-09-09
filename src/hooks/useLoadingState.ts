@@ -9,7 +9,7 @@ interface LoadingState<T = any> {
 }
 
 interface UseLoadingStateOptions {
-  initialData?: any;
+  initialData?: unknown;
   timeout?: number;
   retryCount?: number;
   showErrorToast?: boolean;
@@ -26,7 +26,7 @@ export function useLoadingState<T = any>(options: UseLoadingStateOptions = {}) {
   const [state, setState] = useState<LoadingState<T>>({
     isLoading: false,
     error: null,
-    data: initialData
+    data: initialData as T
   });
 
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -127,7 +127,7 @@ export function useLoadingState<T = any>(options: UseLoadingStateOptions = {}) {
     setState({
       isLoading: false,
       error: null,
-      data: initialData
+      data: initialData as T
     });
     retryCountRef.current = 0;
   }, [initialData]);

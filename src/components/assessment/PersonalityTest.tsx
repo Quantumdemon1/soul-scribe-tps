@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Question } from './Question';
 import { TPS_QUESTIONS } from '../../data/questions';
 import { TPSScoring } from '../../utils/tpsScoring';
-import { PersonalityProfile } from '../../types/tps.types';
+import { PersonalityProfile, TPSScores } from '../../types/tps.types';
 import { AssessmentVariations } from '../../utils/assessmentVariations';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -126,7 +126,7 @@ export const PersonalityTest: React.FC<PersonalityTestProps> = ({ assessmentType
     setShowClarification(true);
   };
 
-  const handleClarificationComplete = async (finalScores: any) => {
+  const handleClarificationComplete = async (finalScores: TPSScores) => {
     // Adjust responses for shortened assessments
     const fullResponses = assessmentType === 'full' 
       ? responses 

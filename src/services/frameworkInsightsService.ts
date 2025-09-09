@@ -1,4 +1,5 @@
 import { PersonalityProfile, TPSScores } from '@/types/tps.types';
+import type { Json } from '@/integrations/supabase/types';
 import { FrameworkInsights, MBTIInsight, EnneagramInsight, BigFiveInsight, AlignmentInsight, CoreInsight, AIInsights } from '@/types/llm.types';
 import { LLMService } from './llmService';
 import { parseLLMJson } from '@/utils/jsonUtils';
@@ -116,7 +117,7 @@ Keep it practical, empathetic, and actionable for building better relationships.
           user_id: userId,
           assessment_id: assessment?.id,
           insight_type: 'comprehensive',
-          content: insights as any,
+          content: insights as unknown as Json,
           model_used: 'gpt-5-2025-08-07',
           cache_key: cacheKey,
           version
@@ -274,7 +275,7 @@ Keep it practical, empathetic, and actionable for building better relationships.
           await supabase.from('ai_insights').insert({
             user_id: userId,
             insight_type: 'framework_correlations',
-            content: insights as any,
+            content: insights as unknown as Json,
             model_used: 'frameworkAnalysis',
             cache_key: cacheKey,
             version: FrameworkInsightsService.FRAMEWORK_VERSION

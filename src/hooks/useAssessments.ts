@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import type { Json } from '@/integrations/supabase/types';
 import { PersonalityProfile } from '@/types/tps.types';
 import { toast } from '@/hooks/use-toast';
 import { logger } from '@/utils/structuredLogging';
@@ -27,10 +28,10 @@ export function useAssessments() {
       const { data, error } = await supabase
         .from('assessments')
         .insert({
-          user_id: (await supabase.auth.getUser()).data.user?.id,
+          user_id: (await supabase.auth.getUser()).data.user!.id,
           variant,
-          responses: responses as any,
-          profile: profile as any
+          responses: responses as unknown as Json,
+          profile: profile as unknown as Json
         })
         .select()
         .single();
@@ -44,14 +45,14 @@ export function useAssessments() {
 
       await loadAssessments();
       return data;
-    } catch (error: any) {
+    } catch (error: unknown) {
       logger.error('Error saving assessment', { 
         component: 'useAssessments', 
         action: 'saveAssessment' 
-      }, error);
+      }, error as Error);
       toast({
         title: "Save Failed",
-        description: error.message || "Failed to save assessment. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to save assessment. Please try again.",
         variant: "destructive"
       });
       throw error;
@@ -72,11 +73,11 @@ export function useAssessments() {
         profile: item.profile as unknown as PersonalityProfile,
         responses: item.responses as unknown as number[] | null
       })));
-    } catch (error: any) {
+    } catch (error: unknown) {
       logger.error('Error loading assessments', { 
         component: 'useAssessments', 
         action: 'loadAssessments' 
-      }, error);
+      }, error as Error);
       toast({
         title: "Load Failed",
         description: "Failed to load your saved assessments.",
@@ -102,11 +103,11 @@ export function useAssessments() {
       });
 
       await loadAssessments();
-    } catch (error: any) {
+    } catch (error: unknown) {
       logger.error('Error deleting assessment', { 
         component: 'useAssessments', 
         action: 'deleteAssessment' 
-      }, error);
+      }, error as Error);
       toast({
         title: "Delete Failed",
         description: "Failed to delete assessment. Please try again.",
@@ -143,7 +144,7 @@ export function useAssessments() {
     try {
       const { error } = await supabase
         .from('assessments')
-        .update({ profile: profile as any })
+        .update({ profile: profile as unknown as Json })
         .eq('id', assessmentId);
 
       if (error) throw error;
@@ -154,11 +155,11 @@ export function useAssessments() {
           ? { ...assessment, profile }
           : assessment
       ));
-    } catch (error: any) {
+    } catch (error: unknown) {
       logger.error('Error updating assessment profile', { 
         component: 'useAssessments', 
         action: 'updateAssessmentProfile' 
-      }, error);
+      }, error as Error);
       toast({
         title: "Update Failed",
         description: "Failed to update assessment profile.",

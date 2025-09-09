@@ -1,6 +1,7 @@
 import React from 'react';
 import { AdminPanel } from '@/components/admin/AdminPanel';
 import { ProductionTestSuiteIntegration } from '@/components/test/ProductionTestSuiteIntegration';
+import { ProductionStatusDashboard } from '@/components/admin/ProductionStatusDashboard';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Shield, Settings, TestTube, Activity } from 'lucide-react';
@@ -17,14 +18,18 @@ export default function Admin() {
         </div>
 
         <Tabs defaultValue="admin" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="admin" className="flex items-center gap-2">
               <Settings className="w-4 h-4" />
               Admin Panel
             </TabsTrigger>
+            <TabsTrigger value="production" className="flex items-center gap-2">
+              <Activity className="w-4 h-4" />
+              Production Status
+            </TabsTrigger>
             <TabsTrigger value="tests" className="flex items-center gap-2">
               <TestTube className="w-4 h-4" />
-              Production Tests
+              Test Suite
             </TabsTrigger>
             <TabsTrigger value="monitoring" className="flex items-center gap-2">
               <Activity className="w-4 h-4" />
@@ -38,6 +43,10 @@ export default function Admin() {
 
           <TabsContent value="admin" className="mt-6">
             <AdminPanel />
+          </TabsContent>
+
+          <TabsContent value="production" className="mt-6">
+            <ProductionStatusDashboard />
           </TabsContent>
 
           <TabsContent value="tests" className="mt-6">

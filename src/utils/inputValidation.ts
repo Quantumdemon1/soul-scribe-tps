@@ -50,13 +50,13 @@ export class InputValidator {
     return validatedResponses;
   }
 
-  static validateLLMConfig(config: any): any {
+  static validateLLMConfig(config: Record<string, unknown>): Record<string, unknown> {
     if (!config || typeof config !== 'object') {
       throw new Error('Configuration must be a valid object');
     }
     
     const allowedProviders = ['openai', 'claude'];
-    if (config.provider && !allowedProviders.includes(config.provider)) {
+    if (config.provider && !allowedProviders.includes(config.provider as string)) {
       throw new Error('Provider must be either "openai" or "claude"');
     }
     
@@ -74,10 +74,12 @@ export class InputValidator {
     return config;
   }
 
-  static sanitizeErrorMessage(error: any): string {
+  static sanitizeErrorMessage(error: unknown): string {
     if (!error) return 'An unknown error occurred';
     
-    const message = error.message || error.toString() || 'An error occurred';
+    const message = error instanceof Error ? error.message : 
+                   (typeof error === 'string' ? error :
+                   (error?.toString?.() || 'An error occurred'));
     
     // Remove sensitive information from error messages
     return message

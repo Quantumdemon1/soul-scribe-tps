@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { IntegralDetail } from '@/mappings/integral.enhanced';
+import { PersonalityProfile } from '@/types/tps.types';
 import { useIntegralAssessment } from '@/hooks/useIntegralAssessment';
 import { useToast } from '@/hooks/use-toast';
 import { 
@@ -27,7 +28,7 @@ interface IntegralResultsProps {
   integralDetail: IntegralDetail;
   onRetakeAssessment: () => void;
   onBackToSelection: () => void;
-  personalityProfile?: any; // Optional existing personality profile for context
+  personalityProfile?: PersonalityProfile; // Optional existing personality profile for context
 }
 
 export const IntegralResults: React.FC<IntegralResultsProps> = ({
@@ -308,19 +309,19 @@ export const IntegralResults: React.FC<IntegralResultsProps> = ({
                       How your personality type manifests at your current integral level:
                     </p>
                     <div className="space-y-3">
-                      {personalityProfile.mbti && (
+                      {personalityProfile.mappings?.mbti && (
                         <div className="p-3 bg-muted/50 rounded-lg">
-                          <div className="font-semibold text-sm mb-1">MBTI: {personalityProfile.mbti.type}</div>
+                          <div className="font-semibold text-sm mb-1">MBTI: {personalityProfile.mappings.mbti}</div>
                           <div className="text-xs text-muted-foreground">
-                            Your {personalityProfile.mbti.type} type at the {integralDetail.primaryLevel.color} level typically focuses on {integralDetail.primaryLevel.typicalConcerns[0]?.toLowerCase()}
+                            Your {personalityProfile.mappings.mbti} type at the {integralDetail.primaryLevel.color} level typically focuses on {integralDetail.primaryLevel.typicalConcerns[0]?.toLowerCase()}
                           </div>
                         </div>
                       )}
-                      {personalityProfile.enneagram && (
+                      {personalityProfile.mappings?.enneagramDetails && (
                         <div className="p-3 bg-muted/50 rounded-lg">
-                          <div className="font-semibold text-sm mb-1">Enneagram: Type {personalityProfile.enneagram.type}</div>
+                          <div className="font-semibold text-sm mb-1">Enneagram: Type {personalityProfile.mappings.enneagramDetails.type}</div>
                           <div className="text-xs text-muted-foreground">
-                            Type {personalityProfile.enneagram.type} at this developmental level emphasizes {integralDetail.primaryLevel.thinkingPattern?.toLowerCase()}
+                            Type {personalityProfile.mappings.enneagramDetails.type} at this developmental level emphasizes {integralDetail.primaryLevel.thinkingPattern?.toLowerCase()}
                           </div>
                         </div>
                       )}
