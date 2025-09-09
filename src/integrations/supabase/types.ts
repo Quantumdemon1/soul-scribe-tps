@@ -643,6 +643,66 @@ export type Database = {
         }
         Relationships: []
       }
+      test_results: {
+        Row: {
+          browser_info: Json | null
+          completion_percentage: number | null
+          created_at: string
+          duration_ms: number | null
+          end_time: string | null
+          errors: Json | null
+          id: string
+          metadata: Json | null
+          performance_metrics: Json | null
+          score: number | null
+          session_id: string
+          start_time: string
+          status: string
+          test_name: string
+          test_type: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          browser_info?: Json | null
+          completion_percentage?: number | null
+          created_at?: string
+          duration_ms?: number | null
+          end_time?: string | null
+          errors?: Json | null
+          id?: string
+          metadata?: Json | null
+          performance_metrics?: Json | null
+          score?: number | null
+          session_id: string
+          start_time?: string
+          status?: string
+          test_name: string
+          test_type: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          browser_info?: Json | null
+          completion_percentage?: number | null
+          created_at?: string
+          duration_ms?: number | null
+          end_time?: string | null
+          errors?: Json | null
+          id?: string
+          metadata?: Json | null
+          performance_metrics?: Json | null
+          score?: number | null
+          session_id?: string
+          start_time?: string
+          status?: string
+          test_name?: string
+          test_type?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       user_connections: {
         Row: {
           connection_type: string | null

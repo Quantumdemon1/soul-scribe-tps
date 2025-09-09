@@ -3,9 +3,12 @@ import { AdminPanel } from '@/components/admin/AdminPanel';
 import { ProductionTestSuiteIntegration } from '@/components/test/ProductionTestSuiteIntegration';
 import { ProductionStatusDashboard } from '@/components/admin/ProductionStatusDashboard';
 import { AdminUserCreation } from '@/components/admin/AdminUserCreation';
+import { TestResultsOverview } from '@/components/admin/TestResultsOverview';
+import { TestResultsList } from '@/components/admin/TestResultsList';
+import { DemoTestRunner } from '@/components/test/DemoTestRunner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Shield, Settings, TestTube, Activity, UserPlus } from 'lucide-react';
+import { Shield, Settings, TestTube, Activity, UserPlus, BarChart3 } from 'lucide-react';
 
 export default function Admin() {
   return (
@@ -19,7 +22,7 @@ export default function Admin() {
         </div>
 
         <Tabs defaultValue="admin" className="w-full">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="admin" className="flex items-center gap-2">
               <Settings className="w-4 h-4" />
               Admin Panel
@@ -35,6 +38,10 @@ export default function Admin() {
             <TabsTrigger value="tests" className="flex items-center gap-2">
               <TestTube className="w-4 h-4" />
               Test Suite
+            </TabsTrigger>
+            <TabsTrigger value="test-results" className="flex items-center gap-2">
+              <BarChart3 className="w-4 h-4" />
+              Test Results
             </TabsTrigger>
             <TabsTrigger value="monitoring" className="flex items-center gap-2">
               <Activity className="w-4 h-4" />
@@ -60,6 +67,25 @@ export default function Admin() {
 
           <TabsContent value="tests" className="mt-6">
             <ProductionTestSuiteIntegration />
+          </TabsContent>
+
+          <TabsContent value="test-results" className="mt-6">
+            <Tabs defaultValue="overview" className="space-y-4">
+              <TabsList>
+                <TabsTrigger value="overview">Overview</TabsTrigger>
+                <TabsTrigger value="results">Results</TabsTrigger>
+                <TabsTrigger value="demo">Demo Tests</TabsTrigger>
+              </TabsList>
+              <TabsContent value="overview">
+                <TestResultsOverview />
+              </TabsContent>
+              <TabsContent value="results">
+                <TestResultsList />
+              </TabsContent>
+              <TabsContent value="demo">
+                <DemoTestRunner />
+              </TabsContent>
+            </Tabs>
           </TabsContent>
 
           <TabsContent value="monitoring" className="mt-6">
