@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
 import './index.css'
 import { MobileOptimizationProvider } from './utils/mobileOptimization'
-import { PerformanceMonitor } from './components/ui/performance-monitor'
+import { AdminPerformanceMonitor } from './components/admin/AdminPerformanceMonitor'
 import { logger } from './utils/structuredLogging'
 import './utils/productionOptimization'
 
@@ -27,7 +27,7 @@ createRoot(document.getElementById("root")!).render(
       }}
     >
       <App />
-      <PerformanceMonitor />
+      <AdminPerformanceMonitor />
     </MobileOptimizationProvider>
   </React.StrictMode>,
 )
