@@ -265,7 +265,7 @@ const AssessmentHistory: React.FC = () => {
             </div>
 
             {/* Integral Assessment Callout */}
-            {assessments.some(a => !(a.profile as any).integralDetail) && (
+            {!assessments.some(a => (a.profile as any)?.integralDetail) && (
               <Card className="mb-6 border-primary/20">
                 <CardContent className="p-4">
                   <div className="flex items-center gap-3">
