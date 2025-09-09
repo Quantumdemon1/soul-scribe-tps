@@ -1,21 +1,57 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { PersonalityTest } from './PersonalityTest';
 import { AssessmentResults } from './AssessmentResults';
 import { AssessmentVariations } from '../../utils/assessmentVariations';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Clock, Target, Zap, Star, User, LogOut, History, LogIn, Brain } from 'lucide-react';
+import { Clock, Target, Zap, Star, User, LogOut, History, LogIn, Brain, Shield } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { useTestSession } from '@/hooks/useTestSession';
 import { Header } from '@/components/layout/Header';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { toast } from '@/hooks/use-toast';
 
 const AssessmentSelection: React.FC = () => {
   const [selectedAssessment, setSelectedAssessment] = useState<string | null>(null);
   const [completedProfile, setCompletedProfile] = useState<any>(null);
+  const [resumingSession, setResumingSession] = useState(false);
   const assessmentOptions = AssessmentVariations.getAssessmentOptions();
   const { user, signOut } = useAuth();
+  const { resumeSession } = useTestSession();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  // Handle session resume from URL
+  useEffect(() => {
+    const resumeToken = searchParams.get('resume');
+    if (resumeToken && user && !resumingSession) {
+      setResumingSession(true);
+      resumeSession(resumeToken).then((session) => {
+        if (session) {
+          setSelectedAssessment(session.test_type);
+          toast({
+            title: "Session Resumed",
+            description: `Resuming ${session.test_name} from page ${session.current_page + 1}.`
+          });
+        }
+        setResumingSession(false);
+      });
+    }
+  }, [searchParams, user, resumeSession, resumingSession]);
+
+  const handleStartAssessment = (assessmentType: string) => {
+    if (!user) {
+      toast({
+        title: "Sign In Required",
+        description: "Please sign in to take an assessment and save your progress.",
+        variant: "destructive"
+      });
+      navigate('/auth');
+      return;
+    }
+    setSelectedAssessment(assessmentType);
+  };
 
   // Render conditionally based on state, but keep all hooks at the top
   if (completedProfile) {
@@ -140,7 +176,7 @@ const AssessmentSelection: React.FC = () => {
               className={`relative overflow-hidden transition-all duration-300 hover:shadow-lg cursor-pointer ${
                 option.id === 'full' ? 'ring-2 ring-primary' : ''
               }`}
-              onClick={() => setSelectedAssessment(option.id)}
+              onClick={() => handleStartAssessment(option.id)}
             >
               {option.id === 'full' && (
                 <div className="absolute top-4 right-4">
@@ -176,8 +212,16 @@ const AssessmentSelection: React.FC = () => {
                 <Button 
                   className="w-full"
                   variant={option.id === 'full' ? 'default' : 'outline'}
+                  onClick={() => handleStartAssessment(option.id)}
                 >
-                  Start {option.name}
+                  {!user ? (
+                    <>
+                      <Shield className="w-4 h-4 mr-2" />
+                      Sign In to Start
+                    </>
+                  ) : (
+                    <>Start {option.name}</>
+                  )}
                 </Button>
               </CardContent>
             </Card>

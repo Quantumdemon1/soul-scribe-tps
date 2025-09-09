@@ -703,6 +703,60 @@ export type Database = {
         }
         Relationships: []
       }
+      test_sessions: {
+        Row: {
+          completion_percentage: number
+          created_at: string
+          current_page: number
+          expires_at: string
+          id: string
+          last_activity: string
+          metadata: Json
+          responses: Json
+          session_token: string
+          status: string
+          test_name: string
+          test_type: string
+          total_pages: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completion_percentage?: number
+          created_at?: string
+          current_page?: number
+          expires_at: string
+          id?: string
+          last_activity?: string
+          metadata?: Json
+          responses?: Json
+          session_token: string
+          status?: string
+          test_name: string
+          test_type: string
+          total_pages: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completion_percentage?: number
+          created_at?: string
+          current_page?: number
+          expires_at?: string
+          id?: string
+          last_activity?: string
+          metadata?: Json
+          responses?: Json
+          session_token?: string
+          status?: string
+          test_name?: string
+          test_type?: string
+          total_pages?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_connections: {
         Row: {
           connection_type: string | null
@@ -792,6 +846,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      cleanup_expired_test_sessions: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       cleanup_old_rate_limits: {
         Args: Record<PropertyKey, never>
         Returns: undefined

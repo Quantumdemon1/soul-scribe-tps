@@ -9,12 +9,15 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { PersonalityDashboard } from '../dashboard/PersonalityDashboard';
 import { SocraticClarification } from './SocraticClarification';
-import { ChevronLeft, ChevronRight, Brain } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Brain, Shield } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useAssessments } from '@/hooks/useAssessments';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useTestSession } from '@/hooks/useTestSession';
+import { useTestResultsTracking } from '@/hooks/useTestResultsTracking';
 import { toast } from '@/hooks/use-toast';
 import { logger } from '@/utils/structuredLogging';
+import { useNavigate } from 'react-router-dom';
 
 interface PersonalityTestProps {
   assessmentType?: string;
@@ -30,7 +33,45 @@ export const PersonalityTest: React.FC<PersonalityTestProps> = ({ assessmentType
   const [initialScores, setInitialScores] = useState<any>(null);
   const { user } = useAuth();
   const { saveAssessment } = useAssessments();
-  const isMobile = useIsMobile(); // ✅ Move hook call to the top, before any conditional logic
+  const { 
+    currentSession, 
+    createSession, 
+    updateSession, 
+    completeSession, 
+    getActiveSession 
+  } = useTestSession();
+  const { startTest, updateTest, endTest } = useTestResultsTracking();
+  const isMobile = useIsMobile();
+  const navigate = useNavigate();
+
+  // Enforce authentication requirement
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Card className="max-w-md w-full mx-4">
+          <CardHeader className="text-center">
+            <div className="flex justify-center mb-4">
+              <Shield className="h-16 w-16 text-primary" />
+            </div>
+            <CardTitle className="text-2xl">Authentication Required</CardTitle>
+          </CardHeader>
+          <CardContent className="text-center space-y-4">
+            <p className="text-muted-foreground">
+              You must be signed in to take personality assessments. This ensures your progress is saved and you can access your results from any device.
+            </p>
+            <div className="space-y-2">
+              <Button onClick={() => navigate('/auth')} className="w-full">
+                Sign In to Continue
+              </Button>
+              <Button variant="outline" onClick={() => navigate('/')} className="w-full">
+                Back to Home
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   // Get assessment configuration
   const assessmentConfig = React.useMemo(() => {
@@ -58,59 +99,97 @@ export const PersonalityTest: React.FC<PersonalityTestProps> = ({ assessmentType
   const totalPages = Math.ceil(questions.length / questionsPerPage);
   const progressPercentage = ((currentPage + 1) / totalPages) * 100;
 
-  // Initialize responses array with correct length
+  // Initialize test session and responses
   useEffect(() => {
-    if (responses.length === 0) {
-      setResponses(Array(assessmentConfig.questionCount).fill(5));
-    }
-  }, [assessmentConfig.questionCount, responses.length]);
-
-  // Load saved responses from localStorage
-  useEffect(() => {
-    const storageKey = `tps-responses-${assessmentType}`;
-    const pageKey = `tps-current-page-${assessmentType}`;
-    
-    const savedResponses = localStorage.getItem(storageKey);
-    const savedPage = localStorage.getItem(pageKey);
-    
-    if (savedResponses) {
-      const parsed = JSON.parse(savedResponses);
-      if (parsed.length === assessmentConfig.questionCount) {
-        setResponses(parsed);
+    const initializeTest = async () => {
+      // Check for existing active session
+      const activeSession = await getActiveSession(assessmentType);
+      
+      if (activeSession) {
+        // Resume existing session
+        setCurrentPage(activeSession.current_page);
+        setResponses(activeSession.responses);
+        toast({
+          title: "Session Resumed",
+          description: "Continuing from where you left off."
+        });
+      } else {
+        // Create new session
+        const session = await createSession(
+          assessmentType,
+          assessmentConfig.name,
+          totalPages
+        );
+        
+        if (session) {
+          // Start test tracking
+          await startTest(assessmentType, assessmentConfig.name);
+          
+          // Initialize responses
+          const initialResponses = Array(assessmentConfig.questionCount).fill(5);
+          setResponses(initialResponses);
+          await updateSession(session.id, { responses: initialResponses });
+        }
       }
-    }
-    if (savedPage) {
-      setCurrentPage(parseInt(savedPage));
-    }
-  }, [assessmentType, assessmentConfig.questionCount]);
+    };
 
-  // Save responses to localStorage
-  useEffect(() => {
-    if (responses.length > 0) {
-      const storageKey = `tps-responses-${assessmentType}`;
-      const pageKey = `tps-current-page-${assessmentType}`;
-      localStorage.setItem(storageKey, JSON.stringify(responses));
-      localStorage.setItem(pageKey, currentPage.toString());
+    if (user && assessmentConfig) {
+      initializeTest();
     }
-  }, [responses, currentPage, assessmentType]);
+  }, [user, assessmentType, assessmentConfig, getActiveSession, createSession, startTest, updateSession, totalPages]);
 
-  const handleResponseChange = (questionIndex: number, value: number) => {
+  const handleResponseChange = async (questionIndex: number, value: number) => {
     const newResponses = [...responses];
     newResponses[questionIndex] = value;
     setResponses(newResponses);
+    
+    // Update session with new responses
+    if (currentSession) {
+      const completionPercentage = Math.round(((currentPage + 1) / totalPages) * 100);
+      await updateSession(currentSession.id, { 
+        responses: newResponses,
+        completion_percentage: completionPercentage
+      });
+      
+      // Update test tracking
+      await updateTest(currentSession.session_token, {
+        completion_percentage: completionPercentage,
+        metadata: { lastQuestionAnswered: questionIndex }
+      });
+    }
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (currentPage < totalPages - 1) {
-      setCurrentPage(currentPage + 1);
+      const newPage = currentPage + 1;
+      setCurrentPage(newPage);
+      
+      // Update session with new page
+      if (currentSession) {
+        const completionPercentage = Math.round((newPage / totalPages) * 100);
+        await updateSession(currentSession.id, { 
+          current_page: newPage,
+          completion_percentage: completionPercentage
+        });
+      }
     } else {
       calculateResults();
     }
   };
 
-  const handlePrevious = () => {
+  const handlePrevious = async () => {
     if (currentPage > 0) {
-      setCurrentPage(currentPage - 1);
+      const newPage = currentPage - 1;
+      setCurrentPage(newPage);
+      
+      // Update session with new page
+      if (currentSession) {
+        const completionPercentage = Math.round((newPage / totalPages) * 100);
+        await updateSession(currentSession.id, { 
+          current_page: newPage,
+          completion_percentage: completionPercentage
+        });
+      }
     }
   };
 
@@ -138,26 +217,35 @@ export const PersonalityTest: React.FC<PersonalityTestProps> = ({ assessmentType
     setIsComplete(true);
     setShowClarification(false);
     
+    // Complete session tracking
+    if (currentSession) {
+      await completeSession(currentSession.id, fullResponses);
+      await endTest(currentSession.session_token, 'completed', {
+        score: 100,
+        completion_percentage: 100,
+        metadata: { assessmentType, profile: personalityProfile }
+      });
+    }
+    
     // Save to localStorage for immediate access
     localStorage.setItem('tps-profile', JSON.stringify(personalityProfile));
-    localStorage.removeItem(`tps-responses-${assessmentType}`);
-    localStorage.removeItem(`tps-current-page-${assessmentType}`);
-
-    // Save to Supabase if user is authenticated
-    if (user) {
-      try {
-        await saveAssessment(personalityProfile, fullResponses, assessmentType);
-      } catch (error) {
-        // Error handling is done in useAssessments hook
-        logger.info('Assessment saved locally only', {
-          component: 'PersonalityTest',
-          metadata: { userAuthenticated: !!user, assessmentType }
-        });
-      }
-    } else {
+    
+    // Save to Supabase
+    try {
+      await saveAssessment(personalityProfile, fullResponses, assessmentType);
       toast({
-        title: "Profile Complete",
-        description: "Sign in to save your profile and access it from any device."
+        title: "Assessment Complete",
+        description: "Your personality profile has been saved successfully."
+      });
+    } catch (error) {
+      logger.error('Failed to save assessment', {
+        component: 'PersonalityTest',
+        metadata: { error: error.message, assessmentType }
+      });
+      toast({
+        title: "Save Error", 
+        description: "Failed to save assessment. Your results are available locally.",
+        variant: "destructive"
       });
     }
   };

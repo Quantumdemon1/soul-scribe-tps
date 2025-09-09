@@ -23,6 +23,8 @@ import { DataConsistencyPanel } from './DataConsistencyPanel';
 import { DEFAULT_SYSTEM_PROMPTS } from '@/config/systemPrompts';
 import { MobileTestIntegration } from '../mobile/MobileTestIntegration';
 import { ProductionTestSuite } from '../test/ProductionTestSuite';
+import { TestSessionsOverview } from './TestSessionsOverview';
+import { TestResultsOverview } from './TestResultsOverview';
 const BulkImportLazy = React.lazy(() => import('@/components/admin/BulkImport'));
 
 interface LLMConfig {
@@ -296,14 +298,22 @@ export const AdminPanel: React.FC = () => {
         </div>
 
         <Tabs defaultValue="llm" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-8">
+          <TabsList className="grid w-full grid-cols-9">
             <TabsTrigger value="llm" className="flex items-center gap-2">
               <Brain className="w-4 h-4" />
-              LLM Configuration
+              LLM Config
             </TabsTrigger>
             <TabsTrigger value="database" className="flex items-center gap-2">
               <Database className="w-4 h-4" />
               Database
+            </TabsTrigger>
+            <TabsTrigger value="sessions" className="flex items-center gap-2">
+              <Activity className="w-4 h-4" />
+              Test Sessions
+            </TabsTrigger>
+            <TabsTrigger value="results" className="flex items-center gap-2">
+              <BarChart3 className="w-4 h-4" />
+              Test Results
             </TabsTrigger>
             <TabsTrigger value="analytics" className="flex items-center gap-2">
               <BarChart3 className="w-4 h-4" />
@@ -312,10 +322,6 @@ export const AdminPanel: React.FC = () => {
             <TabsTrigger value="testing" className="flex items-center gap-2">
               <CheckCircle className="w-4 h-4" />
               Cache Testing
-            </TabsTrigger>
-            <TabsTrigger value="performance" className="flex items-center gap-2">
-              <Activity className="w-4 h-4" />
-              Performance
             </TabsTrigger>
             <TabsTrigger value="production" className="flex items-center gap-2">
               <Shield className="w-4 h-4" />
@@ -615,6 +621,14 @@ export const AdminPanel: React.FC = () => {
 
           <TabsContent value="production" className="space-y-6">
             <ProductionTestSuite />
+          </TabsContent>
+
+          <TabsContent value="sessions" className="space-y-6">
+            <TestSessionsOverview />
+          </TabsContent>
+
+          <TabsContent value="results" className="space-y-6">
+            <TestResultsOverview />
           </TabsContent>
 
           <TabsContent value="mobile" className="space-y-6">
