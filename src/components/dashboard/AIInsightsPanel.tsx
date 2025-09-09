@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { HelpTooltip } from '@/components/ui/help-tooltip';
+import { MarkdownRenderer } from '@/components/ui/markdown-renderer';
 import { Brain, Briefcase, TrendingUp, Heart, Sparkles, ChevronDown, RefreshCw, Target, Database } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/hooks/use-toast';
@@ -148,15 +149,10 @@ export const AIInsightsPanel: React.FC<AIInsightsPanelProps> = ({ profile }) => 
         <CollapsibleContent>
           <CardContent>
             <div className="border-t border-border pt-6">
-              <div className="prose prose-sm max-w-none text-foreground space-y-4">
-                {content.split('\n\n').map((paragraph, index) => (
-                  paragraph.trim() && (
-                    <p key={index} className="leading-relaxed">
-                      {paragraph.trim()}
-                    </p>
-                  )
-                ))}
-              </div>
+              <MarkdownRenderer 
+                content={content} 
+                className="text-foreground"
+              />
               {children}
             </div>
           </CardContent>
