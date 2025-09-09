@@ -5,7 +5,6 @@ import { FrameworkInsightsService } from './frameworkInsightsService';
 import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/utils/structuredLogging';
 import { stableHash } from '@/utils/hash';
-import { logger } from '@/utils/structuredLogging';
 
 export class AIInsightsService {
   private llmService = new LLMService();
