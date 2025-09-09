@@ -66,13 +66,20 @@ export const IntegralAssessment: React.FC = () => {
     setCurrentStage('results');
   };
 
-  // Load existing personality profile
+  // Load existing personality profile and check for existing integral results
   useEffect(() => {
     if (assessments.length > 0) {
       // Get the most recent personality assessment
       const latestAssessment = assessments[0];
       if (latestAssessment?.profile) {
         setPersonalityProfile(latestAssessment.profile);
+        
+        // Check if user already has integral assessment results
+        const existingIntegralDetail = latestAssessment.profile.mappings?.integralDetail;
+        if (existingIntegralDetail) {
+          setFinalAssessment(existingIntegralDetail);
+          setCurrentStage('results');
+        }
       }
     }
   }, [assessments]);
