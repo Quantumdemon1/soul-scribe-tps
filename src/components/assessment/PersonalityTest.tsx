@@ -208,16 +208,18 @@ export const PersonalityTest: React.FC<PersonalityTestProps> = ({ assessmentType
             <CardContent className={`pt-0 ${isMobile ? 'px-4 pb-4' : ''}`}>
               <div className="space-y-3">
                 <div className={`flex justify-between items-center ${isMobile ? 'text-xs' : 'text-sm'}`}>
-                  <span>Progress</span>
-                  <span>{currentPage + 1} of {totalPages} pages</span>
+                  <span className="font-medium">Assessment Progress</span>
+                  <span className="font-mono">
+                    Question {(currentPage * questionsPerPage) + 1}-{Math.min((currentPage + 1) * questionsPerPage, assessmentConfig.questionCount)} of {assessmentConfig.questionCount}
+                  </span>
                 </div>
                 <Progress 
                   value={progressPercentage} 
-                  className={`bg-primary-foreground/20 ${isMobile ? 'h-2' : 'h-3'}`}
+                  className={`bg-primary-foreground/20 ${isMobile ? 'h-2.5' : 'h-3'}`}
                 />
                 <div className={`flex justify-between opacity-90 ${isMobile ? 'text-xs' : 'text-sm'}`}>
-                  <span>{Math.round(progressPercentage)}% Complete</span>
-                  <span>{assessmentConfig.questionCount - (currentPage * questionsPerPage)} remaining</span>
+                  <span className="font-medium">{Math.round(progressPercentage)}% Complete</span>
+                  <span>{assessmentConfig.questionCount - (currentPage * questionsPerPage + questionsPerPage)} questions remaining</span>
                 </div>
               </div>
             </CardContent>

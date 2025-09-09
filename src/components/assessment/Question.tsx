@@ -21,7 +21,10 @@ export const Question: React.FC<QuestionProps> = ({
     <Card className="bg-assessment-card border-muted">
       <CardContent className={`${isMobile ? 'p-4' : 'p-6'}`}>
         <p className={`font-medium text-foreground leading-relaxed ${isMobile ? 'mb-4 text-base' : 'mb-6'}`}>
-          <span className="text-primary font-bold">{questionNumber}.</span> {question}
+          <span className="inline-flex items-center justify-center w-6 h-6 bg-primary text-primary-foreground text-sm font-bold rounded-full mr-3 flex-shrink-0">
+            {questionNumber}
+          </span>
+          {question}
         </p>
         
         {isMobile ? (
