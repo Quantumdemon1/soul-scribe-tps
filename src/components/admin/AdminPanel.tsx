@@ -25,9 +25,10 @@ import { MobileTestIntegration } from '../mobile/MobileTestIntegration';
 import { ProductionTestSuite } from '../test/ProductionTestSuite';
 import { TestSessionsOverview } from './TestSessionsOverview';
 import { TestResultsOverview } from './TestResultsOverview';
-import ScoringTuner from './ScoringTuner';
-import ScoringSimulator from './ScoringSimulator';
-import UserOverrideManager from './UserOverrideManager';
+import { ScoringTuner } from './ScoringTuner';
+import { ScoringSimulator } from './ScoringSimulator';
+import { UserOverrideManager } from './UserOverrideManager';
+import { AuditTrail } from './AuditTrail';
 const BulkImportLazy = React.lazy(() => import('@/components/admin/BulkImport'));
 
 interface LLMConfig {
@@ -644,6 +645,7 @@ export const AdminPanel: React.FC = () => {
                 <TabsTrigger value="tuner">Scoring Tuner</TabsTrigger>
                 <TabsTrigger value="simulator">Simulator</TabsTrigger>
                 <TabsTrigger value="overrides">User Overrides</TabsTrigger>
+                <TabsTrigger value="audit">Audit & Safety</TabsTrigger>
               </TabsList>
               
               <TabsContent value="tuner">
@@ -656,6 +658,10 @@ export const AdminPanel: React.FC = () => {
               
               <TabsContent value="overrides">
                 <UserOverrideManager />
+              </TabsContent>
+              
+              <TabsContent value="audit">
+                <AuditTrail />
               </TabsContent>
             </Tabs>
           </TabsContent>

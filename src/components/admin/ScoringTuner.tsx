@@ -4,11 +4,16 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { toast } from '@/hooks/use-toast';
 import { TPSScoring } from '@/utils/tpsScoring';
 import { TPS_QUESTIONS } from '@/data/questions';
 import { saveScoringOverrides, loadScoringOverrides, writeLocalOverrides, type ScoringOverrides, type MBTIDimensionKey } from '@/services/scoringConfigService';
-import { SlidersHorizontal, RefreshCw, Save, ListChecks, Calculator, Settings } from 'lucide-react';
+import { ScoringValidator, ValidationResult } from '@/utils/scoringValidation';
+import { AuditTrailService } from '@/services/auditTrailService';
+import { ImpactAssessment } from './ImpactAssessment';
+import { SlidersHorizontal, RefreshCw, Save, ListChecks, Calculator, Settings, AlertTriangle } from 'lucide-react';
 
 const DEFAULT_MBTI_WEIGHTS: Record<MBTIDimensionKey, { traits: Record<string, number>; threshold?: number }> = {
   EI: { traits: { 'Communal Navigate': 0.35, 'Dynamic': 0.35, 'Assertive': 0.15, 'Direct': 0.15 }, threshold: 5 },
@@ -23,6 +28,9 @@ export const ScoringTuner: React.FC = () => {
   const [traitMappings, setTraitMappings] = useState<Record<string, number[]>>({});
   const [selectedTrait, setSelectedTrait] = useState<string>('');
   const [newIndex, setNewIndex] = useState<string>('');
+  const [validation, setValidation] = useState<ValidationResult | null>(null);
+  const [showImpactAssessment, setShowImpactAssessment] = useState(false);
+  const [currentConfig, setCurrentConfig] = useState<ScoringOverrides | null>(null);
 
   useEffect(() => {
     (async () => {
