@@ -131,7 +131,7 @@ const DashboardContent: React.FC<{ profile: PersonalityProfile; onRetakeAssessme
       />
 
       {/* Main Content */}
-      <div className={isMobile ? "pt-4" : "max-w-7xl mx-auto px-6 py-8"}>
+      <div className={isMobile ? "pt-4 pb-20" : "max-w-7xl mx-auto px-6 py-8"}>
         {isMobile ? (
           <MobileDashboardControls profile={profile} currentSection={activeTab} />
         ) : (

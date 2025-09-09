@@ -108,7 +108,7 @@ export const MobileFrameworkCards: React.FC<MobileFrameworkCardsProps> = ({ prof
       </div>
 
       {/* MBTI Card */}
-      <Card className="mx-4">
+      <Card className="mx-4 overflow-hidden">
         <Collapsible 
           open={expandedCards.mbti} 
           onOpenChange={() => toggleCard('mbti')}
@@ -159,7 +159,7 @@ export const MobileFrameworkCards: React.FC<MobileFrameworkCardsProps> = ({ prof
       </Card>
 
       {/* Enneagram Card */}
-      <Card className="mx-4">
+      <Card className="mx-4 overflow-hidden">
         <Collapsible 
           open={expandedCards.enneagram} 
           onOpenChange={() => toggleCard('enneagram')}
@@ -213,7 +213,7 @@ export const MobileFrameworkCards: React.FC<MobileFrameworkCardsProps> = ({ prof
       </Card>
 
       {/* Big Five Card */}
-      <Card className="mx-4">
+      <Card className="mx-4 overflow-hidden">
         <Collapsible 
           open={expandedCards.bigfive} 
           onOpenChange={() => toggleCard('bigfive')}
@@ -253,7 +253,7 @@ export const MobileFrameworkCards: React.FC<MobileFrameworkCardsProps> = ({ prof
       </Card>
 
       {/* Other frameworks - collapsed by default */}
-      <Card className="mx-4">
+      <Card className="mx-4 overflow-hidden">
         <Collapsible 
           open={expandedCards.other} 
           onOpenChange={() => toggleCard('other')}

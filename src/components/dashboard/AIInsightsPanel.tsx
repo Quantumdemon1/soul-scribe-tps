@@ -36,7 +36,7 @@ export const AIInsightsPanel: React.FC<AIInsightsPanelProps> = ({ profile }) => 
     if (user) {
       loadExistingInsights();
     }
-  }, [user]);
+  }, [user, profile]); // Also reload when profile changes
 
   const loadExistingInsights = async () => {
     if (!user) return;

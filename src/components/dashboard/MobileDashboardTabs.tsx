@@ -92,7 +92,8 @@ export const MobileDashboardTabs: React.FC<MobileDashboardTabsProps> = ({
       preloadNext={true}
     >
       {/* Sticky mobile tab bar */}
-      <div className="sticky top-16 z-20 bg-background/95 backdrop-blur-sm border-b mb-6">
+      <div className="sticky top-16 bg-background/95 backdrop-blur-sm border-b mb-6"
+           style={{ zIndex: 40 }}>
         <div 
           ref={scrollContainerRef}
           className="flex overflow-x-auto scrollbar-hide py-3 px-4 gap-2"

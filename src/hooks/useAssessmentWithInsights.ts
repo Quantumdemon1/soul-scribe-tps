@@ -54,12 +54,12 @@ export const useAssessmentWithInsights = (): UseAssessmentWithInsightsReturn => 
         "Failed to generate framework insights"
       );
 
-      // Generate AI insights in background (not blocking)
+      // Generate AI insights in background (don't block the UI)
       handleAsyncError(
-        () => aiInsightsService.generateInsights(profile, userId),
+        () => aiInsightsService.generateInsights(profile, userId || user?.id),
         "Failed to generate AI insights"
       ).catch(() => {
-        // Silently handle AI insights failure - they're stored separately
+        // Silently handle AI insights failure - they're stored separately in database
       });
 
       // Check if operation was cancelled

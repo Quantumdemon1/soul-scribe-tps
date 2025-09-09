@@ -156,9 +156,9 @@ Keep it practical, empathetic, and actionable for building better relationships.
         logger.aiService('save_insights', 'Successfully saved AI insights to database', { userId });
       } catch (error) {
         logger.aiService('save_insights', 'Error saving insights to database', { userId }, error as Error);
-      // Show visible error to user when database save fails
-      throw new Error(`Failed to save insights: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    }
+        // Show visible error to user when database save fails
+        throw new Error(`Failed to save insights: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
   }
 
   async getInsights(userId: string, assessmentId?: string): Promise<AIInsights | null> {
