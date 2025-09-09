@@ -92,7 +92,12 @@ export function ProductionValidationSuite() {
       setOverallScore(score);
 
     } catch (error) {
-      console.error('Validation failed:', error);
+      import('@/utils/structuredLogging').then(({ logger }) => {
+        logger.error('Production validation failed', {
+          component: 'ProductionValidationSuite',
+          action: 'runValidation'
+        }, error as Error);
+      });
     } finally {
       setIsRunning(false);
     }

@@ -100,6 +100,13 @@ Production Cleanup Report:
 // Auto-run cleanup in production
 if (ProductionCleanup['isProduction']) {
   ProductionCleanup.performCleanup().then(result => {
-    console.log('Production cleanup completed:', result);
+    // Use structured logging instead of console
+    import('@/utils/structuredLogging').then(({ logger }) => {
+      logger.info('Production cleanup completed', {
+        component: 'ProductionCleanup',
+        action: 'autoCleanup',
+        metadata: result
+      });
+    });
   });
 }

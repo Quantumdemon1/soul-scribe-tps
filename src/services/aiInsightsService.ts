@@ -148,7 +148,7 @@ Keep it practical, empathetic, and actionable for building better relationships.
           user_id: userId,
           assessment_id: assessment?.id,
           insight_type: 'comprehensive',
-          content: insights as any,
+          content: JSON.parse(JSON.stringify(insights)),
           model_used: 'gpt-5-2025-08-07', // This should come from config
           cache_key: cacheKey,
           version: 1

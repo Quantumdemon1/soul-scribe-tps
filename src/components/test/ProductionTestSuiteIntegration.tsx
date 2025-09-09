@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ProductionValidationSuite } from './ProductionValidationSuite';
+import { ProductionTestExecutor } from './ProductionTestExecutor';
 import { ProductionReadinessTest } from './ProductionReadinessTest';
 import { AlignmentTest } from './AlignmentTest';
 import { AIServiceTest } from './AIServiceTest';

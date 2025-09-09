@@ -52,7 +52,7 @@ export interface EnneagramTypeConfig {
 }
 
 export interface TypeConfig {
-  core_traits: string[];
+  core_traits?: string[];
   primary_traits: string[];
   secondary_traits: string[];
   instinctual_variants?: Record<string, string[]>;

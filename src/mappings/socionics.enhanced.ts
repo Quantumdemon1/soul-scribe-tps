@@ -1,4 +1,5 @@
 import { TPSScores, SocionicsDetail } from '../types/tps.types';
+import { ElementConfig } from '../types/mapping.types';
 import { calculateConfidence } from './index';
 
 export const TPS_TO_SOCIONICS_ELEMENTS = {
@@ -85,7 +86,7 @@ const SOCIONICS_FUNCTION_STACKS = {
   'ESFp (SEE)': ['Se', 'Fi', 'Te', 'Ni']
 };
 
-function calculateElementStrength(scores: TPSScores, elementConfig: any): number {
+function calculateElementStrength(scores: TPSScores, elementConfig: ElementConfig): number {
   const primaryScore = elementConfig.primary.reduce((sum: number, trait: string) => 
     sum + (scores[trait] || 5), 0) / elementConfig.primary.length;
   

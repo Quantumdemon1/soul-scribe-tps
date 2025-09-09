@@ -1,4 +1,5 @@
 import { TPSScores, MBTIDetail } from '../types/tps.types';
+import { ElementConfig } from '../types/mapping.types';
 import { calculateConfidence } from './index';
 
 export const TPS_TO_MBTI_COMPREHENSIVE = {

@@ -8,7 +8,9 @@ import { usePerformanceOptimization } from "@/hooks/usePerformanceOptimization";
 import { LazyIndex, LazyAuth, LazyAdmin, LazyAssessmentHistory, LazyAssessments, LazyProfile, LazyMentor, LazyNotFound, PageWrapper } from './components/layout/LazyPages';
 import { ProductionWrapper } from './components/layout/ProductionWrapper';
 import { lazy } from 'react';
+import React from 'react';
 import '@/utils/debugCleanup'; // Initialize debug cleanup
+import { ProductionReadinessChecker } from '@/utils/productionReadinessChecker';
 import '@/utils/bundleOptimizer'; // Initialize bundle optimization
 
 const LazyIntegralAssessment = lazy(() => import('./pages/IntegralAssessment'));
@@ -17,6 +19,11 @@ const queryClient = new QueryClient();
 
 const AppContent = () => {
   usePerformanceOptimization(); // Initialize performance monitoring
+  
+  // Initialize production optimizations
+  React.useEffect(() => {
+    ProductionReadinessChecker.optimizeForProduction();
+  }, []);
   
   return (
     <TooltipProvider>

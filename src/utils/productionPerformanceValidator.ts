@@ -102,22 +102,26 @@ export class ProductionPerformanceValidator {
     let isHealthy = true;
     
     try {
-      // Monitor for any console errors related to maximum update depth
-      const originalError = console.error;
+      // Monitor for any errors related to maximum update depth
+      const originalError = window.console?.error;
       let hasMaxUpdateError = false;
       
-      console.error = (...args: unknown[]) => {
-        const message = args.join(' ');
-        if (message.includes('Maximum update depth') || message.includes('infinite loop')) {
-          hasMaxUpdateError = true;
-        }
-        originalError.apply(console, args);
-      };
+      if (originalError) {
+        window.console.error = (...args: unknown[]) => {
+          const message = args.join(' ');
+          if (message.includes('Maximum update depth') || message.includes('infinite loop')) {
+            hasMaxUpdateError = true;
+          }
+          originalError.apply(window.console, args);
+        };
+      }
       
       // Wait a short time to check for issues
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      console.error = originalError;
+      if (originalError) {
+        window.console.error = originalError;
+      }
       
       const duration = performance.now() - startTime;
       isHealthy = !hasMaxUpdateError && duration < 1500; // Should complete quickly

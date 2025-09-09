@@ -1,4 +1,5 @@
 import { TPSScores, HollandDetail } from '../types/tps.types';
+import { TypeConfig } from '../types/mapping.types';
 import { calculateConfidence } from './index';
 
 export const TPS_TO_HOLLAND_COMPREHENSIVE = {
@@ -75,7 +76,7 @@ export const TPS_TO_HOLLAND_COMPREHENSIVE = {
   }
 };
 
-function calculateTypeScore(scores: TPSScores, typeConfig: any): number {
+function calculateTypeScore(scores: TPSScores, typeConfig: TypeConfig): number {
   const primaryScore = typeConfig.primary_traits.reduce((sum: number, trait: string) => 
     sum + (scores[trait] || 5), 0) / typeConfig.primary_traits.length;
   
@@ -88,7 +89,7 @@ function calculateTypeScore(scores: TPSScores, typeConfig: any): number {
 
 export function calculateHollandEnhanced(scores: TPSScores): HollandDetail {
   const typeScores: Record<string, number> = {};
-  const typeDetails: Record<string, any> = {};
+  const typeDetails: Record<string, { score: number; description: string; careerAreas: string[]; workEnvironment: string }> = {};
   
   // Calculate scores for all Holland types
   Object.entries(TPS_TO_HOLLAND_COMPREHENSIVE).forEach(([typeKey, typeConfig]) => {
