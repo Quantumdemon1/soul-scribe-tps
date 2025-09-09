@@ -448,6 +448,54 @@ export type Database = {
         }
         Relationships: []
       }
+      personality_overrides: {
+        Row: {
+          alignment: string | null
+          attachment_style: string | null
+          big_five_scores: Json | null
+          created_at: string
+          created_by: string
+          enneagram_type: string | null
+          holland_code: string | null
+          id: string
+          integral_level: string | null
+          mbti_type: string | null
+          socionics_type: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          alignment?: string | null
+          attachment_style?: string | null
+          big_five_scores?: Json | null
+          created_at?: string
+          created_by: string
+          enneagram_type?: string | null
+          holland_code?: string | null
+          id?: string
+          integral_level?: string | null
+          mbti_type?: string | null
+          socionics_type?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          alignment?: string | null
+          attachment_style?: string | null
+          big_five_scores?: Json | null
+          created_at?: string
+          created_by?: string
+          enneagram_type?: string | null
+          holland_code?: string | null
+          id?: string
+          integral_level?: string | null
+          mbti_type?: string | null
+          socionics_type?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       privacy_settings: {
         Row: {
           allow_direct_messages: boolean | null

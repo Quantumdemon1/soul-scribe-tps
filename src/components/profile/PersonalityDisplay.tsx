@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { PersonalityProfile } from '@/types/tps.types';
 import { IntegralLevelBadge } from '@/components/dashboard/IntegralLevelBadge';
 import { CircularProgress } from '@/components/charts/CircularProgress';
+import { usePersonalityOverrides } from '@/hooks/usePersonalityOverrides';
 import { Brain, Target, Users, Heart, Compass, Zap } from 'lucide-react';
 
 interface PersonalityDisplayProps {
@@ -19,7 +20,13 @@ export const PersonalityDisplay: React.FC<PersonalityDisplayProps> = ({
   isOwner = false,
   visibilityLevel = 'public'
 }) => {
-  if (!personalityProfile && !integralLevel) {
+  const { override } = usePersonalityOverrides();
+
+  // Use override values if available, otherwise fall back to profile data
+  const displayMbti = override?.mbti_type || personalityProfile?.mappings?.mbti;
+  const displayEnneagram = override?.enneagram_type || personalityProfile?.mappings?.enneagram;
+  const displayBigFive = override?.big_five_scores || personalityProfile?.mappings?.bigFive;
+  if (!personalityProfile && !integralLevel && !override) {
     return (
       <Card>
         <CardContent className="text-center py-8">
@@ -83,15 +90,16 @@ export const PersonalityDisplay: React.FC<PersonalityDisplayProps> = ({
           )}
 
           {/* MBTI Type */}
-          {personalityProfile?.mappings?.mbti && (
+          {displayMbti && (
             <div className="space-y-3">
               <h3 className="text-lg font-semibold flex items-center gap-2">
                 <Target className="w-5 h-5" />
                 MBTI Type
+                {override?.mbti_type && <span className="text-xs text-blue-600 ml-2">(Admin Set)</span>}
               </h3>
               <div className="flex items-center gap-3">
                 <Badge variant="outline" className="text-lg px-4 py-2 font-bold">
-                  {personalityProfile.mappings.mbti}
+                  {displayMbti}
                 </Badge>
                 <div>
                   <p className="font-medium">Myers-Briggs Type</p>
@@ -104,19 +112,20 @@ export const PersonalityDisplay: React.FC<PersonalityDisplayProps> = ({
           )}
 
           {/* Enneagram */}
-          {personalityProfile?.mappings?.enneagram && (
+          {displayEnneagram && (
             <div className="space-y-3">
               <h3 className="text-lg font-semibold flex items-center gap-2">
                 <Compass className="w-5 h-5" />
                 Enneagram
+                {override?.enneagram_type && <span className="text-xs text-blue-600 ml-2">(Admin Set)</span>}
               </h3>
               <div className="flex items-center gap-3">
                 <Badge variant="outline" className="text-lg px-4 py-2 font-bold">
-                  Type {personalityProfile.mappings.enneagram}
+                  {displayEnneagram.startsWith('Type') ? displayEnneagram : `Type ${displayEnneagram}`}
                 </Badge>
                 <div>
                   <p className="font-medium">Enneagram Type</p>
-                  {personalityProfile.mappings.enneagramDetails?.wing && (
+                  {personalityProfile?.mappings?.enneagramDetails?.wing && (
                     <p className="text-sm text-muted-foreground">
                       Wing: {personalityProfile.mappings.enneagramDetails.wing}
                     </p>
@@ -127,11 +136,14 @@ export const PersonalityDisplay: React.FC<PersonalityDisplayProps> = ({
           )}
 
           {/* Big Five Traits */}
-          {personalityProfile?.mappings?.bigFive && (
+          {displayBigFive && (
             <div className="space-y-3">
-              <h3 className="text-lg font-semibold">Big Five Traits</h3>
+              <h3 className="text-lg font-semibold">
+                Big Five Traits
+                {override?.big_five_scores && <span className="text-xs text-blue-600 ml-2">(Admin Set)</span>}
+              </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {Object.entries(personalityProfile.mappings.bigFive).map(([trait, score]) => (
+                {Object.entries(displayBigFive).map(([trait, score]) => (
                   <div key={trait} className="space-y-2">
                     <div className="flex justify-between items-center">
                       <span className="text-sm font-medium capitalize">{trait}</span>

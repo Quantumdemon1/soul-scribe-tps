@@ -2,9 +2,10 @@ import React from 'react';
 import { AdminPanel } from '@/components/admin/AdminPanel';
 import { ProductionTestSuiteIntegration } from '@/components/test/ProductionTestSuiteIntegration';
 import { ProductionStatusDashboard } from '@/components/admin/ProductionStatusDashboard';
+import { AdminUserCreation } from '@/components/admin/AdminUserCreation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Shield, Settings, TestTube, Activity } from 'lucide-react';
+import { Shield, Settings, TestTube, Activity, UserPlus } from 'lucide-react';
 
 export default function Admin() {
   return (
@@ -18,10 +19,14 @@ export default function Admin() {
         </div>
 
         <Tabs defaultValue="admin" className="w-full">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="admin" className="flex items-center gap-2">
               <Settings className="w-4 h-4" />
               Admin Panel
+            </TabsTrigger>
+            <TabsTrigger value="create-user" className="flex items-center gap-2">
+              <UserPlus className="w-4 h-4" />
+              Create User
             </TabsTrigger>
             <TabsTrigger value="production" className="flex items-center gap-2">
               <Activity className="w-4 h-4" />
@@ -43,6 +48,10 @@ export default function Admin() {
 
           <TabsContent value="admin" className="mt-6">
             <AdminPanel />
+          </TabsContent>
+
+          <TabsContent value="create-user" className="mt-6">
+            <AdminUserCreation />
           </TabsContent>
 
           <TabsContent value="production" className="mt-6">
