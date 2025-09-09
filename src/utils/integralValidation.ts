@@ -1,6 +1,7 @@
 // Validation utilities for Integral Assessment scoring
 
 import { INTEGRAL_LEVELS } from '@/mappings/integral.enhanced';
+import { logger } from '@/utils/structuredLogging';
 
 /**
  * Validates that scores contain valid level keys and reasonable values
@@ -58,25 +59,32 @@ export function logScoringDetails(
   preliminaryScores: Record<string, number>,
   finalScores?: Record<string, number>
 ): void {
-  console.group(`🧠 Integral Assessment - ${stage}`);
-  
-  console.log('📊 Preliminary Scores:', preliminaryScores);
-  const validation = validateScores(preliminaryScores);
-  console.log('✅ Validation:', validation);
+  logger.debug('Preliminary Scores calculated', { 
+    component: 'IntegralValidation', 
+    action: 'logScoringDetails',
+    metadata: { stage, preliminaryScores, validation: validateScores(preliminaryScores) } 
+  });
   
   if (finalScores) {
-    console.log('🎯 Final Scores:', finalScores);
     const finalValidation = validateScores(finalScores);
-    console.log('✅ Final Validation:', finalValidation);
+    logger.debug('Final Scores computed', { 
+      component: 'IntegralValidation', 
+      action: 'logScoringDetails',
+      metadata: { stage, finalScores, finalValidation } 
+    });
   }
   
   // Log top levels for clarity
+  const validation = validateScores(finalScores || preliminaryScores);
   const sortedLevels = Object.entries(validation.normalizedScores)
     .sort(([,a], [,b]) => b - a)
     .slice(0, 3);
-  console.log('🏆 Top 3 Levels:', sortedLevels);
-  
-  console.groupEnd();
+    
+  logger.info('Top 3 Integral Levels determined', { 
+    component: 'IntegralValidation', 
+    action: 'logScoringDetails',
+    metadata: { stage, sortedLevels } 
+  });
 }
 
 /**

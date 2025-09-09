@@ -143,7 +143,11 @@ export const DashboardProvider: React.FC<DashboardProviderProps> = ({ children, 
           onConflict: 'user_id,insight_type'
         });
     } catch (error) {
-      console.warn(`Failed to save database cache for ${section}:`, error);
+      logger.warn(`Failed to save database cache for ${section}`, { 
+        component: 'DashboardContext', 
+        action: 'saveDatabaseCache',
+        metadata: { section } 
+      });
     }
   };
 
@@ -175,41 +179,26 @@ export const DashboardProvider: React.FC<DashboardProviderProps> = ({ children, 
     try {
       await _doGenerateSection(section, currentProfile);
     } catch (error) {
-      console.error(`Error generating ${section}:`, error);
-      setErrorState(section, `Failed to generate ${section.replace(/([A-Z])/g, ' $1').toLowerCase()}`);
-    } finally {
-      setLoadingState(section, false);
-    }
-  };
-
-  const refreshSection = async (section: keyof DashboardData, currentProfile: PersonalityProfile) => {
-    if (loading[section]) return;
-
-    setLoadingState(section, true);
-    setErrorState(section, null);
-
-    try {
-      // Force regeneration by clearing cache first
-      const cacheKey = getCacheKey(section);
-      localStorage.removeItem(cacheKey);
-      
-      await _doGenerateSection(section, currentProfile);
-    } catch (error) {
-      console.error(`Error refreshing ${section}:`, error);
-      setErrorState(section, `Failed to refresh ${section.replace(/([A-Z])/g, ' $1').toLowerCase()}`);
+      logger.error(`Error generating ${section}`, { 
+        component: 'DashboardContext', 
+        action: 'generateSection',
+        metadata: { section } 
+      }, error);
+      setErrorState(section, error);
     } finally {
       setLoadingState(section, false);
     }
   };
 
   const preloadSection = async (section: keyof DashboardData, currentProfile: PersonalityProfile) => {
-    // Only preload if data doesn't exist and not currently loading
-    if (data[section] || loading[section]) return;
-
     try {
       await _doGenerateSection(section, currentProfile);
     } catch (error) {
-      console.warn(`Error preloading ${section}:`, error);
+      logger.warn(`Error preloading ${section}`, { 
+        component: 'DashboardContext', 
+        action: 'preloadSection',
+        metadata: { section } 
+      });
       // Don't set error state for preloading failures
     }
   };
@@ -260,6 +249,15 @@ export const DashboardProvider: React.FC<DashboardProviderProps> = ({ children, 
     }
   };
 
+  const refreshSection = async (section: keyof DashboardData) => {
+    // Clear cached data for this section first
+    const cacheKey = getCacheKey(section);
+    localStorage.removeItem(cacheKey);
+    
+    // Force regeneration
+    await generateSection(section, profile);
+  };
+
   const getLastGenerated = (section: keyof DashboardData): string | null => {
     const timestamp = timestamps[section];
     if (!timestamp) return null;
@@ -307,7 +305,10 @@ export const DashboardProvider: React.FC<DashboardProviderProps> = ({ children, 
     const lastProfileHash = localStorage.getItem(`${STORAGE_KEY_PREFIX}profile_hash_${user?.id || 'anonymous'}`);
     
     if (lastProfileHash && lastProfileHash !== currentProfileHash) {
-      console.log('Profile structure changed significantly, clearing cache');
+      logger.info('Profile structure changed significantly, clearing cache', {
+        component: 'DashboardContext',
+        action: 'profileStructureChange'
+      });
       clearCache();
     }
     

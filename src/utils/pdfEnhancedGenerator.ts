@@ -72,7 +72,10 @@ export class EnhancedPDFGenerator {
       this.pdf.save(`Enhanced-Psyforge-Report-${timestamp}.pdf`);
       
     } catch (error) {
-      console.error('Enhanced PDF generation failed:', error);
+      logger.error('Enhanced PDF generation failed', { 
+        component: 'PdfEnhancedGenerator', 
+        action: 'generatePDF' 
+      }, error);
       throw error;
     }
   }

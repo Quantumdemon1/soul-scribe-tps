@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { PersonalityProfile } from '@/types/tps.types';
 import { toast } from '@/hooks/use-toast';
+import { logger } from '@/utils/structuredLogging';
 
 interface Assessment {
   id: string;
@@ -44,7 +45,10 @@ export function useAssessments() {
       await loadAssessments();
       return data;
     } catch (error: any) {
-      console.error('Error saving assessment:', error);
+      logger.error('Error saving assessment', { 
+        component: 'useAssessments', 
+        action: 'saveAssessment' 
+      }, error);
       toast({
         title: "Save Failed",
         description: error.message || "Failed to save assessment. Please try again.",
@@ -69,7 +73,10 @@ export function useAssessments() {
         responses: item.responses as unknown as number[] | null
       })));
     } catch (error: any) {
-      console.error('Error loading assessments:', error);
+      logger.error('Error loading assessments', { 
+        component: 'useAssessments', 
+        action: 'loadAssessments' 
+      }, error);
       toast({
         title: "Load Failed",
         description: "Failed to load your saved assessments.",
@@ -96,7 +103,10 @@ export function useAssessments() {
 
       await loadAssessments();
     } catch (error: any) {
-      console.error('Error deleting assessment:', error);
+      logger.error('Error deleting assessment', { 
+        component: 'useAssessments', 
+        action: 'deleteAssessment' 
+      }, error);
       toast({
         title: "Delete Failed",
         description: "Failed to delete assessment. Please try again.",
@@ -145,7 +155,10 @@ export function useAssessments() {
           : assessment
       ));
     } catch (error: any) {
-      console.error('Error updating assessment profile:', error);
+      logger.error('Error updating assessment profile', { 
+        component: 'useAssessments', 
+        action: 'updateAssessmentProfile' 
+      }, error);
       toast({
         title: "Update Failed",
         description: "Failed to update assessment profile.",

@@ -1,4 +1,5 @@
 import { PersonalityProfile } from '../types/tps.types';
+import { logger } from './structuredLogging';
 
 export interface ShareContent {
   title: string;
@@ -80,18 +81,19 @@ Psyforge provides a comprehensive view by integrating multiple personality syste
       await navigator.clipboard.writeText(content.text);
       return true;
     } catch (error) {
-      console.error('Failed to copy to clipboard:', error);
+      logger.error('Failed to copy to clipboard', { 
+        component: 'AdvancedSharing', 
+        action: 'copyToClipboard' 
+      }, error);
       return false;
     }
   }
 
-  static async shareViaWebAPI(profile: PersonalityProfile): Promise<boolean> {
-    if (!navigator.share) {
-      return false;
-    }
-
+  static async shareViaWebAPI(profile: PersonalityProfile, platform: 'general' | 'linkedin' | 'twitter' | 'facebook' = 'general'): Promise<boolean> {
+    if (!navigator.share) return false;
+    
     try {
-      const content = this.generateShareContent(profile);
+      const content = this.generateShareContent(profile, platform);
       await navigator.share({
         title: content.title,
         text: content.text,
@@ -99,7 +101,10 @@ Psyforge provides a comprehensive view by integrating multiple personality syste
       });
       return true;
     } catch (error) {
-      console.error('Failed to share via Web Share API:', error);
+      logger.error('Failed to share via Web Share API', { 
+        component: 'AdvancedSharing', 
+        action: 'shareViaWebAPI' 
+      }, error);
       return false;
     }
   }

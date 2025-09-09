@@ -1,6 +1,8 @@
 // Utility functions to safely extract and parse JSON from LLM responses
 // Handles cases where JSON is wrapped in Markdown code fences or mixed with prose
 
+import { logger } from './structuredLogging';
+
 export function extractJSONFromText(text: string): string | null {
   if (!text) return null;
 
@@ -62,13 +64,21 @@ export function parseLLMJson<T = unknown>(raw: string): T {
     try {
       return JSON.parse(extracted) as T;
     } catch (err) {
-      console.error('Failed to parse extracted JSON:', err, '\nExtracted snippet:', extracted.slice(0, 500));
+      logger.error('Failed to parse extracted JSON', { 
+        component: 'JsonUtils', 
+        action: 'safeParseJSON',
+        metadata: { extractedSnippet: extracted.slice(0, 500) } 
+      }, err);
       throw new Error('Invalid JSON format in LLM response after extraction');
     }
   }
 
   // 3) Provide a helpful error with a safe snippet
   const snippet = raw.length > 500 ? raw.slice(0, 500) + '…' : raw;
-  console.error('Failed to locate JSON in LLM response. Raw snippet:', snippet);
+  logger.error('Failed to locate JSON in LLM response', { 
+    component: 'JsonUtils', 
+    action: 'safeParseJSON',
+    metadata: { rawSnippet: snippet } 
+  });
   throw new Error('The AI did not return valid JSON. Please try again.');
 }
