@@ -95,7 +95,7 @@ serve(async (req) => {
 
     const newUserId = userData.user.id;
 
-    // Create profile entry
+    // Create or update profile entry (handle existing profile via trigger)
     const { error: profileError } = await supabaseAdmin
       .from('profiles')
       .insert({
@@ -106,19 +106,43 @@ serve(async (req) => {
       });
 
     if (profileError) {
-      console.error('Profile creation error:', profileError);
-      // Clean up the user if profile creation fails
-      await supabaseAdmin.auth.admin.deleteUser(newUserId);
-      return new Response(JSON.stringify({ 
-        error: 'Failed to create profile',
-        details: (profileError as any)?.message ?? profileError
-      }), {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      // If profile already exists (likely from a signup trigger), update it instead
+      const code = (profileError as any)?.code;
+      if (code === '23505') { // unique_violation
+        console.warn('Profile already exists, updating instead.');
+        const { error: updateError } = await supabaseAdmin
+          .from('profiles')
+          .update({
+            display_name: displayName,
+            // Re-set username if needed
+            username: email.split('@')[0],
+          })
+          .eq('user_id', newUserId);
+        if (updateError) {
+          console.error('Profile update error:', updateError);
+          return new Response(JSON.stringify({
+            error: 'Failed to update existing profile',
+            details: (updateError as any)?.message ?? updateError
+          }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+      } else {
+        console.error('Profile creation error:', profileError);
+        // Clean up the user if profile creation fails for other reasons
+        await supabaseAdmin.auth.admin.deleteUser(newUserId);
+        return new Response(JSON.stringify({ 
+          error: 'Failed to create profile',
+          details: (profileError as any)?.message ?? profileError
+        }), {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
     }
 
-    // Create privacy settings
+    // Create privacy settings if not exists
     const { error: privacyError } = await supabaseAdmin
       .from('privacy_settings')
       .insert({
@@ -126,7 +150,12 @@ serve(async (req) => {
       });
 
     if (privacyError) {
-      console.error('Privacy settings error:', privacyError);
+      const code = (privacyError as any)?.code;
+      if (code === '23505') {
+        console.warn('Privacy settings already exist, continuing.');
+      } else {
+        console.error('Privacy settings error:', privacyError);
+      }
     }
 
     // Insert personality overrides if provided
