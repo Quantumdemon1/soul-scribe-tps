@@ -12,6 +12,7 @@ import React from 'react';
 import '@/utils/debugCleanup'; // Initialize debug cleanup
 import { ProductionReadinessChecker } from '@/utils/productionReadinessChecker';
 import '@/utils/bundleOptimizer'; // Initialize bundle optimization
+import { useScoringOverrides } from './hooks/useScoringOverrides';
 
 const LazyIntegralAssessment = lazy(() => import('./pages/IntegralAssessment'));
 
@@ -21,7 +22,6 @@ const AppContent = () => {
   usePerformanceOptimization(); // Initialize performance monitoring
 
   // Load global scoring overrides (cached in localStorage for sync access)
-  const { useScoringOverrides } = await import('./hooks/useScoringOverrides');
   useScoringOverrides();
   
   // Initialize production optimizations

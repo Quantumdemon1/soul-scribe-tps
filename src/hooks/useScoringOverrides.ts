@@ -12,7 +12,7 @@ export function useScoringOverrides() {
         if (!mounted) return;
         writeLocalOverrides(overrides);
       } catch (err) {
-        logger.warn('useScoringOverrides: falling back to defaults', { component: 'useScoringOverrides' }, err as Error);
+        logger.warn('useScoringOverrides: falling back to defaults', { component: 'useScoringOverrides' });
       }
     })();
     return () => { mounted = false; };
