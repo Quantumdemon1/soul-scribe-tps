@@ -2,7 +2,7 @@ import { PersonalityProfile } from '../types/tps.types';
 import { AIInsights } from '../types/llm.types';
 import { IntegralDetail } from '@/mappings/integral.enhanced';
 import jsPDF from 'jspdf';
-
+import { logger } from './structuredLogging';
 export interface EnhancedPDFOptions {
   includeCharts: boolean;
   includeInsights: boolean;
