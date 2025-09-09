@@ -220,6 +220,74 @@ export type Database = {
         }
         Relationships: []
       }
+      forum_categories: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean | null
+          min_verification_level: string | null
+          name: string
+          required_assessment_type: string | null
+          required_integral_levels: string[] | null
+          required_personality_types: string[] | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          min_verification_level?: string | null
+          name: string
+          required_assessment_type?: string | null
+          required_integral_levels?: string[] | null
+          required_personality_types?: string[] | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          min_verification_level?: string | null
+          name?: string
+          required_assessment_type?: string | null
+          required_integral_levels?: string[] | null
+          required_personality_types?: string[] | null
+        }
+        Relationships: []
+      }
+      forum_memberships: {
+        Row: {
+          forum_category_id: string
+          id: string
+          joined_at: string
+          role: string | null
+          user_id: string
+        }
+        Insert: {
+          forum_category_id: string
+          id?: string
+          joined_at?: string
+          role?: string | null
+          user_id: string
+        }
+        Update: {
+          forum_category_id?: string
+          id?: string
+          joined_at?: string
+          role?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "forum_memberships_forum_category_id_fkey"
+            columns: ["forum_category_id"]
+            isOneToOne: false
+            referencedRelation: "forum_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       insight_comparisons: {
         Row: {
           baseline_assessment_id: string
@@ -347,6 +415,129 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          created_at: string
+          data: Json | null
+          id: string
+          message: string
+          read: boolean | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          data?: Json | null
+          id?: string
+          message: string
+          read?: boolean | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          data?: Json | null
+          id?: string
+          message?: string
+          read?: boolean | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      privacy_settings: {
+        Row: {
+          allow_direct_messages: boolean | null
+          allow_forum_mentions: boolean | null
+          allow_personality_matching: boolean | null
+          created_at: string
+          data_sharing_consent: boolean | null
+          id: string
+          show_assessment_results: boolean | null
+          show_online_status: boolean | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          allow_direct_messages?: boolean | null
+          allow_forum_mentions?: boolean | null
+          allow_personality_matching?: boolean | null
+          created_at?: string
+          data_sharing_consent?: boolean | null
+          id?: string
+          show_assessment_results?: boolean | null
+          show_online_status?: boolean | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          allow_direct_messages?: boolean | null
+          allow_forum_mentions?: boolean | null
+          allow_personality_matching?: boolean | null
+          created_at?: string
+          data_sharing_consent?: boolean | null
+          id?: string
+          show_assessment_results?: boolean | null
+          show_online_status?: boolean | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          birth_date: string | null
+          created_at: string
+          display_name: string | null
+          id: string
+          location: string | null
+          personality_visibility: string | null
+          profile_visibility: string | null
+          updated_at: string
+          user_id: string
+          username: string | null
+          verification_level: string | null
+          website: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          birth_date?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          location?: string | null
+          personality_visibility?: string | null
+          profile_visibility?: string | null
+          updated_at?: string
+          user_id: string
+          username?: string | null
+          verification_level?: string | null
+          website?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          birth_date?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          location?: string | null
+          personality_visibility?: string | null
+          profile_visibility?: string | null
+          updated_at?: string
+          user_id?: string
+          username?: string | null
+          verification_level?: string | null
+          website?: string | null
+        }
+        Relationships: []
+      }
       rate_limits: {
         Row: {
           created_at: string
@@ -401,6 +592,33 @@ export type Database = {
           id?: string
           initial_scores?: Json
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      user_connections: {
+        Row: {
+          connection_type: string | null
+          created_at: string
+          follower_id: string
+          following_id: string
+          id: string
+          personality_compatibility_score: number | null
+        }
+        Insert: {
+          connection_type?: string | null
+          created_at?: string
+          follower_id: string
+          following_id: string
+          id?: string
+          personality_compatibility_score?: number | null
+        }
+        Update: {
+          connection_type?: string | null
+          created_at?: string
+          follower_id?: string
+          following_id?: string
+          id?: string
+          personality_compatibility_score?: number | null
         }
         Relationships: []
       }
@@ -475,6 +693,10 @@ export type Database = {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
+        Returns: boolean
+      }
+      validate_username: {
+        Args: { username_input: string }
         Returns: boolean
       }
     }
