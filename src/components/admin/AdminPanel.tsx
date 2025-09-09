@@ -637,7 +637,29 @@ export const AdminPanel: React.FC = () => {
           </TabsContent>
 
           <TabsContent value="scoring" className="space-y-6">
-            <ScoringTuner />
+            <Tabs defaultValue="tuner" className="space-y-4">
+              <TabsList>
+                <TabsTrigger value="tuner">Scoring Tuner</TabsTrigger>
+                <TabsTrigger value="simulator">Simulator</TabsTrigger>
+                <TabsTrigger value="overrides">User Overrides</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="tuner">
+                <ScoringTuner />
+              </TabsContent>
+              
+              <TabsContent value="simulator">
+                <React.Suspense fallback={<div>Loading simulator...</div>}>
+                  {React.createElement(React.lazy(() => import('./ScoringSimulator')))}
+                </React.Suspense>
+              </TabsContent>
+              
+              <TabsContent value="overrides">
+                <React.Suspense fallback={<div>Loading user overrides...</div>}>
+                  {React.createElement(React.lazy(() => import('./UserOverrideManager')))}
+                </React.Suspense>
+              </TabsContent>
+            </Tabs>
           </TabsContent>
 
           <TabsContent value="mobile" className="space-y-6">

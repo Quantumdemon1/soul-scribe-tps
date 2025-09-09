@@ -8,7 +8,7 @@ import { toast } from '@/hooks/use-toast';
 import { TPSScoring } from '@/utils/tpsScoring';
 import { TPS_QUESTIONS } from '@/data/questions';
 import { saveScoringOverrides, loadScoringOverrides, writeLocalOverrides, type ScoringOverrides, type MBTIDimensionKey } from '@/services/scoringConfigService';
-import { SlidersHorizontal, RefreshCw, Save, ListChecks } from 'lucide-react';
+import { SlidersHorizontal, RefreshCw, Save, ListChecks, Calculator, Settings } from 'lucide-react';
 
 const DEFAULT_MBTI_WEIGHTS: Record<MBTIDimensionKey, { traits: Record<string, number>; threshold?: number }> = {
   EI: { traits: { 'Communal Navigate': 0.35, 'Dynamic': 0.35, 'Assertive': 0.15, 'Direct': 0.15 }, threshold: 5 },
@@ -127,10 +127,12 @@ export const ScoringTuner: React.FC = () => {
       </div>
 
       <Tabs defaultValue="weights" className="space-y-6">
-        <TabsList>
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="weights">MBTI Weights</TabsTrigger>
           <TabsTrigger value="mappings">Question Mappings</TabsTrigger>
           <TabsTrigger value="usage">Question Usage</TabsTrigger>
+          <TabsTrigger value="frameworks">All Frameworks</TabsTrigger>
+          <TabsTrigger value="audit">Audit Trail</TabsTrigger>
         </TabsList>
 
         <TabsContent value="weights" className="space-y-4">
@@ -239,6 +241,36 @@ export const ScoringTuner: React.FC = () => {
                   <div className="text-xs text-muted-foreground mt-1">Traits: {(questionUsage[i+1] || []).join(', ') || '—'}</div>
                 </div>
               ))}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="frameworks" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Settings className="h-4 w-4" />
+                All Framework Weights (Coming Soon)
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="text-center py-8 text-muted-foreground">
+              <p>Support for Big Five, Enneagram, Alignment, Holland Code,</p>
+              <p>Socionics, Integral, and Attachment framework weights will be added here.</p>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="audit" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Calculator className="h-4 w-4" />
+                Scoring Changes Audit Trail
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="text-center py-8 text-muted-foreground">
+              <p>Track all changes to scoring configurations and their impact on results.</p>
+              <p>Feature coming soon.</p>
             </CardContent>
           </Card>
         </TabsContent>
