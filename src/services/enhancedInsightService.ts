@@ -1,6 +1,7 @@
 import { LLMService } from './llmService';
 import { PersonalityProfile } from '@/types/tps.types';
 import { supabase } from '@/integrations/supabase/client';
+import { logger } from '@/utils/structuredLogging';
 
 export interface FrameworkExplanation {
   mbti?: string;
@@ -46,7 +47,7 @@ export class EnhancedInsightService {
           (explanations as any)[framework] = explanation;
         })
         .catch(error => {
-          console.error(`Error generating ${framework} explanation:`, error);
+          logger.aiService('generate_enhanced_explanation', `Error generating ${framework} explanation`, { framework }, error as Error);
           (explanations as any)[framework] = `Unable to generate ${framework} explanation at this time.`;
         });
       promises.push(promise);
@@ -261,7 +262,7 @@ Please explain why they got this Holland Code, specific career recommendations, 
 
       return data.content as FrameworkExplanation;
     } catch (error) {
-      console.error('Error reading from database cache:', error);
+      logger.aiService('read_from_cache', 'Error reading from database cache', { cacheKey }, error as Error);
       return null;
     }
   }
@@ -278,7 +279,7 @@ Please explain why they got this Holland Code, specific career recommendations, 
           created_at: new Date().toISOString()
         });
     } catch (error) {
-      console.error('Error saving to database cache:', error);
+      logger.aiService('save_to_cache', 'Error saving to database cache', { cacheKey }, error as Error);
       // Don't throw - caching failure shouldn't break the main flow
     }
   }

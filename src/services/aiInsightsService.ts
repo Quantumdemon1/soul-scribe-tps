@@ -4,6 +4,7 @@ import { LLMService } from './llmService';
 import { FrameworkInsightsService } from './frameworkInsightsService';
 import { supabase } from '@/integrations/supabase/client';
 import { stableHash } from '@/utils/hash';
+import { logger } from '@/utils/structuredLogging';
 
 export class AIInsightsService {
   private llmService = new LLMService();
@@ -26,7 +27,7 @@ export class AIInsightsService {
       // Check memory cache first
       const cachedResult = this.getFromMemoryCache(cacheKey);
       if (cachedResult) {
-        console.log('Using cached comprehensive insights');
+        logger.aiService('generate_comprehensive_insights', 'Using cached comprehensive insights', { userId });
         return cachedResult;
       }
 
@@ -34,7 +35,7 @@ export class AIInsightsService {
       if (userId) {
         const dbCached = await this.getFromDatabaseCache(userId, 'comprehensive', cacheKey);
         if (dbCached) {
-          console.log('Using database cached comprehensive insights');
+          logger.aiService('generate_comprehensive_insights', 'Using database cached comprehensive insights', { userId });
           this.setMemoryCache(cacheKey, dbCached);
           return dbCached;
         }
@@ -54,16 +55,16 @@ export class AIInsightsService {
         relationship: await this.generateRelationshipInsight(profile)
       };
 
-      console.log('Successfully generated AI insights');
+      logger.aiService('generate_comprehensive_insights', 'Successfully generated AI insights', { userId });
 
       // Generate framework insights if not already present
       if (!profile.frameworkInsights) {
         try {
           const frameworkInsights = await this.frameworkInsightsService.generateFrameworkInsights(profile, profile.traitScores, userId);
           profile.frameworkInsights = frameworkInsights;
-          console.log('Successfully generated framework insights');
+          logger.aiService('generate_framework_insights', 'Successfully generated framework insights', { userId });
         } catch (error) {
-          console.error('Error generating framework insights:', error);
+          logger.aiService('generate_framework_insights', 'Error generating framework insights', { userId }, error as Error);
           // Continue without framework insights rather than failing entirely
         }
       }
@@ -76,7 +77,7 @@ export class AIInsightsService {
 
       return insights;
     } catch (error) {
-      console.error('Error generating AI insights:', error);
+      logger.aiService('generate_comprehensive_insights', 'Error generating AI insights', { userId }, error as Error);
       // Provide more specific error message
       if (error instanceof Error) {
         throw new Error(`Failed to generate AI insights: ${error.message}`);
@@ -149,9 +150,9 @@ Keep it practical, empathetic, and actionable for building better relationships.
           cache_key: cacheKey,
           version: 1
         });
-        console.log('Successfully saved AI insights to database');
-    } catch (error) {
-      console.error('Error saving insights to database:', error);
+        logger.aiService('save_insights', 'Successfully saved AI insights to database', { userId });
+      } catch (error) {
+        logger.aiService('save_insights', 'Error saving insights to database', { userId }, error as Error);
       // Show visible error to user when database save fails
       throw new Error(`Failed to save insights: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
@@ -178,7 +179,7 @@ Keep it practical, empathetic, and actionable for building better relationships.
 
       return data.content as unknown as AIInsights;
     } catch (error) {
-      console.error('Error retrieving insights:', error);
+      logger.aiService('get_cached_insights', 'Error retrieving insights', { userId }, error as Error);
       return null;
     }
   }
@@ -225,7 +226,7 @@ Keep it practical, empathetic, and actionable for building better relationships.
 
       return data.content as unknown as AIInsights;
     } catch (error) {
-      console.error('Error retrieving cached insights from database:', error);
+      logger.aiService('get_database_cached_insights', 'Error retrieving cached insights from database', { userId }, error as Error);
       return null;
     }
   }

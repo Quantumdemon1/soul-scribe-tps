@@ -1,5 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { logger } from '@/utils/structuredLogging';
 
 export interface ErrorLog {
   id?: string;
@@ -77,11 +78,11 @@ class ErrorLoggingService {
         .insert([enhancedError]);
 
       if (error) {
-        console.error('Failed to log error to database:', error);
+        logger.error('Failed to log error to database', { component: 'ErrorLoggingService' }, error as Error);
         this.storeOfflineError(enhancedError);
       }
     } catch (dbError) {
-      console.error('Database error while logging:', dbError);
+      logger.error('Database error while logging', { component: 'ErrorLoggingService' }, dbError as Error);
       this.storeOfflineError(enhancedError);
     }
   }
@@ -98,7 +99,7 @@ class ErrorLoggingService {
       
       localStorage.setItem('offline_errors', JSON.stringify(offlineErrors));
     } catch (storageError) {
-      console.error('Failed to store offline error:', storageError);
+      logger.error('Failed to store offline error', { component: 'ErrorLoggingService' }, storageError as Error);
     }
   }
 
@@ -114,10 +115,10 @@ class ErrorLoggingService {
 
       if (!error) {
         localStorage.removeItem('offline_errors');
-        console.log(`Flushed ${offlineErrors.length} offline errors`);
+        logger.info(`Flushed ${offlineErrors.length} offline errors`, { component: 'ErrorLoggingService' });
       }
     } catch (error) {
-      console.error('Failed to flush offline errors:', error);
+      logger.error('Failed to flush offline errors', { component: 'ErrorLoggingService' }, error as Error);
     }
   }
 

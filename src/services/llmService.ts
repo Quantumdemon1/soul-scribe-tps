@@ -2,6 +2,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { LLMConfig } from '@/types/llm.types';
 import { InputValidator } from '@/utils/inputValidation';
 import { DEFAULT_SYSTEM_PROMPTS } from '@/config/systemPrompts';
+import { logger } from '@/utils/structuredLogging';
 
 export class LLMService {
   private config: LLMConfig | null = null;
@@ -15,7 +16,7 @@ export class LLMService {
         .maybeSingle();
       
       if (error) {
-        console.error('Error loading LLM configuration:', error);
+        logger.error('Error loading LLM configuration', { component: 'LLMService' }, error);
         throw new Error(`Failed to load LLM configuration: ${error.message}`);
       }
       
@@ -65,7 +66,7 @@ export class LLMService {
         throw new Error('Invalid LLM provider');
       } catch (error) {
         lastError = error as Error;
-        console.warn(`LLM call attempt ${attempt}/${retries} failed:`, error);
+        logger.warn(`LLM call attempt ${attempt}/${retries} failed`, { component: 'LLMService', metadata: { attempt, retries } });
         
         if (attempt === retries) {
           throw lastError;
@@ -100,12 +101,12 @@ export class LLMService {
       const response = await Promise.race([request, timeout]) as any;
 
       if (response.error) {
-        console.error('LLM Proxy Error:', response.error);
+        logger.error('LLM Proxy Error', { component: 'LLMService', metadata: { provider: 'openai', error: response.error } });
         throw new Error(`OpenAI API error: ${response.error.message || 'Unknown error'}`);
       }
 
       if (!response.data || !response.data.choices || !response.data.choices[0]) {
-        console.error('Invalid response structure:', response.data);
+        logger.error('Invalid response structure', { component: 'LLMService', metadata: { provider: 'openai', data: response.data } });
         throw new Error('Invalid response from OpenAI API');
       }
 
@@ -116,7 +117,7 @@ export class LLMService {
 
       return content;
     } catch (error) {
-      console.error('Error calling OpenAI:', error);
+      logger.error('Error calling OpenAI', { component: 'LLMService', metadata: { provider: 'openai' } }, error as Error);
       throw error;
     }
   }
@@ -143,12 +144,12 @@ export class LLMService {
       const response = await Promise.race([request, timeout]) as any;
 
       if (response.error) {
-        console.error('LLM Proxy Error:', response.error);
+        logger.error('LLM Proxy Error', { component: 'LLMService', metadata: { provider: 'anthropic', error: response.error } });
         throw new Error(`Claude API error: ${response.error.message || 'Unknown error'}`);
       }
 
       if (!response.data || !response.data.content || !response.data.content[0]) {
-        console.error('Invalid response structure:', response.data);
+        logger.error('Invalid response structure', { component: 'LLMService', metadata: { provider: 'anthropic', data: response.data } });
         throw new Error('Invalid response from Claude API');
       }
 
@@ -159,7 +160,7 @@ export class LLMService {
 
       return content;
     } catch (error) {
-      console.error('Error calling Claude:', error);
+      logger.error('Error calling Claude', { component: 'LLMService', metadata: { provider: 'anthropic' } }, error as Error);
       throw error;
     }
   }

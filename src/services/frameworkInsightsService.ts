@@ -3,6 +3,7 @@ import { FrameworkInsights, MBTIInsight, EnneagramInsight, BigFiveInsight, Align
 import { LLMService } from './llmService';
 import { parseLLMJson } from '@/utils/jsonUtils';
 import { stableHash } from '@/utils/hash';
+import { logger } from '@/utils/structuredLogging';
 
 export class FrameworkInsightsService {
   private llmService = new LLMService();
@@ -12,7 +13,7 @@ export class FrameworkInsightsService {
   // Consolidated AI Insights Methods (from AIInsightsService) with caching
   async generateComprehensiveInsights(profile: PersonalityProfile, userId?: string): Promise<AIInsights> {
     try {
-      console.log('Starting comprehensive AI insights generation for profile:', profile);
+      logger.aiService('generate_comprehensive_insights', 'Starting comprehensive AI insights generation', { userId });
 
       // Compute cache key (per-user cache due to RLS policies)
       const cacheKey = this.makeCacheKey(profile, 'comprehensive');
@@ -21,7 +22,7 @@ export class FrameworkInsightsService {
       if (userId) {
         const cached = await this.getCachedInsight(userId, 'comprehensive', cacheKey);
         if (cached) {
-          console.log('Returning cached comprehensive AI insights');
+          logger.aiService('generate_comprehensive_insights', 'Returning cached comprehensive AI insights', { userId });
           return cached;
         }
       }
@@ -36,7 +37,7 @@ export class FrameworkInsightsService {
 
       const insights: AIInsights = { general, career, development, relationship };
 
-      console.log('Successfully generated comprehensive AI insights');
+      logger.aiService('generate_comprehensive_insights', 'Successfully generated comprehensive AI insights', { userId });
 
       // Save insights to database if user is provided
       if (userId) {
@@ -45,7 +46,7 @@ export class FrameworkInsightsService {
 
       return insights;
     } catch (error) {
-      console.error('Error generating comprehensive AI insights:', error);
+      logger.aiService('generate_comprehensive_insights', 'Error generating comprehensive AI insights', { userId }, error as Error);
       if (error instanceof Error) {
         throw new Error(`Failed to generate AI insights: ${error.message}`);
       }
@@ -121,7 +122,7 @@ Keep it practical, empathetic, and actionable for building better relationships.
           version
         });
     } catch (error) {
-      console.error('Error saving insights:', error);
+      logger.aiService('save_insights', 'Error saving insights', { userId }, error as Error);
       // Don't throw here - insights generation succeeded even if saving failed
     }
   }
@@ -148,7 +149,7 @@ Keep it practical, empathetic, and actionable for building better relationships.
 
       return data.content as unknown as AIInsights;
     } catch (error) {
-      console.error('Error retrieving insights:', error);
+      logger.aiService('get_existing_insights', 'Error retrieving insights', { userId }, error as Error);
       return null;
     }
   }
@@ -183,7 +184,7 @@ Keep it practical, empathetic, and actionable for building better relationships.
       if (data.version !== FrameworkInsightsService.INSIGHTS_VERSION) return null; // ignore older cache
       return data.content as unknown as AIInsights;
     } catch (e) {
-      console.warn('Cache lookup failed, proceeding without cache:', e);
+      logger.warn('Cache lookup failed, proceeding without cache', { component: 'FrameworkInsightsService' });
       return null;
     }
   }
@@ -194,7 +195,7 @@ Keep it practical, empathetic, and actionable for building better relationships.
     userId?: string
   ): Promise<FrameworkInsights> {
     try {
-      console.log('Generating framework insights for profile:', profile.mappings);
+      logger.aiService('generate_framework_insights', 'Generating framework insights for profile', { userId, mappings: profile.mappings });
 
       // Build cache key
       const cacheKey = this.makeCacheKey(profile, 'framework');
@@ -217,7 +218,7 @@ Keep it practical, empathetic, and actionable for building better relationships.
             return data.content as unknown as FrameworkInsights;
           }
         } catch (e) {
-          console.warn('Framework DB cache lookup failed, continuing...', e);
+          logger.warn('Framework DB cache lookup failed, continuing', { component: 'FrameworkInsightsService', userId });
         }
       } else {
         // 2) Try localStorage cache for anonymous users
@@ -264,7 +265,7 @@ Keep it practical, empathetic, and actionable for building better relationships.
         overallConfidence: (mbti.confidence + enneagram.confidence + bigFive.confidence + alignment.confidence) / 4
       };
 
-      console.log('Successfully generated framework insights');
+      logger.aiService('generate_framework_insights', 'Successfully generated framework insights', { userId });
 
       // 4) Persist cache
       if (userId) {
@@ -279,7 +280,7 @@ Keep it practical, empathetic, and actionable for building better relationships.
             version: FrameworkInsightsService.FRAMEWORK_VERSION
           });
         } catch (e) {
-          console.warn('Failed to save framework insights cache to DB', e);
+          logger.warn('Failed to save framework insights cache to DB', { component: 'FrameworkInsightsService', userId });
         }
       } else {
         try {
@@ -296,7 +297,7 @@ Keep it practical, empathetic, and actionable for building better relationships.
 
       return insights;
     } catch (error) {
-      console.error('Error generating framework insights:', error);
+      logger.aiService('generate_framework_insights', 'Error generating framework insights', { userId }, error as Error);
       throw new Error(`Failed to generate framework insights: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -810,11 +811,11 @@ ${profileData}
 
 Please analyze this specific personality profile and return the JSON object with personalized core insights as specified above. Focus on their actual trait scores and combinations to provide truly personalized explanations.`;
 
-    console.log('Generating core insights for profile data:', profileData);
+    logger.aiService('generate_core_insights', 'Generating core insights for profile', { profileData: profileData.substring(0, 100) });
 
     try {
       const response = await this.llmService.callLLM(fullPrompt, 'coreInsights');
-      console.log('Raw LLM response for core insights:', response);
+      logger.aiService('generate_core_insights', 'Raw LLM response received', { responseLength: response.length });
       
       // Clean and parse the JSON response
       let cleanResponse = response.trim();
@@ -826,11 +827,11 @@ Please analyze this specific personality profile and return the JSON object with
       }
       
       const insights = parseLLMJson<CoreInsight>(cleanResponse);
-      console.log('Parsed core insights:', insights);
+      logger.aiService('generate_core_insights', 'Successfully parsed core insights', { hasInsights: !!insights });
       
       return insights;
     } catch (error) {
-      console.error('Error generating core insights:', error);
+      logger.aiService('generate_core_insights', 'Error generating core insights', {}, error as Error);
       throw new Error('Failed to generate core insights');
     }
   }

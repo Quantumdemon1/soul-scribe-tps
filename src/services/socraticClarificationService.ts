@@ -5,6 +5,7 @@ import { TPSScoring } from '@/utils/tpsScoring';
 import { supabase } from '@/integrations/supabase/client';
 import { stableHash } from '@/utils/hash';
 import { calculateIntegralDevelopment, getIntegralClarificationQuestions, validateIntegralAssessment } from '@/mappings/integral.enhanced';
+import { logger } from '@/utils/structuredLogging';
 
 export class SocraticClarificationService {
   private readonly CUSP_THRESHOLD = 2.5; // Traits within 2.5 points are cusps
@@ -103,7 +104,7 @@ export class SocraticClarificationService {
       }
       
     } catch (error) {
-      console.warn('Error analyzing integral development cusps:', error);
+      logger.warn('Error analyzing integral development cusps', { component: 'SocraticClarificationService' });
     }
     
     return integralCusps;
@@ -120,7 +121,7 @@ export class SocraticClarificationService {
     // Check memory cache first
     const cached = this.getFromMemoryCache(cacheKey);
     if (cached) {
-      console.log('Using cached clarification questions');
+      logger.info('Using cached clarification questions', { component: 'SocraticClarificationService' });
       return cached;
     }
 
@@ -258,7 +259,7 @@ Use this exact format: {"${cusp.traits[0]}": 0.0, "${cusp.traits[1]}": 0.0, "${c
       throw new Error('No valid JSON found in LLM response');
       
     } catch (error) {
-      console.error('Error parsing LLM response:', error, 'Response was:', llmResponse);
+      logger.error('Error parsing LLM response', { component: 'SocraticClarificationService', metadata: { responseLength: llmResponse.length } }, error as Error);
       
       // Return neutral adjustments as fallback
       const neutralAdjustments: Record<string, number> = {};
@@ -321,7 +322,7 @@ Return only the JSON object, no explanation.`;
       
       return {};
     } catch (error) {
-      console.error('Error processing integral clarification response:', error);
+      logger.error('Error processing integral clarification response', { component: 'SocraticClarificationService' }, error as Error);
       return {};
     }
   }
@@ -369,7 +370,7 @@ Return only the JSON object, no explanation.`;
       
       return {};
     } catch (error) {
-      console.error('Error processing reality triad response:', error);
+      logger.error('Error processing reality triad response', { component: 'SocraticClarificationService' }, error as Error);
       return {};
     }
   }
@@ -452,7 +453,7 @@ Return only the JSON object, no explanation.`;
           final_scores: {}
         });
     } catch (error) {
-      console.error('Error saving clarification session:', error);
+      logger.error('Error saving clarification session', { component: 'SocraticClarificationService', userId }, error as Error);
     }
   }
 }

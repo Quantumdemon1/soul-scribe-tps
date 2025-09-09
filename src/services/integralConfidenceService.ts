@@ -1,6 +1,7 @@
 import { LLMService } from './llmService';
 import { IntegralDetail, IntegralLevel } from '@/mappings/integral.enhanced';
 import { PersonalityProfile } from '@/types/tps.types';
+import { logger } from '@/utils/structuredLogging';
 
 export interface ConfidenceAnalysis {
   currentConfidence: number;
@@ -96,7 +97,7 @@ export class IntegralConfidenceService {
       const llmResponse = await this.llmService.callLLM(prompt, 'insightGeneration');
       return this.parseQuestionResponse(llmResponse);
     } catch (error) {
-      console.error('Error generating clarification questions:', error);
+      logger.aiService('generate_clarification_questions', 'Error generating clarification questions', {}, error as Error);
       return this.getFallbackQuestions();
     }
   }
@@ -115,7 +116,7 @@ export class IntegralConfidenceService {
       const llmResponse = await this.llmService.callLLM(prompt, 'developmentPlanning');
       return this.parseUpdatedAssessment(llmResponse, originalAssessment);
     } catch (error) {
-      console.error('Error processing confidence enhancement:', error);
+      logger.aiService('process_confidence_enhancement', 'Error processing confidence enhancement', {}, error as Error);
       // Return original with slightly increased confidence
       return {
         ...originalAssessment,
@@ -227,7 +228,7 @@ The three reality triad values should sum to 1.0.`;
         return questions.filter(q => q.question && q.type && q.targetLevel);
       }
     } catch (error) {
-      console.error('Error parsing question response:', error);
+      logger.aiService('parse_question_response', 'Error parsing question response', {}, error as Error);
     }
     
     // Fallback to default questions if parsing fails
@@ -252,7 +253,7 @@ The three reality triad values should sum to 1.0.`;
         };
       }
     } catch (error) {
-      console.error('Error parsing updated assessment:', error);
+      logger.aiService('parse_updated_assessment', 'Error parsing updated assessment', {}, error as Error);
     }
     
     // Fallback: return original with modest confidence boost

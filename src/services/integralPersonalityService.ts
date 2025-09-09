@@ -1,6 +1,7 @@
 import { LLMService } from './llmService';
 import { IntegralDetail, INTEGRAL_LEVELS } from '@/mappings/integral.enhanced';
 import { PersonalityProfile } from '@/types/tps.types';
+import { logger } from '@/utils/structuredLogging';
 
 export interface PersonalityIntegration {
   integralLevel: IntegralDetail;
@@ -69,7 +70,7 @@ export class IntegralPersonalityService {
         levelSpecificManifestations: manifestations
       };
     } catch (error) {
-      console.error('Error generating personality integration:', error);
+      logger.aiService('generate_personality_integration', 'Error generating personality integration', {}, error as Error);
       return this.getFallbackIntegration(integralDetail, personalityProfile);
     }
   }
@@ -233,7 +234,7 @@ Be specific about how the ${framework} type's core patterns interact with the in
         return JSON.parse(jsonMatch[0]) as LevelManifestation;
       }
     } catch (error) {
-      console.error(`Error generating ${framework} manifestation:`, error);
+      logger.aiService('generate_manifestation', `Error generating ${framework} manifestation`, { framework }, error as Error);
     }
     
     return null;
@@ -247,7 +248,7 @@ Be specific about how the ${framework} type's core patterns interact with the in
         return insights.filter(insight => insight.title && insight.description);
       }
     } catch (error) {
-      console.error('Error parsing insights response:', error);
+      logger.aiService('parse_insights_response', 'Error parsing insights response', {}, error as Error);
     }
     
     return this.getFallbackInsights();
@@ -261,7 +262,7 @@ Be specific about how the ${framework} type's core patterns interact with the in
         return recommendations.filter(rec => rec.title && rec.description);
       }
     } catch (error) {
-      console.error('Error parsing recommendations response:', error);
+      logger.aiService('parse_recommendations_response', 'Error parsing recommendations response', {}, error as Error);
     }
     
     return this.getFallbackRecommendations();
