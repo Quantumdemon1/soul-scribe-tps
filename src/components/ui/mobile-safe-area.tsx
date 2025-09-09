@@ -6,6 +6,8 @@ interface MobileSafeAreaProps {
   className?: string;
   top?: boolean;
   bottom?: boolean;
+  left?: boolean;
+  right?: boolean;
   insetType?: 'safe-area' | 'constant';
 }
 
@@ -14,6 +16,8 @@ export const MobileSafeArea: React.FC<MobileSafeAreaProps> = ({
   className,
   top = false,
   bottom = false,
+  left = false,
+  right = false,
   insetType = 'safe-area'
 }) => {
   const safeAreaStyles: React.CSSProperties = {};
@@ -24,6 +28,14 @@ export const MobileSafeArea: React.FC<MobileSafeAreaProps> = ({
   
   if (bottom) {
     safeAreaStyles.paddingBottom = `env(${insetType}-inset-bottom)`;
+  }
+  
+  if (left) {
+    safeAreaStyles.paddingLeft = `env(${insetType}-inset-left)`;
+  }
+  
+  if (right) {
+    safeAreaStyles.paddingRight = `env(${insetType}-inset-right)`;
   }
 
   return (

@@ -2,6 +2,7 @@ import { LLMService } from './llmService';
 import { IntegralDetail, INTEGRAL_LEVELS } from '@/mappings/integral.enhanced';
 import { PersonalityProfile } from '@/types/tps.types';
 import { logger } from '@/utils/structuredLogging';
+import { parseLLMJson } from '@/utils/jsonUtils';
 
 export interface PersonalityIntegration {
   integralLevel: IntegralDetail;
@@ -229,10 +230,7 @@ Be specific about how the ${framework} type's core patterns interact with the in
 
     try {
       const response = await this.llmService.callLLM(prompt, 'insightGeneration');
-      const jsonMatch = response.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        return JSON.parse(jsonMatch[0]) as LevelManifestation;
-      }
+      return parseLLMJson<LevelManifestation>(response);
     } catch (error) {
       logger.aiService('generate_manifestation', `Error generating ${framework} manifestation`, { framework }, error as Error);
     }
@@ -242,30 +240,22 @@ Be specific about how the ${framework} type's core patterns interact with the in
 
   private parseInsightsResponse(llmResponse: string): IntegrationInsight[] {
     try {
-      const jsonMatch = llmResponse.match(/\[[\s\S]*\]/);
-      if (jsonMatch) {
-        const insights = JSON.parse(jsonMatch[0]) as IntegrationInsight[];
-        return insights.filter(insight => insight.title && insight.description);
-      }
+      const insights = parseLLMJson<IntegrationInsight[]>(llmResponse);
+      return insights.filter(insight => insight.title && insight.description);
     } catch (error) {
       logger.aiService('parse_insights_response', 'Error parsing insights response', {}, error as Error);
+      return this.getFallbackInsights();
     }
-    
-    return this.getFallbackInsights();
   }
 
   private parseRecommendationsResponse(llmResponse: string): DevelopmentRecommendation[] {
     try {
-      const jsonMatch = llmResponse.match(/\[[\s\S]*\]/);
-      if (jsonMatch) {
-        const recommendations = JSON.parse(jsonMatch[0]) as DevelopmentRecommendation[];
-        return recommendations.filter(rec => rec.title && rec.description);
-      }
+      const recommendations = parseLLMJson<DevelopmentRecommendation[]>(llmResponse);
+      return recommendations.filter(rec => rec.title && rec.description);
     } catch (error) {
       logger.aiService('parse_recommendations_response', 'Error parsing recommendations response', {}, error as Error);
+      return this.getFallbackRecommendations();
     }
-    
-    return this.getFallbackRecommendations();
   }
 
   private getNextIntegralLevel(currentNumber: number) {
