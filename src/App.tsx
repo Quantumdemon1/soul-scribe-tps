@@ -19,6 +19,10 @@ const queryClient = new QueryClient();
 
 const AppContent = () => {
   usePerformanceOptimization(); // Initialize performance monitoring
+
+  // Load global scoring overrides (cached in localStorage for sync access)
+  const { useScoringOverrides } = await import('./hooks/useScoringOverrides');
+  useScoringOverrides();
   
   // Initialize production optimizations
   React.useEffect(() => {

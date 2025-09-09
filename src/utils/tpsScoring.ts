@@ -33,6 +33,20 @@ const loadEnhancedMappings = async () => {
 // Initialize enhanced mappings
 loadEnhancedMappings();
 
+// Synchronous overrides loader (stored by admin in localStorage)
+function getScoringOverrides(): {
+  traitMappings?: Record<string, number[]>;
+  mbti?: Record<'EI' | 'SN' | 'TF' | 'JP', { traits: Record<string, number>; threshold?: number }>;
+} | null {
+  try {
+    const raw = typeof window !== 'undefined' ? window.localStorage.getItem('tps_scoring_overrides') : null;
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
 export class TPSScoring {
   static readonly TRAIT_MAPPINGS = {
     "Structured": [1, 4, 7, 10, 13, 16],
@@ -99,7 +113,10 @@ export class TPSScoring {
   static calculateTraitScores(userScores: number[]): TPSScores {
     const traitScores: TPSScores = {};
     
-    for (const [trait, indices] of Object.entries(this.TRAIT_MAPPINGS)) {
+    const overrides = getScoringOverrides();
+    const traitMappings: Record<string, number[]> = overrides?.traitMappings || this.TRAIT_MAPPINGS as any;
+    
+    for (const [trait, indices] of Object.entries(traitMappings)) {
       const scores = indices.map(i => userScores[i - 1] || 5);
       traitScores[trait] = scores.reduce((a, b) => a + b, 0) / scores.length;
     }
@@ -288,45 +305,51 @@ export class TPSScoring {
   }
 
   private static calculateMBTI(traitScores: TPSScores): string {
+    const overrides = getScoringOverrides();
+
     // EXTRAVERSION vs INTROVERSION
-    const extraversion = (
-      (traitScores['Communal Navigate'] * 0.35) +
-      (traitScores['Dynamic'] * 0.35) +
-      (traitScores['Assertive'] * 0.15) +
-      (traitScores['Direct'] * 0.15)
-    );
-    
-    const mbti_E_I = extraversion > 5 ? 'E' : 'I';
+    const eiWeights = overrides?.mbti?.EI?.traits || {
+      'Communal Navigate': 0.35,
+      'Dynamic': 0.35,
+      'Assertive': 0.15,
+      'Direct': 0.15,
+    };
+    const eiThreshold = overrides?.mbti?.EI?.threshold ?? 5;
+    const extraversion = Object.entries(eiWeights).reduce((sum, [trait, w]) => sum + (traitScores[trait] || 5) * w, 0);
+    const mbti_E_I = extraversion > eiThreshold ? 'E' : 'I';
     
     // SENSING vs INTUITION
-    const intuition = (
-      (traitScores['Intuitive'] * 0.40) +
-      (traitScores['Universal'] * 0.30) +
-      (traitScores['Varied'] * 0.15) +
-      (traitScores['Self-Aware'] * 0.15)
-    );
-    
-    const mbti_S_N = intuition > 5 ? 'N' : 'S';
+    const snWeights = overrides?.mbti?.SN?.traits || {
+      'Intuitive': 0.40,
+      'Universal': 0.30,
+      'Varied': 0.15,
+      'Self-Aware': 0.15,
+    };
+    const snThreshold = overrides?.mbti?.SN?.threshold ?? 5;
+    const intuition = Object.entries(snWeights).reduce((sum, [trait, w]) => sum + (traitScores[trait] || 5) * w, 0);
+    const mbti_S_N = intuition > snThreshold ? 'N' : 'S';
     
     // THINKING vs FEELING
-    const thinking = (
-      (traitScores['Analytical'] * 0.35) +
-      (traitScores['Stoic'] * 0.25) +
-      (traitScores['Direct'] * 0.20) +
-      (traitScores['Pragmatic'] * 0.20)
-    );
-    
-    const mbti_T_F = thinking > 5 ? 'T' : 'F';
+    const tfWeights = overrides?.mbti?.TF?.traits || {
+      'Analytical': 0.35,
+      'Stoic': 0.25,
+      'Direct': 0.20,
+      'Pragmatic': 0.20,
+    };
+    const tfThreshold = overrides?.mbti?.TF?.threshold ?? 5;
+    const thinking = Object.entries(tfWeights).reduce((sum, [trait, w]) => sum + (traitScores[trait] || 5) * w, 0);
+    const mbti_T_F = thinking > tfThreshold ? 'T' : 'F';
     
     // JUDGING vs PERCEIVING
-    const judging = (
-      (traitScores['Structured'] * 0.35) +
-      (traitScores['Lawful'] * 0.25) +
-      (traitScores['Self-Mastery'] * 0.20) +
-      (traitScores['Assertive'] * 0.20)
-    );
-    
-    const mbti_J_P = judging > 5 ? 'J' : 'P';
+    const jpWeights = overrides?.mbti?.JP?.traits || {
+      'Structured': 0.35,
+      'Lawful': 0.25,
+      'Self-Mastery': 0.20,
+      'Assertive': 0.20,
+    };
+    const jpThreshold = overrides?.mbti?.JP?.threshold ?? 5;
+    const judging = Object.entries(jpWeights).reduce((sum, [trait, w]) => sum + (traitScores[trait] || 5) * w, 0);
+    const mbti_J_P = judging > jpThreshold ? 'J' : 'P';
     
     return mbti_E_I + mbti_S_N + mbti_T_F + mbti_J_P;
   }

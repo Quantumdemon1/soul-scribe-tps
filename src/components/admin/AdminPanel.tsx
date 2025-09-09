@@ -11,7 +11,7 @@ import { Slider } from '@/components/ui/slider';
 import { LLMService } from '@/services/llmService';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
-import { Settings, Database, Brain, BarChart3, Save, RefreshCw, CheckCircle, AlertCircle, Copy, Upload, Download, Activity, Shield } from 'lucide-react';
+import { Settings, Database, Brain, BarChart3, Save, RefreshCw, CheckCircle, AlertCircle, Copy, Upload, Download, Activity, Shield, SlidersHorizontal } from 'lucide-react';
 import { useAdminRole } from '@/hooks/useAdminRole';
 import { AnalyticsOverview } from '@/components/analytics/AnalyticsOverview';
 import { SystemHealth } from '@/components/analytics/SystemHealth';
@@ -25,6 +25,7 @@ import { MobileTestIntegration } from '../mobile/MobileTestIntegration';
 import { ProductionTestSuite } from '../test/ProductionTestSuite';
 import { TestSessionsOverview } from './TestSessionsOverview';
 import { TestResultsOverview } from './TestResultsOverview';
+import ScoringTuner from './ScoringTuner';
 const BulkImportLazy = React.lazy(() => import('@/components/admin/BulkImport'));
 
 interface LLMConfig {
@@ -298,7 +299,7 @@ export const AdminPanel: React.FC = () => {
         </div>
 
         <Tabs defaultValue="llm" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-9">
+          <TabsList className="grid w-full grid-cols-10">
             <TabsTrigger value="llm" className="flex items-center gap-2">
               <Brain className="w-4 h-4" />
               LLM Config
@@ -322,6 +323,10 @@ export const AdminPanel: React.FC = () => {
             <TabsTrigger value="testing" className="flex items-center gap-2">
               <CheckCircle className="w-4 h-4" />
               Cache Testing
+            </TabsTrigger>
+            <TabsTrigger value="scoring" className="flex items-center gap-2">
+              <SlidersHorizontal className="w-4 h-4" />
+              Scoring Tuner
             </TabsTrigger>
             <TabsTrigger value="production" className="flex items-center gap-2">
               <Shield className="w-4 h-4" />
@@ -629,6 +634,10 @@ export const AdminPanel: React.FC = () => {
 
           <TabsContent value="results" className="space-y-6">
             <TestResultsOverview />
+          </TabsContent>
+
+          <TabsContent value="scoring" className="space-y-6">
+            <ScoringTuner />
           </TabsContent>
 
           <TabsContent value="mobile" className="space-y-6">
