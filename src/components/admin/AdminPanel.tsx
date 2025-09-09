@@ -26,6 +26,8 @@ import { ProductionTestSuite } from '../test/ProductionTestSuite';
 import { TestSessionsOverview } from './TestSessionsOverview';
 import { TestResultsOverview } from './TestResultsOverview';
 import ScoringTuner from './ScoringTuner';
+import ScoringSimulator from './ScoringSimulator';
+import UserOverrideManager from './UserOverrideManager';
 const BulkImportLazy = React.lazy(() => import('@/components/admin/BulkImport'));
 
 interface LLMConfig {
@@ -649,15 +651,11 @@ export const AdminPanel: React.FC = () => {
               </TabsContent>
               
               <TabsContent value="simulator">
-                <React.Suspense fallback={<div>Loading simulator...</div>}>
-                  {React.createElement(React.lazy(() => import('./ScoringSimulator')))}
-                </React.Suspense>
+                <ScoringSimulator />
               </TabsContent>
               
               <TabsContent value="overrides">
-                <React.Suspense fallback={<div>Loading user overrides...</div>}>
-                  {React.createElement(React.lazy(() => import('./UserOverrideManager')))}
-                </React.Suspense>
+                <UserOverrideManager />
               </TabsContent>
             </Tabs>
           </TabsContent>

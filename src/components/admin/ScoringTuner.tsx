@@ -232,32 +232,160 @@ export const ScoringTuner: React.FC = () => {
         <TabsContent value="usage" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle className="text-sm flex items-center gap-2"><ListChecks className="h-4 w-4" /> Question Usage</CardTitle>
+              <CardTitle className="text-sm flex items-center gap-2"><ListChecks className="h-4 w-4" /> Question Browser</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2 max-h-[600px] overflow-auto">
-              {TPS_QUESTIONS.map((q, i) => (
-                <div key={i} className="rounded-md border p-3">
-                  <div className="text-sm font-medium">Q{i+1}: {q}</div>
-                  <div className="text-xs text-muted-foreground mt-1">Traits: {(questionUsage[i+1] || []).join(', ') || '—'}</div>
-                </div>
-              ))}
+            <CardContent className="space-y-4">
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Search questions..."
+                  className="flex-1"
+                />
+                <select className="px-3 py-2 border rounded-md text-sm">
+                  <option value="">All Traits</option>
+                  {Object.keys(traitMappings).map(trait => (
+                    <option key={trait} value={trait}>{trait}</option>
+                  ))}
+                </select>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 text-xs">
+                <div className="font-medium">Coverage Summary:</div>
+                <div>Mapped: {Object.values(questionUsage).length}/{TPS_QUESTIONS.length}</div>
+                <div>Unmapped: {TPS_QUESTIONS.length - Object.values(questionUsage).length}</div>
+              </div>
+              
+              <div className="space-y-2 max-h-[500px] overflow-auto">
+                {TPS_QUESTIONS.map((q, i) => {
+                  const traits = questionUsage[i+1] || [];
+                  const isMapped = traits.length > 0;
+                  return (
+                    <div key={i} className={`rounded-md border p-3 ${!isMapped ? 'border-amber-200 bg-amber-50' : ''}`}>
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <div className="text-sm font-medium">Q{i+1}: {q}</div>
+                          <div className="text-xs text-muted-foreground mt-1">
+                            {isMapped ? (
+                              <span className="flex flex-wrap gap-1">
+                                {traits.map(trait => (
+                                  <span key={trait} className="px-2 py-1 bg-primary/10 text-primary rounded-md">
+                                    {trait}
+                                  </span>
+                                ))}
+                              </span>
+                            ) : (
+                              <span className="text-amber-600">Not mapped to any traits</span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {traits.length} trait{traits.length !== 1 ? 's' : ''}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
 
         <TabsContent value="frameworks" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm flex items-center gap-2">
-                <Settings className="h-4 w-4" />
-                All Framework Weights (Coming Soon)
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="text-center py-8 text-muted-foreground">
-              <p>Support for Big Five, Enneagram, Alignment, Holland Code,</p>
-              <p>Socionics, Integral, and Attachment framework weights will be added here.</p>
-            </CardContent>
-          </Card>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm">Big Five Weights</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {['Openness', 'Conscientiousness', 'Extraversion', 'Agreeableness', 'Neuroticism'].map((factor) => (
+                  <div key={factor} className="grid grid-cols-4 gap-2 items-center">
+                    <Label className="col-span-2 text-sm">{factor}</Label>
+                    <Input
+                      type="number"
+                      defaultValue={1.0}
+                      step={0.1}
+                      min={0}
+                      max={3}
+                      className="col-span-2"
+                    />
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm">Enneagram Weights</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {Array.from({length: 9}, (_, i) => i + 1).map((type) => (
+                  <div key={type} className="grid grid-cols-4 gap-2 items-center">
+                    <Label className="col-span-2 text-sm">Type {type}</Label>
+                    <Input
+                      type="number"
+                      defaultValue={1.0}
+                      step={0.1}
+                      min={0}
+                      max={3}
+                      className="col-span-2"
+                    />
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm">Holland Code Weights</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {['Realistic', 'Investigative', 'Artistic', 'Social', 'Enterprising', 'Conventional'].map((type) => (
+                  <div key={type} className="grid grid-cols-4 gap-2 items-center">
+                    <Label className="col-span-2 text-sm">{type}</Label>
+                    <Input
+                      type="number"
+                      defaultValue={1.0}
+                      step={0.1}
+                      min={0}
+                      max={3}
+                      className="col-span-2"
+                    />
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm">Alignment Weights</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {['Lawful', 'Neutral', 'Chaotic'].map((ethical) => (
+                  <div key={ethical} className="space-y-2">
+                    <Label className="text-xs font-medium">{ethical} Axis</Label>
+                    {['Good', 'Neutral', 'Evil'].map((moral) => (
+                      <div key={`${ethical}-${moral}`} className="grid grid-cols-4 gap-2 items-center">
+                        <Label className="col-span-2 text-sm">{moral}</Label>
+                        <Input
+                          type="number"
+                          defaultValue={1.0}
+                          step={0.1}
+                          min={0}
+                          max={3}
+                          className="col-span-2"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          </div>
+          
+          <div className="flex justify-end">
+            <Button variant="outline" size="sm">
+              <Save className="h-4 w-4 mr-2" /> Save Framework Weights
+            </Button>
+          </div>
         </TabsContent>
 
         <TabsContent value="audit" className="space-y-4">

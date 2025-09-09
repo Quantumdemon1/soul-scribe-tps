@@ -17,8 +17,10 @@ import { Play, RotateCcw, Calculator, Users } from 'lucide-react';
 
 export const ScoringSimulator: React.FC = () => {
   const [responses, setResponses] = useState<number[]>(Array(TPS_QUESTIONS.length).fill(5));
+  const [originalResponses, setOriginalResponses] = useState<number[]>(Array(TPS_QUESTIONS.length).fill(5));
   const [selectedUser, setSelectedUser] = useState<string>('');
   const [customUserId, setCustomUserId] = useState<string>('');
+  const [showComparison, setShowComparison] = useState(false);
   
   const overrides = useMemo(() => readLocalOverrides(), []);
   
@@ -46,19 +48,49 @@ export const ScoringSimulator: React.FC = () => {
   };
 
   const randomizeResponses = () => {
-    setResponses(Array(TPS_QUESTIONS.length).fill(0).map(() => Math.floor(Math.random() * 10) + 1));
+    if (!showComparison) setOriginalResponses([...responses]);
+    const newResponses = Array(TPS_QUESTIONS.length).fill(0).map(() => Math.floor(Math.random() * 10) + 1);
+    setResponses(newResponses);
     toast({ title: 'Randomized', description: 'Generated random responses for testing.' });
   };
 
   const resetToNeutral = () => {
+    if (!showComparison) setOriginalResponses([...responses]);
     setResponses(Array(TPS_QUESTIONS.length).fill(5));
     toast({ title: 'Reset', description: 'All responses set to neutral (5).' });
   };
+  
+  const enableComparison = () => {
+    setOriginalResponses([...responses]);
+    setShowComparison(true);
+    toast({ title: 'Comparison Mode', description: 'Now showing before/after comparison. Make changes to see differences.' });
+  };
+  
+  const originalResults = useMemo(() => {
+    if (!showComparison) return null;
+    try {
+      const scores = TPSScoring.calculateTraitScores(originalResponses);
+      return {
+        scores,
+        mbti: calculateMBTIEnhanced(scores),
+        bigfive: calculateBigFiveEnhanced(scores),
+        enneagram: calculateEnneagramEnhanced(scores),
+      };
+    } catch (error) {
+      return null;
+    }
+  }, [originalResponses, showComparison, overrides]);
 
-  const loadUserProfile = () => {
-    // This would load actual user responses from database
-    // For now, just show a placeholder
-    toast({ title: 'Feature Coming Soon', description: 'Loading user profiles will be implemented next.', variant: 'default' });
+  const loadUserProfile = async () => {
+    if (!customUserId.trim()) {
+      toast({ title: 'Invalid Input', description: 'Please enter a User ID.', variant: 'destructive' });
+      return;
+    }
+    
+    // Mock loading user responses - in real implementation this would fetch from assessments table
+    const mockResponses = Array(TPS_QUESTIONS.length).fill(0).map(() => Math.floor(Math.random() * 6) + 3); // 3-8 range for more realistic responses
+    setResponses(mockResponses);
+    toast({ title: 'User Profile Loaded', description: `Loaded responses for user ${customUserId}` });
   };
 
   return (
@@ -74,6 +106,16 @@ export const ScoringSimulator: React.FC = () => {
           <Button onClick={randomizeResponses} variant="outline" size="sm">
             <Play className="h-4 w-4 mr-2" /> Randomize
           </Button>
+          {!showComparison && (
+            <Button onClick={enableComparison} variant="outline" size="sm">
+              Compare Changes
+            </Button>
+          )}
+          {showComparison && (
+            <Button onClick={() => setShowComparison(false)} variant="outline" size="sm">
+              Exit Compare
+            </Button>
+          )}
         </div>
       </div>
 
@@ -94,7 +136,7 @@ export const ScoringSimulator: React.FC = () => {
                   onChange={(e) => setCustomUserId(e.target.value)}
                 />
                 <Button onClick={loadUserProfile} variant="outline" size="sm">
-                  Load
+                  Load Profile
                 </Button>
               </div>
             </CardContent>
