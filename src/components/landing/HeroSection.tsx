@@ -2,14 +2,15 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Brain } from 'lucide-react';
 import { Link } from 'react-router-dom';
-
 interface HeroSectionProps {
   onStartAssessment: () => void;
 }
-
-export const HeroSection: React.FC<HeroSectionProps> = ({ onStartAssessment }) => {
-  return (
-    <section className="relative min-h-[80vh] flex items-center justify-center overflow-hidden" style={{ background: 'var(--hero-bg)' }}>
+export const HeroSection: React.FC<HeroSectionProps> = ({
+  onStartAssessment
+}) => {
+  return <section className="relative min-h-[80vh] flex items-center justify-center overflow-hidden" style={{
+    background: 'var(--hero-bg)'
+  }}>
       {/* Background gradient overlay */}
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background/20 to-background/80" />
       
@@ -33,30 +34,21 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onStartAssessment }) =
         </p>
         
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-          <Button 
-            size="lg" 
-            className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-6 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
-            onClick={onStartAssessment}
-          >
+          <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-6 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105" onClick={onStartAssessment}>
             Start Your Assessment
             <ArrowRight className="ml-2 w-5 h-5" />
           </Button>
           
           <Link to="/mentor">
-            <Button 
-              variant="outline" 
-              size="lg"
-              className="px-8 py-6 text-lg font-semibold rounded-xl border-primary/30 hover:bg-primary/10 transition-all duration-300"
-            >
+            <Button variant="outline" size="lg" className="px-8 py-6 text-lg font-semibold rounded-xl border-primary/30 hover:bg-primary/10 transition-all duration-300">
               Preview AI Coach
             </Button>
           </Link>
         </div>
         
         <div className="mt-12 text-sm text-muted-foreground">
-          <p>Trusted by thousands • 15-minute assessment • Instant results</p>
+          <p>15-minute assessment • Instant results</p>
         </div>
       </div>
-    </section>
-  );
+    </section>;
 };
