@@ -84,7 +84,10 @@ serve(async (req) => {
 
     if (createError) {
       console.error('User creation error:', createError);
-      return new Response(JSON.stringify({ error: 'Failed to create user' }), {
+      return new Response(JSON.stringify({ 
+        error: 'Failed to create user',
+        details: createError?.message ?? createError
+      }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -106,7 +109,10 @@ serve(async (req) => {
       console.error('Profile creation error:', profileError);
       // Clean up the user if profile creation fails
       await supabaseAdmin.auth.admin.deleteUser(newUserId);
-      return new Response(JSON.stringify({ error: 'Failed to create profile' }), {
+      return new Response(JSON.stringify({ 
+        error: 'Failed to create profile',
+        details: (profileError as any)?.message ?? profileError
+      }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
