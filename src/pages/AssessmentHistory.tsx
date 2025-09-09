@@ -257,7 +257,7 @@ const AssessmentHistory: React.FC = () => {
               <Card>
                 <CardContent className={`${isMobile ? 'p-4' : 'p-6'} text-center`}>
                   <div className={`${isMobile ? 'text-2xl' : 'text-3xl'} font-bold text-primary mb-2`}>
-                    {assessments.filter(a => a.profile.mappings?.integralDetail).length}
+                    {assessments.filter(a => a.profile.mappings?.integralDetail?.primaryLevel).length}
                   </div>
                   <p className="text-sm text-muted-foreground">With Integral Levels</p>
                 </CardContent>
@@ -332,7 +332,7 @@ const AssessmentHistory: React.FC = () => {
                                      {assessment.profile.mappings.mbti} • {assessment.profile.mappings.enneagram}
                                    </div>
                                  )}
-                                 {assessment.profile.mappings?.integralDetail && (
+                                 {assessment.profile.mappings?.integralDetail?.primaryLevel && (
                                    <div className="mt-1">
                                      <IntegralLevelBadge 
                                        level={assessment.profile.mappings.integralDetail.primaryLevel} 
@@ -365,7 +365,7 @@ const AssessmentHistory: React.FC = () => {
                                 <div>D&D: {assessment.profile.mappings.dndAlignment}</div>
                                 <div>Holland: {assessment.profile.mappings.hollandCode}</div>
                               </div>
-               {assessment.profile.mappings?.integralDetail && (
+               {assessment.profile.mappings?.integralDetail?.primaryLevel && (
                                  <div className="mt-2">
                                    <div className="text-xs font-medium mb-1">Integral Level</div>
                                    <IntegralLevelBadge 
@@ -473,7 +473,7 @@ const AssessmentHistory: React.FC = () => {
                                    MBTI: {assessment.profile.mappings.mbti} | 
                                    Enneagram: {assessment.profile.mappings.enneagram} |
                                    D&D: {assessment.profile.mappings.dndAlignment}
-                                   {assessment.profile.mappings?.integralDetail && (
+                                   {assessment.profile.mappings?.integralDetail?.primaryLevel && (
                                      <span className="ml-2">
                                        | <IntegralLevelBadge 
                                          level={assessment.profile.mappings.integralDetail.primaryLevel} 
