@@ -2,7 +2,7 @@
 
 import { FinalProductionValidator } from './finalProductionValidator';
 import { ProductionPerformanceValidator } from './productionPerformanceValidator';
-import { ImportOptimizer, MobileValidator } from './productionValidators';
+import { ImportOptimizer, MobileValidatorProduction } from './productionValidators';
 import { logger } from './structuredLogging';
 
 export interface ProductionReadinessStatus {
@@ -37,15 +37,15 @@ export class ProductionReadinessChecker {
       ] = await Promise.all([
         FinalProductionValidator.generateComprehensiveReport(),
         ProductionPerformanceValidator.validateProductionPerformance(),
-        MobileValidator.validateMobileOptimization(),
+        MobileValidatorProduction.validateMobileOptimization(),
         ImportOptimizer.analyzeImports()
       ]);
 
       // Calculate individual scores
       const performanceScore = ProductionPerformanceValidator.getOverallScore();
-      const mobileScore = Object.values(mobileValidation).filter(v => v === true).length / Object.keys(mobileValidation).length * 100;
-      const bundleValidation = ImportOptimizer.validateBundleSize();
-      const bundleScore = bundleValidation.isOptimal ? 100 : 75;
+      const mobileScore = mobileValidation.score;
+      const bundleValidation = await ImportOptimizer.validateBundleSize();
+      const bundleScore = bundleValidation.score;
 
       const testResults = {
         performance: performanceScore,

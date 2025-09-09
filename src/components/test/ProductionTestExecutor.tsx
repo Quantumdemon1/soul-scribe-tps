@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { ProductionPerformanceValidator } from '@/utils/productionPerformanceValidator';
 import { FinalProductionValidator } from '@/utils/finalProductionValidator';
-import { ImportOptimizer, MobileValidator } from '@/utils/productionValidators';
+import { ImportOptimizer, MobileValidatorProduction } from '@/utils/productionValidators';
 import { RobustJSONParser } from '@/utils/robustJSONParser';
 
 interface TestResult {
@@ -36,31 +36,28 @@ export const ProductionTestExecutor: React.FC = () => {
       });
 
       // Bundle Optimization Tests
-      const importAnalysis = await ImportOptimizer.analyzeImports();
-      const bundleValidation = ImportOptimizer.validateBundleSize();
+      const importAnalysis = ImportOptimizer.analyzeImports();
+      const bundleResult = await ImportOptimizer.validateBundleSize();
       testResults.push({
         category: 'Bundle Optimization',
-        status: bundleValidation.isOptimal ? 'passed' : 'warning',
-        score: bundleValidation.isOptimal ? 100 : 75,
+        status: bundleResult.isValid ? 'passed' : 'warning',
+        score: bundleResult.score,
         details: [
-          `Bundle size: ${bundleValidation.size}`,
-          `Optimization status: ${bundleValidation.recommendation}`,
+          bundleResult.details,
+          `Recommendations: ${bundleResult.recommendations.join(', ')}`,
           `Import efficiency: ${importAnalysis.bundleOptimizations.length} optimizations`
         ]
       });
 
       // Mobile Validation Tests
-      const mobileValidation = await MobileValidator.validateMobileOptimization();
-      const mobileScore = Object.values(mobileValidation).filter(v => v === true).length / Object.keys(mobileValidation).length * 100;
+      const mobileResult = await MobileValidatorProduction.validateMobileOptimization();
       testResults.push({
         category: 'Mobile Optimization',
-        status: mobileScore >= 90 ? 'passed' : mobileScore >= 70 ? 'warning' : 'failed',
-        score: mobileScore,
+        status: mobileResult.isValid ? 'passed' : mobileResult.score >= 70 ? 'warning' : 'failed',
+        score: mobileResult.score,
         details: [
-          `Touch targets: ${mobileValidation.touchTargets ? 'Valid' : 'Invalid'}`,
-          `Responsive design: ${mobileValidation.responsiveDesign ? 'Valid' : 'Invalid'}`,
-          `Font sizes: ${mobileValidation.fontSizes ? 'Valid' : 'Invalid'}`,
-          `Performance: ${mobileValidation.performance ? 'Valid' : 'Invalid'}`
+          mobileResult.details,
+          `Recommendations: ${mobileResult.recommendations.join(', ')}`
         ]
       });
 
