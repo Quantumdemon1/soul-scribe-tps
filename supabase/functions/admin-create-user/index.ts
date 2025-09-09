@@ -99,7 +99,7 @@ serve(async (req) => {
         user_id: newUserId,
         display_name: displayName,
         username: email.split('@')[0], // Default username from email
-        verification_level: 'admin_created'
+        verification_level: 'basic'
       });
 
     if (profileError) {
