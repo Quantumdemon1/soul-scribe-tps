@@ -8,6 +8,8 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { toast } from '@/hooks/use-toast';
 import { TPSScoring } from '@/utils/tpsScoring';
+import { EnhancedTPSScoring } from '@/utils/enhancedTPSScoring';
+import { bulkListAssessments, bulkApplyRecalculation } from '@/services/bulkRecalculationService';
 import { TPS_QUESTIONS } from '@/data/questions';
 import { saveScoringOverrides, loadScoringOverrides, writeLocalOverrides, type ScoringOverrides, type MBTIDimensionKey } from '@/services/scoringConfigService';
 import { ScoringValidator, ValidationResult } from '@/utils/scoringValidation';
@@ -31,6 +33,11 @@ export const ScoringTuner: React.FC = () => {
   const [validation, setValidation] = useState<ValidationResult | null>(null);
   const [showImpactAssessment, setShowImpactAssessment] = useState(false);
   const [currentConfig, setCurrentConfig] = useState<ScoringOverrides | null>(null);
+  // Bulk recalculation state (lightweight, we compute on demand)
+  const [recalcRunning, setRecalcRunning] = useState(false);
+  const [recalcProcessed, setRecalcProcessed] = useState(0);
+  const [recalcUpdated, setRecalcUpdated] = useState(0);
+  const [recalcError, setRecalcError] = useState<string | null>(null);
 
   // Framework weights state (simple flat weight maps)
   const [bigFive, setBigFive] = useState<Record<string, number>>({
@@ -173,11 +180,12 @@ export const ScoringTuner: React.FC = () => {
       </div>
 
       <Tabs defaultValue="weights" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="weights">MBTI Weights</TabsTrigger>
           <TabsTrigger value="mappings">Question Mappings</TabsTrigger>
           <TabsTrigger value="usage">Question Usage</TabsTrigger>
           <TabsTrigger value="frameworks">All Frameworks</TabsTrigger>
+          <TabsTrigger value="recalc">Bulk Recalc</TabsTrigger>
           <TabsTrigger value="audit">Audit Trail</TabsTrigger>
         </TabsList>
 
@@ -469,6 +477,88 @@ export const ScoringTuner: React.FC = () => {
               <Save className="h-4 w-4 mr-2" /> Save Framework Weights
             </Button>
           </div>
+        </TabsContent>
+
+        <TabsContent value="recalc" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm">Bulk Recalculation</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                <div className="space-y-1">
+                  <Label className="text-sm">Since (optional)</Label>
+                  <Input type="datetime-local" id="recalc-since" />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-sm">Variant</Label>
+                  <Input placeholder="full (optional)" id="recalc-variant" />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-sm">Batch size</Label>
+                  <Input type="number" defaultValue={200} min={50} max={1000} step={50} id="recalc-batch" />
+                </div>
+                <div className="flex items-end gap-2">
+                  <label className="flex items-center gap-2 text-sm">
+                    <input type="checkbox" id="recalc-dry" /> Dry run
+                  </label>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  size="sm"
+                  disabled={recalcRunning}
+                  onClick={async () => {
+                    const sinceEl = document.getElementById('recalc-since') as HTMLInputElement | null;
+                    const variantEl = document.getElementById('recalc-variant') as HTMLInputElement | null;
+                    const batchEl = document.getElementById('recalc-batch') as HTMLInputElement | null;
+                    const dryEl = document.getElementById('recalc-dry') as HTMLInputElement | null;
+                    const since = sinceEl?.value ? new Date(sinceEl.value).toISOString() : null;
+                    const variant = variantEl?.value?.trim() || null;
+                    const batch = Math.min(1000, Math.max(50, parseInt(batchEl?.value || '200')));
+                    const dryRun = !!dryEl?.checked;
+                    try {
+                      let offset = 0;
+                      let totalProcessed = 0;
+                      let operationId: string | null = null;
+                      let updatedCount = 0;
+                      let batchNum = 1;
+                      const start = Date.now();
+                      // eslint-disable-next-line no-constant-condition
+                      while (true) {
+                        const res = await bulkListAssessments({ offset, limit: batch, since, variant });
+                        const items = res.items || [];
+                        if (!items.length) break;
+                        const updates = items.map((it) => {
+                          const responses = (it.responses || []) as number[];
+                          const newProfile = EnhancedTPSScoring.generateEnhancedProfile(responses);
+                          return { id: it.id, oldProfile: it.profile, newProfile };
+                        });
+                        if (!dryRun) {
+                          const apply = await bulkApplyRecalculation({ items: updates, operationId, dryRun });
+                          operationId = apply.operationId;
+                          updatedCount += apply.success || 0;
+                        }
+                        totalProcessed += items.length;
+                        offset += items.length;
+                        toast({ title: `Batch ${batchNum++} processed`, description: `${totalProcessed} items scanned${dryRun ? '' : `, ${updatedCount} updated`}` });
+                        if (!res.nextOffset || items.length < batch) break;
+                      }
+                      const took = Math.round((Date.now()-start)/1000);
+                      toast({ title: 'Bulk recalculation completed', description: `${totalProcessed} scanned in ${took}s${dryRun ? ' (dry run)' : `, ${updatedCount} updated`}` });
+                    } catch (e: any) {
+                      toast({ title: 'Bulk recalculation failed', description: e?.message || 'Unknown error', variant: 'destructive' });
+                    }
+                  }}
+                >
+                  <RefreshCw className="h-4 w-4 mr-2" /> Run
+                </Button>
+              </div>
+              <Alert>
+                <AlertDescription className="text-xs">This will recompute profiles from responses using the current tuner settings. Use Dry run to sample without saving.</AlertDescription>
+              </Alert>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="audit" className="space-y-4">
