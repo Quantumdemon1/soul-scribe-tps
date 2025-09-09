@@ -3,12 +3,11 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { usePerformanceOptimization } from "@/hooks/usePerformanceOptimization";
 import { LazyIndex, LazyAuth, LazyAdmin, LazyAssessmentHistory, LazyAssessments, LazyProfile, LazyMentor, LazyNotFound, PageWrapper } from './components/layout/LazyPages';
+import { ProductionWrapper } from './components/layout/ProductionWrapper';
 import { lazy } from 'react';
-import { PerformanceTracker } from '@/components/ui/performance-tracker';
 import '@/utils/debugCleanup'; // Initialize debug cleanup
 import '@/utils/bundleOptimizer'; // Initialize bundle optimization
 
@@ -87,12 +86,11 @@ const AppContent = () => {
 };
 
 const App = () => (
-  <ErrorBoundary>
+  <ProductionWrapper>
     <QueryClientProvider client={queryClient}>
       <AppContent />
-      {import.meta.env.DEV && <PerformanceTracker />}
     </QueryClientProvider>
-  </ErrorBoundary>
+  </ProductionWrapper>
 );
 
 export default App;

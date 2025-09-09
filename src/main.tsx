@@ -27,7 +27,7 @@ createRoot(document.getElementById("root")!).render(
       }}
     >
       <App />
-      {/* <PerformanceMonitor enabled={true} showDetails={import.meta.env.DEV} /> */}
+      <PerformanceMonitor />
     </MobileOptimizationProvider>
   </React.StrictMode>,
 )
