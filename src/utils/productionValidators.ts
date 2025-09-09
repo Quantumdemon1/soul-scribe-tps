@@ -1,4 +1,13 @@
 // Import path optimization and bundle analysis
+import { MobileValidator } from '@/utils/mobileValidation';
+// import { BundleAnalyzer } from '@/utils/bundleAnalyzer';
+
+interface ValidationResult {
+  isValid: boolean;
+  score: number;
+  details: string;
+  recommendations: string[];
+}
 
 interface ImportAnalysis {
   totalImports: number;
@@ -90,34 +99,57 @@ export class ImportOptimizer {
     return report;
   }
 
-  static validateBundleSize(): { isOptimal: boolean; size: string; recommendation: string } {
-    if (typeof performance !== 'undefined') {
+  static async validateBundleSize(): Promise<ValidationResult> {
+    try {
+      // Simplified bundle validation for now
       const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
       const transferSize = navigation?.transferSize || 0;
       const sizeMB = transferSize / (1024 * 1024);
+      const isOptimal = sizeMB < 2;
       
       return {
-        isOptimal: sizeMB < 2, // Under 2MB is considered optimal
-        size: `${sizeMB.toFixed(2)}MB`,
-        recommendation: sizeMB < 1 
-          ? 'Excellent bundle size optimization'
-          : sizeMB < 2 
-          ? 'Good bundle size, consider further optimization for mobile'
-          : 'Bundle size is large, implement code splitting and tree-shaking'
+        isValid: isOptimal,
+        score: isOptimal ? 95 : 70,
+        details: `Bundle size: ${sizeMB.toFixed(2)}MB`,
+        recommendations: isOptimal ? ['Bundle size is optimal'] : ['Consider code splitting and tree shaking']
+      };
+    } catch (error) {
+      return {
+        isValid: false,
+        score: 0,
+        details: 'Bundle analysis failed',
+        recommendations: ['Ensure build tools are properly configured']
       };
     }
-    
-    return {
-      isOptimal: true,
-      size: 'Unknown',
-      recommendation: 'Bundle size analysis not available in this environment'
-    };
   }
 }
 
+// Export types and classes
+export type { ValidationResult };
+
 // Mobile-first validation
-export class MobileValidator {
-  static validateMobileOptimization(): {
+export class MobileValidatorProduction {
+  static async validateMobileOptimization(): Promise<ValidationResult> {
+    try {
+      const mobileResult = await MobileValidator.validateMobileOptimization();
+      
+      return {
+        isValid: mobileResult.score >= 80,
+        score: mobileResult.score,
+        details: mobileResult.details.join(', '),
+        recommendations: mobileResult.details.filter(detail => detail.includes('✗'))
+      };
+    } catch (error) {
+      return {
+        isValid: false,
+        score: 0,
+        details: 'Mobile validation failed',
+        recommendations: ['Review mobile optimization implementation']
+      };
+    }
+  }
+
+  static legacyValidateOptimization(): {
     touchTargets: boolean;
     responsiveDesign: boolean;
     fontSizes: boolean;
@@ -197,7 +229,7 @@ export class MobileValidator {
   }
 
   static generateMobileReport(): string {
-    const validation = this.validateMobileOptimization();
+    const validation = this.legacyValidateOptimization();
     
     let report = 'Mobile Optimization Report\n';
     report += '==========================\n\n';

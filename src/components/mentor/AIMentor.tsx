@@ -299,9 +299,9 @@ export const AIMentor: React.FC<AIMentorProps> = ({ initialProfile }) => {
               <div className="flex items-center gap-2">
                 <Badge variant="secondary">{profile.mappings.mbti}</Badge>
                 <Badge variant="outline">{profile.mappings.enneagram}</Badge>
-                {(profile.mappings as any).integralDetail && (
+                {'integralDetail' in profile.mappings && profile.mappings.integralDetail && (
                   <IntegralLevelBadge 
-                    level={(profile.mappings as any).integralDetail.primaryLevel}
+                    level={profile.mappings.integralDetail.primaryLevel}
                     size="sm"
                     showName={false}
                   />
@@ -310,9 +310,9 @@ export const AIMentor: React.FC<AIMentorProps> = ({ initialProfile }) => {
               <div className="text-xs text-muted-foreground">
                 Dominant Traits: {Object.values(profile.dominantTraits).join(', ')}
               </div>
-              {(profile.mappings as any).integralDetail && (
+              {'integralDetail' in profile.mappings && profile.mappings.integralDetail && (
                 <div className="text-xs text-muted-foreground">
-                  Level: {(profile.mappings as any).integralDetail.primaryLevel.name}
+                  Level: {profile.mappings.integralDetail.primaryLevel.name}
                 </div>
               )}
             </CardContent>

@@ -69,7 +69,11 @@ export const AdminPanel: React.FC = () => {
   const { isAdmin, loading: adminLoading } = useAdminRole();
   const [config, setConfig] = useState<LLMConfig>(defaultConfig);
   const [loading, setLoading] = useState(false);
-  const [stats, setStats] = useState<any>(null);
+  const [stats, setStats] = useState<{
+    totalAssessments: number;
+    totalInsights: number;
+    totalSessions: number;
+  } | null>(null);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [testResult, setTestResult] = useState<string>('');
   const [selectedPrompt, setSelectedPrompt] = useState<keyof typeof DEFAULT_SYSTEM_PROMPTS>('tieBreaking');
@@ -91,7 +95,14 @@ export const AdminPanel: React.FC = () => {
         .maybeSingle();
       
       if (data && !error) {
-        setConfig(data.config as unknown as LLMConfig);
+        const storedConfig = data.config as unknown as LLMConfig;
+        setConfig({
+          ...storedConfig,
+          systemPrompts: {
+            ...DEFAULT_SYSTEM_PROMPTS,
+            ...(storedConfig?.systemPrompts || {})
+          }
+        });
       } else if (error) {
         logger.error('Failed to load admin config', { 
           component: 'AdminPanel',
@@ -143,9 +154,10 @@ export const AdminPanel: React.FC = () => {
       const { error } = await supabase
         .from('llm_config')
         .upsert({ 
-          id: '00000000-0000-0000-0000-000000000000',
           config: config as any,
           mapping_weights: {} as any
+        }, {
+          onConflict: 'id'
         });
 
       if (error) throw error;

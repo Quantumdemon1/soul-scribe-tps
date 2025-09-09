@@ -100,7 +100,7 @@ export class LLMService {
         }
       });
 
-      const response = await Promise.race([request, timeout]) as any;
+      const response = await Promise.race([request, timeout]) as { data?: any; error?: any };
 
       if (response.error) {
         logger.error('LLM Proxy Error', { component: 'LLMService', metadata: { provider: 'openai', error: response.error } });
@@ -155,7 +155,7 @@ export class LLMService {
         }
       });
 
-      const response = await Promise.race([request, timeout]) as any;
+      const response = await Promise.race([request, timeout]) as { data?: any; error?: any };
 
       if (response.error) {
         logger.error('LLM Proxy Error', { component: 'LLMService', metadata: { provider: 'anthropic', error: response.error } });
