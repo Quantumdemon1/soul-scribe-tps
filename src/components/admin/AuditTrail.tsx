@@ -11,6 +11,7 @@ import { loadScoringOverrides, saveScoringOverrides, ScoringOverrides } from '@/
 import { toast } from '@/hooks/use-toast';
 import { Clock, User, Target, Undo2, Eye, AlertTriangle, History } from 'lucide-react';
 import { format } from 'date-fns';
+import { supabase } from '@/integrations/supabase/client';
 
 export const AuditTrail: React.FC = () => {
   const [auditLog, setAuditLog] = useState<AuditLogEntry[]>([]);
@@ -23,12 +24,13 @@ export const AuditTrail: React.FC = () => {
     loadAuditData();
   }, []);
 
-  const loadAuditData = () => {
-    const logs = AuditTrailService.getLocalAuditLog();
-    const snaps = AuditTrailService.getLocalSnapshots();
-    
-    setAuditLog(logs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()));
-    setSnapshots(snaps.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()));
+  const loadAuditData = async () => {
+    const [logs, snaps] = await Promise.all([
+      AuditTrailService.getAuditLog(),
+      AuditTrailService.getSnapshots()
+    ]);
+    setAuditLog(logs);
+    setSnapshots(snaps);
   };
 
   const handleCreateSnapshot = async () => {

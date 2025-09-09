@@ -181,6 +181,84 @@ export type Database = {
         }
         Relationships: []
       }
+      bulk_operations: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          created_by: string
+          error_count: number
+          error_details: Json | null
+          id: string
+          operation_type: string
+          parameters: Json
+          processed_items: number
+          results: Json | null
+          started_at: string | null
+          status: string
+          success_count: number
+          total_items: number
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          created_by: string
+          error_count?: number
+          error_details?: Json | null
+          id?: string
+          operation_type: string
+          parameters?: Json
+          processed_items?: number
+          results?: Json | null
+          started_at?: string | null
+          status?: string
+          success_count?: number
+          total_items?: number
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string
+          error_count?: number
+          error_details?: Json | null
+          id?: string
+          operation_type?: string
+          parameters?: Json
+          processed_items?: number
+          results?: Json | null
+          started_at?: string | null
+          status?: string
+          success_count?: number
+          total_items?: number
+        }
+        Relationships: []
+      }
+      config_snapshots: {
+        Row: {
+          changes_summary: string[] | null
+          config_data: Json
+          description: string
+          id: string
+          timestamp: string
+          user_id: string
+        }
+        Insert: {
+          changes_summary?: string[] | null
+          config_data: Json
+          description: string
+          id?: string
+          timestamp?: string
+          user_id: string
+        }
+        Update: {
+          changes_summary?: string[] | null
+          config_data?: Json
+          description?: string
+          id?: string
+          timestamp?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       error_logs: {
         Row: {
           context: Json | null
@@ -610,6 +688,54 @@ export type Database = {
           request_count?: number
           user_id?: string
           window_start?: string
+        }
+        Relationships: []
+      }
+      scoring_audit_log: {
+        Row: {
+          action: string
+          change_description: string
+          framework: string | null
+          id: string
+          impacted_users: number | null
+          metadata: Json | null
+          new_values: Json | null
+          old_values: Json | null
+          rollback_data: Json | null
+          target: string
+          target_id: string | null
+          timestamp: string
+          user_id: string
+        }
+        Insert: {
+          action: string
+          change_description: string
+          framework?: string | null
+          id?: string
+          impacted_users?: number | null
+          metadata?: Json | null
+          new_values?: Json | null
+          old_values?: Json | null
+          rollback_data?: Json | null
+          target: string
+          target_id?: string | null
+          timestamp?: string
+          user_id: string
+        }
+        Update: {
+          action?: string
+          change_description?: string
+          framework?: string | null
+          id?: string
+          impacted_users?: number | null
+          metadata?: Json | null
+          new_values?: Json | null
+          old_values?: Json | null
+          rollback_data?: Json | null
+          target?: string
+          target_id?: string | null
+          timestamp?: string
+          user_id?: string
         }
         Relationships: []
       }

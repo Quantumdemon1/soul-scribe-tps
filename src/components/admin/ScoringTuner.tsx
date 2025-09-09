@@ -32,6 +32,26 @@ export const ScoringTuner: React.FC = () => {
   const [showImpactAssessment, setShowImpactAssessment] = useState(false);
   const [currentConfig, setCurrentConfig] = useState<ScoringOverrides | null>(null);
 
+  // Framework weights state (simple flat weight maps)
+  const [bigFive, setBigFive] = useState<Record<string, number>>({
+    Openness: 1.0, Conscientiousness: 1.0, Extraversion: 1.0, Agreeableness: 1.0, Neuroticism: 1.0
+  });
+  const [enneagram, setEnneagram] = useState<Record<string, number>>(
+    Object.fromEntries(Array.from({ length: 9 }, (_, i) => [`Type ${i + 1}`, 1.0]))
+  );
+  const [holland, setHolland] = useState<Record<string, number>>({
+    Realistic: 1.0, Investigative: 1.0, Artistic: 1.0, Social: 1.0, Enterprising: 1.0, Conventional: 1.0
+  });
+  const [alignment, setAlignment] = useState<Record<string, Record<string, number>>>(
+    { Lawful: { Good: 1.0, Neutral: 1.0, Evil: 1.0 }, Neutral: { Good: 1.0, Neutral: 1.0, Evil: 1.0 }, Chaotic: { Good: 1.0, Neutral: 1.0, Evil: 1.0 } }
+  );
+
+  const extractWeights = (fw?: any): Record<string, number> => {
+    if (!fw) return {};
+    const first = Object.values(fw)[0] as any;
+    return first?.traits || {};
+  };
+
   useEffect(() => {
     (async () => {
       const existing = await loadScoringOverrides();
@@ -39,6 +59,24 @@ export const ScoringTuner: React.FC = () => {
       setTraitMappings(existing?.traitMappings || baseTraitMappings);
       setMbti(existing?.mbti || DEFAULT_MBTI_WEIGHTS);
       setSelectedTrait(Object.keys(existing?.traitMappings || baseTraitMappings)[0] || '');
+      setCurrentConfig(existing || null);
+      // hydrate framework weights if present
+      const bf = extractWeights(existing?.bigfive);
+      if (Object.keys(bf).length) setBigFive(prev => ({ ...prev, ...bf }));
+      const en = extractWeights(existing?.enneagram);
+      if (Object.keys(en).length) setEnneagram(prev => ({ ...prev, ...en }));
+      const ho = extractWeights(existing?.holland);
+      if (Object.keys(ho).length) setHolland(prev => ({ ...prev, ...ho }));
+      const al = extractWeights(existing?.alignment);
+      if (Object.keys(al).length) {
+        // try map back into grid if using flattened keys
+        const next = { Lawful: { Good: 1.0, Neutral: 1.0, Evil: 1.0 }, Neutral: { Good: 1.0, Neutral: 1.0, Evil: 1.0 }, Chaotic: { Good: 1.0, Neutral: 1.0, Evil: 1.0 } } as Record<string, Record<string, number>>;
+        Object.entries(al).forEach(([k, v]) => {
+          const [eth, mor] = k.split(/[_\s-]/);
+          if (next[eth]?.[mor]) next[eth][mor] = v as number;
+        });
+        setAlignment(next);
+      }
       setLoading(false);
     })();
   }, []);
@@ -309,10 +347,11 @@ export const ScoringTuner: React.FC = () => {
                     <Label className="col-span-2 text-sm">{factor}</Label>
                     <Input
                       type="number"
-                      defaultValue={1.0}
+                      value={bigFive[factor]}
                       step={0.1}
                       min={0}
                       max={3}
+                      onChange={(e) => setBigFive(prev => ({ ...prev, [factor]: parseFloat(e.target.value) || 0 }))}
                       className="col-span-2"
                     />
                   </div>
@@ -330,10 +369,11 @@ export const ScoringTuner: React.FC = () => {
                     <Label className="col-span-2 text-sm">Type {type}</Label>
                     <Input
                       type="number"
-                      defaultValue={1.0}
+                      value={enneagram[`Type ${type}`]}
                       step={0.1}
                       min={0}
                       max={3}
+                      onChange={(e) => setEnneagram(prev => ({ ...prev, [`Type ${type}`]: parseFloat(e.target.value) || 0 }))}
                       className="col-span-2"
                     />
                   </div>
@@ -351,10 +391,11 @@ export const ScoringTuner: React.FC = () => {
                     <Label className="col-span-2 text-sm">{type}</Label>
                     <Input
                       type="number"
-                      defaultValue={1.0}
+                      value={holland[type]}
                       step={0.1}
                       min={0}
                       max={3}
+                      onChange={(e) => setHolland(prev => ({ ...prev, [type]: parseFloat(e.target.value) || 0 }))}
                       className="col-span-2"
                     />
                   </div>
@@ -375,10 +416,14 @@ export const ScoringTuner: React.FC = () => {
                         <Label className="col-span-2 text-sm">{moral}</Label>
                         <Input
                           type="number"
-                          defaultValue={1.0}
+                          value={alignment[ethical][moral]}
                           step={0.1}
                           min={0}
                           max={3}
+                          onChange={(e) => setAlignment(prev => ({
+                            ...prev,
+                            [ethical]: { ...prev[ethical], [moral]: parseFloat(e.target.value) || 0 }
+                          }))}
                           className="col-span-2"
                         />
                       </div>
@@ -390,7 +435,37 @@ export const ScoringTuner: React.FC = () => {
           </div>
           
           <div className="flex justify-end">
-            <Button variant="outline" size="sm">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={async () => {
+                setLoading(true);
+                const flattenAlignment: Record<string, number> = {};
+                Object.entries(alignment).forEach(([eth, row]) => {
+                  Object.entries(row).forEach(([mor, val]) => {
+                    flattenAlignment[`${eth}_${mor}`] = val;
+                  });
+                });
+                const toFW = (traits: Record<string, number>) => ({ weights: { traits } });
+                const payload: ScoringOverrides = {
+                  bigfive: toFW(bigFive) as any,
+                  enneagram: toFW(enneagram) as any,
+                  holland: toFW(holland) as any,
+                  alignment: toFW(flattenAlignment) as any,
+                } as any;
+                try {
+                  await saveScoringOverrides(payload);
+                  // merge local overrides
+                  const merged = { ...(currentConfig || {}), ...payload } as ScoringOverrides;
+                  writeLocalOverrides(merged);
+                  toast({ title: 'Saved', description: 'Framework weights saved.', variant: 'default' });
+                } catch (e) {
+                  toast({ title: 'Save failed', description: 'Could not save framework weights.', variant: 'destructive' });
+                } finally {
+                  setLoading(false);
+                }
+              }}
+            >
               <Save className="h-4 w-4 mr-2" /> Save Framework Weights
             </Button>
           </div>

@@ -33,26 +33,33 @@ export class AuditTrailService {
 
   static async logChange(entry: Omit<AuditLogEntry, 'id' | 'timestamp'>): Promise<void> {
     try {
-      const auditEntry: AuditLogEntry = {
-        ...entry,
-        timestamp: new Date(),
-      };
-
-      // For now, store in browser storage since we don't have the audit table yet
-      const existingLogs = this.getLocalAuditLog();
-      existingLogs.push(auditEntry);
-      
-      // Keep only last 1000 entries
-      if (existingLogs.length > 1000) {
-        existingLogs.splice(0, existingLogs.length - 1000);
-      }
-
-      localStorage.setItem('scoring_audit_log', JSON.stringify(existingLogs));
-      
-      logger.info('Audit log entry created', { 
-        component: 'auditTrail'
+      const { error } = await supabase.from(this.TABLE_NAME).insert({
+        user_id: entry.userId,
+        action: entry.action,
+        target: entry.target,
+        target_id: entry.targetId || null,
+        framework: entry.framework || null,
+        change_description: entry.changeDescription,
+        old_values: entry.oldValues ?? null,
+        new_values: entry.newValues ?? null,
+        impacted_users: entry.impactedUsers ?? null,
+        rollback_data: entry.rollbackData ?? null,
+        metadata: entry.metadata ?? {}
       });
+
+      if (error) throw error;
+
+      logger.info('Audit log entry created (DB)', { component: 'auditTrail' });
     } catch (error) {
+      // Fallback to local storage
+      try {
+        const auditEntry: AuditLogEntry = { ...entry, timestamp: new Date() };
+        const existingLogs = this.getLocalAuditLog();
+        existingLogs.push(auditEntry);
+        if (existingLogs.length > 1000) existingLogs.splice(0, existingLogs.length - 1000);
+        localStorage.setItem('scoring_audit_log', JSON.stringify(existingLogs));
+        logger.warn('Audit log entry stored locally (DB failed)', { component: 'auditTrail' });
+      } catch {}
       logger.error('Failed to create audit log entry', { component: 'auditTrail' }, error as Error);
     }
   }
@@ -63,6 +70,34 @@ export class AuditTrailService {
       return stored ? JSON.parse(stored) : [];
     } catch {
       return [];
+    }
+  }
+
+  static async getAuditLog(limit: number = 200): Promise<AuditLogEntry[]> {
+    try {
+      const { data, error } = await supabase
+        .from(this.TABLE_NAME)
+        .select('*')
+        .order('timestamp', { ascending: false })
+        .limit(limit);
+      if (error) throw error;
+      return (data || []).map((row: any) => ({
+        id: row.id,
+        timestamp: new Date(row.timestamp),
+        userId: row.user_id,
+        action: row.action,
+        target: row.target,
+        targetId: row.target_id ?? undefined,
+        framework: row.framework ?? undefined,
+        changeDescription: row.change_description,
+        oldValues: row.old_values ?? undefined,
+        newValues: row.new_values ?? undefined,
+        impactedUsers: row.impacted_users ?? undefined,
+        rollbackData: row.rollback_data ?? undefined,
+        metadata: row.metadata ?? undefined,
+      }));
+    } catch {
+      return this.getLocalAuditLog();
     }
   }
 
@@ -81,26 +116,41 @@ export class AuditTrailService {
       changesSummary
     };
 
-    // Store locally for now
-    const existingSnapshots = this.getLocalSnapshots();
-    existingSnapshots.push(snapshot);
-    
-    // Keep only last 50 snapshots
-    if (existingSnapshots.length > 50) {
-      existingSnapshots.splice(0, existingSnapshots.length - 50);
+    // Try DB first
+    try {
+      const { data, error } = await supabase.from(this.SNAPSHOTS_TABLE).insert({
+        user_id: userId,
+        description,
+        config_data: configData as any,
+        changes_summary: changesSummary
+      }).select('id').single();
+
+      if (error) throw error;
+
+      await this.logChange({
+        userId,
+        action: 'create',
+        target: 'global_config',
+        changeDescription: `Snapshot created: ${description}`,
+        metadata: { changeCount: changesSummary.length }
+      });
+
+      return data.id as string;
+    } catch (error) {
+      // Fallback to local storage
+      const existingSnapshots = this.getLocalSnapshots();
+      existingSnapshots.push(snapshot);
+      if (existingSnapshots.length > 50) existingSnapshots.splice(0, existingSnapshots.length - 50);
+      localStorage.setItem('config_snapshots', JSON.stringify(existingSnapshots));
+      await this.logChange({
+        userId,
+        action: 'create',
+        target: 'global_config',
+        changeDescription: `Snapshot created (local): ${description}`,
+        metadata: { changeCount: changesSummary.length }
+      });
+      return snapshot.id;
     }
-
-    localStorage.setItem('config_snapshots', JSON.stringify(existingSnapshots));
-    
-    await this.logChange({
-      userId,
-      action: 'create',
-      target: 'global_config',
-      changeDescription: `Snapshot created: ${description}`,
-      metadata: { changeCount: changesSummary.length }
-    });
-
-    return snapshot.id;
   }
 
   static getLocalSnapshots(): ConfigSnapshot[] {
@@ -112,25 +162,58 @@ export class AuditTrailService {
     }
   }
 
+  static async getSnapshots(limit: number = 100): Promise<ConfigSnapshot[]> {
+    try {
+      const { data, error } = await supabase
+        .from(this.SNAPSHOTS_TABLE)
+        .select('*')
+        .order('timestamp', { ascending: false })
+        .limit(limit);
+      if (error) throw error;
+      return (data || []).map((row: any) => ({
+        id: row.id,
+        timestamp: new Date(row.timestamp),
+        userId: row.user_id,
+        description: row.description,
+        configData: row.config_data as ScoringOverrides,
+        changesSummary: row.changes_summary || []
+      }));
+    } catch {
+      return this.getLocalSnapshots();
+    }
+  }
+
   static async rollbackToSnapshot(snapshotId: string, userId: string): Promise<ScoringOverrides | null> {
     try {
-      const snapshots = this.getLocalSnapshots();
-      const snapshot = snapshots.find(s => s.id === snapshotId);
-      
-      if (!snapshot) {
-        throw new Error(`Snapshot ${snapshotId} not found`);
+      // Try DB
+      const { data, error } = await supabase
+        .from(this.SNAPSHOTS_TABLE)
+        .select('*')
+        .eq('id', snapshotId)
+        .maybeSingle();
+
+      if (!error && data) {
+        await this.logChange({
+          userId,
+          action: 'rollback',
+          target: 'global_config',
+          changeDescription: `Rolled back to snapshot: ${data.description}`,
+          metadata: { snapshotTimestamp: data.timestamp }
+        });
+        return data.config_data as ScoringOverrides;
       }
 
+      // Fallback local
+      const snapshots = this.getLocalSnapshots();
+      const snapshot = snapshots.find(s => s.id === snapshotId);
+      if (!snapshot) throw new Error(`Snapshot ${snapshotId} not found`);
       await this.logChange({
         userId,
         action: 'rollback',
         target: 'global_config',
         changeDescription: `Rolled back to snapshot: ${snapshot.description}`,
-        metadata: { 
-          snapshotTimestamp: snapshot.timestamp.toISOString()
-        }
+        metadata: { snapshotTimestamp: snapshot.timestamp.toString() }
       });
-
       return snapshot.configData;
     } catch (error) {
       logger.error('Failed to rollback to snapshot', { component: 'auditTrail' }, error as Error);
