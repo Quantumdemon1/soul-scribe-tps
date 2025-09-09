@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
+import { logger } from '@/utils/structuredLogging';
 
 export function useAdminRole() {
   const { user } = useAuth();
@@ -24,13 +25,13 @@ export function useAdminRole() {
           .single();
 
         if (error) {
-          console.error('Error checking admin role:', error);
+          logger.error('Error checking admin role', { component: 'useAdminRole' }, error as Error);
           setIsAdmin(false);
         } else {
           setIsAdmin(!!data);
         }
       } catch (error) {
-        console.error('Error checking admin role:', error);
+        logger.error('Error checking admin role in effect cleanup', { component: 'useAdminRole' }, error as Error);
         setIsAdmin(false);
       } finally {
         setLoading(false);

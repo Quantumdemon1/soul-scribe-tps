@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef } from 'react';
 import { useErrorHandler } from './useErrorHandler';
+import { logger } from '@/utils/structuredLogging';
 
 interface LoadingState<T = any> {
   isLoading: boolean;
@@ -92,7 +93,7 @@ export function useLoadingState<T = any>(options: UseLoadingStateOptions = {}) {
       // Retry logic
       if (options?.retryOnError && retryCountRef.current < retryCount) {
         retryCountRef.current++;
-        console.log(`Retrying operation (attempt ${retryCountRef.current}/${retryCount})`);
+        logger.info(`Retrying operation (attempt ${retryCountRef.current}/${retryCount})`, { component: 'useLoadingState' });
         
         // Exponential backoff
         const delay = Math.pow(2, retryCountRef.current - 1) * 1000;

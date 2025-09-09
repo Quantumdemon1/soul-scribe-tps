@@ -5,6 +5,7 @@ import { PDFStyling, defaultTheme } from './pdfStyling';
 import { PDFContentGenerator, PDFSection } from './pdfContent';
 import { PDFChartGenerator } from './pdfCharts';
 import jsPDF from 'jspdf';
+import { logger } from './structuredLogging';
 
 export class PDFReportGenerator {
   static async generatePDFReport(
@@ -12,7 +13,7 @@ export class PDFReportGenerator {
     aiInsights?: AIInsights
   ): Promise<void> {
     try {
-      console.log('Starting enhanced PDF generation...');
+      logger.info('Starting enhanced PDF generation', { component: 'pdfGenerator' });
       
       // Create PDF document
       const pdf = new jsPDF('p', 'mm', 'a4');
@@ -65,10 +66,10 @@ export class PDFReportGenerator {
       const timestamp = new Date().toISOString().split('T')[0];
       pdf.save(`Psyforge-Comprehensive-Report-${timestamp}.pdf`);
       
-      console.log('Enhanced PDF generation completed successfully');
+      logger.info('Enhanced PDF generation completed successfully', { component: 'pdfGenerator' });
       
     } catch (error) {
-      console.error('Error generating enhanced PDF:', error);
+      logger.error('Error generating enhanced PDF', { component: 'pdfGenerator' }, error as Error);
       // Fallback to simple HTML download
       this.generateHTMLReport(profile);
     }
@@ -209,7 +210,10 @@ export class PDFReportGenerator {
           break;
           
         default:
-          console.warn(`Unknown content type: ${item.type}`);
+          logger.warn(`Unknown content type: ${item.type}`, { 
+            component: 'pdfGenerator',
+            metadata: { itemType: item.type }
+          });
       }
       
       currentY += 5; // Space between items

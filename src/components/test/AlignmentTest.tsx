@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { TPSScoring } from '@/utils/tpsScoring';
 import { Badge } from '@/components/ui/badge';
+import { logger } from '@/utils/structuredLogging';
 
 export const AlignmentTest: React.FC = () => {
   const [testResults, setTestResults] = useState<any>(null);
@@ -51,7 +52,10 @@ export const AlignmentTest: React.FC = () => {
         'Passive': 4.5
       };
 
-      console.log('Testing Enhanced Mappings with sample scores:', sampleScores);
+      logger.debug('Testing Enhanced Mappings with sample scores', { 
+        component: 'AlignmentTest',
+        metadata: { sampleScores }
+      });
       
       // Generate a full profile with enhanced mappings
       const mockResponses = new Array(108).fill(5);
@@ -80,10 +84,13 @@ export const AlignmentTest: React.FC = () => {
         )
       };
       
-      console.log('Enhanced Mappings Test Results:', results);
+      logger.debug('Enhanced Mappings Test Results', { 
+        component: 'AlignmentTest',
+        metadata: { results }
+      });
       setTestResults(results);
     } catch (error) {
-      console.error('Enhanced mappings test failed:', error);
+      logger.error('Enhanced mappings test failed', { component: 'AlignmentTest' }, error as Error);
       setTestResults({ error: error.message });
     } finally {
       setIsLoading(false);

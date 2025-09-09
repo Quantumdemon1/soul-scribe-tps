@@ -4,6 +4,7 @@ import { useAssessments } from '@/hooks/useAssessments';
 import { PersonalityProfile } from '@/types/tps.types';
 import { IntegralPersonalityService } from '@/services/integralPersonalityService';
 import { useToast } from '@/hooks/use-toast';
+import { logger } from '@/utils/structuredLogging';
 
 interface DataConsistencyResult {
   hasIntegralGaps: boolean;
@@ -36,7 +37,7 @@ export function useAssessmentDataConsistency() {
 
       setResult(consistencyResult);
     } catch (error) {
-      console.error('Error checking data consistency:', error);
+      logger.error('Error checking data consistency', { component: 'useAssessmentDataConsistency' }, error as Error);
     } finally {
       setIsChecking(false);
     }
@@ -83,7 +84,10 @@ export function useAssessmentDataConsistency() {
           // Small delay to prevent overwhelming the API
           await new Promise(resolve => setTimeout(resolve, 1000));
         } catch (error) {
-          console.warn(`Failed to backfill integral data for assessment ${assessment.id}:`, error);
+          logger.warn(`Failed to backfill integral data for assessment ${assessment.id}`, { 
+            component: 'useAssessmentDataConsistency', 
+            metadata: { assessmentId: assessment.id } 
+          });
         }
       }
 
@@ -95,7 +99,7 @@ export function useAssessmentDataConsistency() {
       // Refresh consistency check
       await checkDataConsistency();
     } catch (error) {
-      console.error('Error backfilling integral data:', error);
+      logger.error('Error backfilling integral data', { component: 'useAssessmentDataConsistency' }, error as Error);
       toast({
         title: 'Backfill Failed',
         description: 'Failed to complete data backfill. Please try again.',

@@ -3,6 +3,7 @@ import { TPSScores, PersonalityProfile } from '@/types/tps.types';
 import { SocraticSession, CuspAnalysis, ConversationTurn } from '@/types/llm.types';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { logger } from '@/utils/structuredLogging';
 
 interface SocraticSessionContextType {
   currentSession: SocraticSession | null;
@@ -65,12 +66,12 @@ export const SocraticSessionProvider: React.FC<SocraticSessionProviderProps> = (
         });
 
       if (error) {
-        console.error('Error saving session:', error);
+        logger.error('Error saving session', { component: 'useSocraticSession' }, error as Error);
         // Fallback to localStorage
         localStorage.setItem(`socratic-session-${session.id}`, JSON.stringify(session));
       }
     } catch (error) {
-      console.error('Error saving session:', error);
+      logger.error('Error saving session fallback', { component: 'useSocraticSession' }, error as Error);
     }
   };
 
@@ -106,7 +107,7 @@ export const SocraticSessionProvider: React.FC<SocraticSessionProviderProps> = (
       setCurrentSession(session);
       return session;
     } catch (error) {
-      console.error('Error loading session:', error);
+      logger.error('Error loading session', { component: 'useSocraticSession' }, error as Error);
       return null;
     }
   };

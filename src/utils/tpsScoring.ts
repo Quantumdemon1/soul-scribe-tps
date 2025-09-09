@@ -1,4 +1,5 @@
 import { TPSScores, DominantTraits, PersonalityProfile } from '../types/tps.types';
+import { logger } from './structuredLogging';
 
 // Safe imports to avoid circular dependencies
 let enhancedMappingsLoaded = false;
@@ -490,7 +491,10 @@ export class TPSScoring {
     const getTraitScore = (traitName: string): number => {
       const score = traitScores[traitName];
       if (score === undefined) {
-        console.warn(`D&D Alignment: Missing trait '${traitName}', using default 5.0`);
+        logger.warn(`D&D Alignment: Missing trait '${traitName}', using default 5.0`, { 
+          component: 'tpsScoring',
+          metadata: { traitName }
+        });
         return 5.0;
       }
       return score;
@@ -512,11 +516,14 @@ export class TPSScoring {
     );
     
     // Debug logging
-    console.log('D&D Alignment Calculation:', {
-      lawfulness: lawfulness.toFixed(2),
-      chaos: chaos.toFixed(2),
-      availableTraits: Object.keys(traitScores),
-      traitCounts: Object.keys(traitScores).length
+    logger.debug('D&D Alignment Calculation', { 
+      component: 'tpsScoring',
+      metadata: {
+        lawfulness: lawfulness.toFixed(2),
+        chaos: chaos.toFixed(2),
+        availableTraits: Object.keys(traitScores),
+        traitCounts: Object.keys(traitScores).length
+      }
     });
     
     let ethical: string;
@@ -540,9 +547,12 @@ export class TPSScoring {
       (getTraitScore('Pessimistic') * 0.20)
     );
     
-    console.log('D&D Alignment Moral Axis:', {
-      goodness: goodness.toFixed(2),
-      selfishness: selfishness.toFixed(2)
+    logger.debug('D&D Alignment Moral Axis', { 
+      component: 'tpsScoring',
+      metadata: {
+        goodness: goodness.toFixed(2),
+        selfishness: selfishness.toFixed(2)
+      }
     });
     
     let moral: string;
@@ -551,7 +561,10 @@ export class TPSScoring {
     else moral = 'Neutral';
     
     const result = ethical === 'Neutral' && moral === 'Neutral' ? 'True Neutral' : `${ethical} ${moral}`;
-    console.log('D&D Alignment Result:', result);
+    logger.debug('D&D Alignment Result', { 
+      component: 'tpsScoring',
+      metadata: { result }
+    });
     
     return result;
   }

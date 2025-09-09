@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { logger } from '@/utils/structuredLogging';
 
 interface RateLimitOptions {
   endpoint: string;
@@ -44,7 +45,7 @@ export function useRateLimit() {
         .single();
 
       if (fetchError && fetchError.code !== 'PGRST116') {
-        console.error('Rate limit check error:', fetchError);
+        logger.error('Rate limit check error', { component: 'useRateLimit' }, fetchError as Error);
         // Allow on error
         return {
           isAllowed: true,
@@ -93,7 +94,7 @@ export function useRateLimit() {
         resetTime: new Date(new Date(existing.window_start).getTime() + options.windowMinutes * 60 * 1000)
       };
     } catch (error) {
-      console.error('Rate limit error:', error);
+      logger.error('Rate limit error', { component: 'useRateLimit' }, error as Error);
       // Allow on error
       return {
         isAllowed: true,

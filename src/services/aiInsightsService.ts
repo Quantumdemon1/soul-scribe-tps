@@ -3,6 +3,7 @@ import { AIInsights } from '@/types/llm.types';
 import { LLMService } from './llmService';
 import { FrameworkInsightsService } from './frameworkInsightsService';
 import { supabase } from '@/integrations/supabase/client';
+import { logger } from '@/utils/structuredLogging';
 import { stableHash } from '@/utils/hash';
 import { logger } from '@/utils/structuredLogging';
 
@@ -14,7 +15,10 @@ export class AIInsightsService {
 
   async generateInsights(profile: PersonalityProfile, userId?: string): Promise<AIInsights> {
     try {
-      console.log('Starting AI insights generation for profile:', profile);
+      logger.info('Starting AI insights generation for profile', { 
+        component: 'aiInsightsService',
+        metadata: { hasProfile: !!profile }
+      });
       
       // Create cache key based on profile traits and scores
       const cacheKey = stableHash({

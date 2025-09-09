@@ -22,6 +22,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
+import { logger } from '@/utils/structuredLogging';
 
 
 const AssessmentHistory: React.FC = () => {
@@ -118,7 +119,7 @@ const AssessmentHistory: React.FC = () => {
       );
       toast({ title: 'Recalculation complete', description: 'Mappings recalculated. Refresh to see updates.' });
     } catch (err: any) {
-      console.error('Recalculation error', err);
+      logger.error('Assessment recalculation error', { component: 'AssessmentHistory' }, err as Error);
       toast({ title: 'Recalculation failed', description: err?.message || 'Please try again later.', variant: 'destructive' });
     } finally {
       setRecalcLoading(false);
@@ -405,7 +406,7 @@ const AssessmentHistory: React.FC = () => {
                                   try {
                                     await PDFReportGenerator.generatePDFReport(assessment.profile);
                                   } catch (error) {
-                                    console.error('Error generating PDF:', error);
+                                    logger.error('Error generating PDF report', { component: 'AssessmentHistory' }, error as Error);
                                   }
                                 }}
                                 className="justify-start"
@@ -514,7 +515,7 @@ const AssessmentHistory: React.FC = () => {
                               try {
                                 await PDFReportGenerator.generatePDFReport(assessment.profile);
                               } catch (error) {
-                                console.error('Error generating PDF:', error);
+                                logger.error('Error generating integral PDF', { component: 'AssessmentHistory' }, error as Error);
                               }
                             }}
                           >

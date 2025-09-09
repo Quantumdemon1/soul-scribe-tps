@@ -149,7 +149,7 @@ export const RefinementModal: React.FC<Props> = ({
         onClose();
       }
     } catch (error) {
-      console.error('Error processing response:', error);
+      logger.error('Error processing refinement response', { component: 'RefinementModal' }, error as Error);
       toast({
         title: "Error",
         description: "Failed to process your response. Please try again.",
@@ -177,7 +177,7 @@ export const RefinementModal: React.FC<Props> = ({
       });
       onClose();
     } catch (error) {
-      console.error('Error saving progress:', error);
+      logger.error('Error saving refinement progress', { component: 'RefinementModal' }, error as Error);
       toast({
         title: "Error",
         description: "Failed to save progress.",

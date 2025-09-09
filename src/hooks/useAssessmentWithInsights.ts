@@ -8,6 +8,7 @@ import { useErrorHandler } from './useErrorHandler';
 import { useLoadingState } from './useLoadingState';
 import { useAuth } from './useAuth';
 import { supabase } from '@/integrations/supabase/client';
+import { logger } from '@/utils/structuredLogging';
 
 interface UseAssessmentWithInsightsReturn {
   enhanceProfileWithInsights: (profile: PersonalityProfile, userId?: string) => Promise<PersonalityProfile>;
@@ -115,7 +116,7 @@ export const useAssessmentWithInsights = (): UseAssessmentWithInsightsReturn => 
         localStorage.setItem('tps-profile', JSON.stringify(updatedProfile));
       }
     } catch (error) {
-      console.error('Error persisting enhanced profile:', error);
+      logger.error('Error persisting enhanced profile', { component: 'useAssessmentWithInsights' }, error as Error);
       // Don't throw - this shouldn't block the UI
     }
   };

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { logger } from '@/utils/structuredLogging';
 
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
@@ -33,7 +34,7 @@ export function useAuth() {
       setSession(null);
       setUser(null);
     } catch (error) {
-      console.error('Error signing out:', error);
+      logger.error('Error signing out', { component: 'useAuth' }, error as Error);
     }
   };
 

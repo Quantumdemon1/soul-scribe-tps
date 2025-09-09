@@ -4,6 +4,7 @@ import { PersonalityIntegration } from '../services/integralPersonalityService';
 import { PDFStyling, defaultTheme } from './pdfStyling';
 import { PDFChartGenerator } from './pdfCharts';
 import jsPDF from 'jspdf';
+import { logger } from './structuredLogging';
 
 interface IntegralPDFSection {
   title: string;
@@ -23,7 +24,7 @@ export class IntegralPDFGenerator {
     personalityIntegration?: PersonalityIntegration | null
   ): Promise<void> {
     try {
-      console.log('Starting Integral PDF generation...');
+      logger.info('Starting Integral PDF generation', { component: 'integralPdfGenerator' });
       
       // Create PDF document
       const pdf = new jsPDF('p', 'mm', 'a4');
@@ -75,10 +76,10 @@ export class IntegralPDFGenerator {
       const timestamp = new Date().toISOString().split('T')[0];
       pdf.save(`Integral-Level-Assessment-${timestamp}.pdf`);
       
-      console.log('Integral PDF generation completed successfully');
+      logger.info('Integral PDF generation completed successfully', { component: 'integralPdfGenerator' });
       
     } catch (error) {
-      console.error('Error generating Integral PDF:', error);
+      logger.error('Error generating Integral PDF', { component: 'integralPdfGenerator' }, error as Error);
       // Fallback to simple HTML download
       this.generateIntegralHTMLReport(integralDetail, personalityProfile || null);
     }
@@ -280,7 +281,10 @@ export class IntegralPDFGenerator {
           break;
           
         default:
-          console.warn(`Unknown Integral content type: ${item.type}`);
+          logger.warn(`Unknown Integral content type: ${item.type}`, { 
+            component: 'integralPdfGenerator',
+            metadata: { itemType: item.type }
+          });
       }
       
       currentY += 8;
