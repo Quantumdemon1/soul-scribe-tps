@@ -21,6 +21,7 @@ export const ScoringSimulator: React.FC = () => {
   const [selectedUser, setSelectedUser] = useState<string>('');
   const [customUserId, setCustomUserId] = useState<string>('');
   const [showComparison, setShowComparison] = useState(false);
+  const [loadingUser, setLoadingUser] = useState(false);
   
   const overrides = useMemo(() => readLocalOverrides(), []);
   

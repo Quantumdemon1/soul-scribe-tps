@@ -37,6 +37,13 @@ loadEnhancedMappings();
 function getScoringOverrides(): {
   traitMappings?: Record<string, number[]>;
   mbti?: Record<'EI' | 'SN' | 'TF' | 'JP', { traits: Record<string, number>; threshold?: number }>;
+  bigfive?: any;
+  enneagram?: any;
+  alignment?: any;
+  holland?: any;
+  socionics?: any;
+  integral?: any;
+  attachment?: any;
 } | null {
   try {
     const raw = typeof window !== 'undefined' ? window.localStorage.getItem('tps_scoring_overrides') : null;
