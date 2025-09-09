@@ -43,11 +43,14 @@ export const EnhancedIntegralResults: React.FC<EnhancedIntegralResultsProps> = (
     // Log scoring details for transparency
     logScoringDetails('Final Results', { [integralDetail.primaryLevel.color]: integralDetail.primaryLevel.score });
     
+    // Automatically save the integral results
+    saveIntegralResults(integralDetail);
+    
     // Generate personality integration if available
     if (personalityProfile) {
       generatePersonalityIntegration();
     }
-  }, [integralDetail, personalityProfile]);
+  }, [integralDetail, personalityProfile, saveIntegralResults]);
 
   const generatePersonalityIntegration = async () => {
     if (!personalityProfile) return;
@@ -550,13 +553,6 @@ export const EnhancedIntegralResults: React.FC<EnhancedIntegralResultsProps> = (
           </div>
 
           <div className="flex gap-2">
-            <Button 
-              onClick={handleSaveResults} 
-              disabled={isSaving}
-              variant="default"
-            >
-              {isSaving ? 'Saving...' : 'Save Results'}
-            </Button>
             <Button 
               variant="outline"
               onClick={handleDownloadPDF}
