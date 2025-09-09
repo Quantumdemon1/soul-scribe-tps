@@ -94,7 +94,7 @@ export const AnalyticsOverview: React.FC = () => {
     }
   };
 
-  const processAnalyticsData = (assessments: any[], insights: any[], sessions: any[]): AnalyticsData => {
+  const processAnalyticsData = (assessments: unknown[], insights: unknown[], sessions: unknown[]): AnalyticsData => {
     // Weekly growth data
     const weeklyGrowth = generateWeeklyGrowth(assessments, insights, sessions);
     
@@ -108,7 +108,7 @@ export const AnalyticsOverview: React.FC = () => {
     const popularTraits = processPopularTraits(assessments);
 
     return {
-      totalUsers: new Set([...assessments, ...insights, ...sessions].map(item => item.user_id)).size,
+      totalUsers: new Set([...assessments, ...insights, ...sessions].map((item: any) => item?.user_id).filter(Boolean)).size,
       totalAssessments: assessments.length,
       totalInsights: insights.length,
       totalSessions: sessions.length,
@@ -121,7 +121,7 @@ export const AnalyticsOverview: React.FC = () => {
     };
   };
 
-  const generateWeeklyGrowth = (assessments: any[], insights: any[], sessions: any[]) => {
+  const generateWeeklyGrowth = (assessments: unknown[], insights: unknown[], sessions: unknown[]) => {
     const days = 7;
     const data = [];
     
@@ -130,16 +130,16 @@ export const AnalyticsOverview: React.FC = () => {
       date.setDate(date.getDate() - i);
       const dateStr = date.toISOString().split('T')[0];
       
-      const dayAssessments = assessments.filter(a => 
-        new Date(a.created_at).toDateString() === date.toDateString()
+      const dayAssessments = assessments.filter((a: any) => 
+        a?.created_at && new Date(a.created_at).toDateString() === date.toDateString()
       ).length;
       
-      const dayInsights = insights.filter(i => 
-        new Date(i.created_at).toDateString() === date.toDateString()
+      const dayInsights = insights.filter((i: any) => 
+        i?.created_at && new Date(i.created_at).toDateString() === date.toDateString()
       ).length;
       
-      const daySessions = sessions.filter(s => 
-        new Date(s.created_at).toDateString() === date.toDateString()
+      const daySessions = sessions.filter((s: any) => 
+        s?.created_at && new Date(s.created_at).toDateString() === date.toDateString()
       ).length;
       
       data.push({
@@ -153,9 +153,9 @@ export const AnalyticsOverview: React.FC = () => {
     return data;
   };
 
-  const processAssessmentTypes = (assessments: any[]) => {
-    const types = assessments.reduce((acc, assessment) => {
-      const type = assessment.variant || 'standard';
+  const processAssessmentTypes = (assessments: unknown[]) => {
+    const types = assessments.reduce((acc: any, assessment: any) => {
+      const type = assessment?.variant || 'standard';
       acc[type] = (acc[type] || 0) + 1;
       return acc;
     }, {});
@@ -168,11 +168,11 @@ export const AnalyticsOverview: React.FC = () => {
     }));
   };
 
-  const processHourlyActivity = (allData: any[]) => {
+  const processHourlyActivity = (allData: unknown[]) => {
     const hourlyData = Array.from({ length: 24 }, (_, hour) => ({ hour, activity: 0 }));
     
-    allData.forEach(item => {
-      if (item.created_at) {
+    allData.forEach((item: any) => {
+      if (item?.created_at) {
         const hour = new Date(item.created_at).getHours();
         hourlyData[hour].activity++;
       }
@@ -181,11 +181,11 @@ export const AnalyticsOverview: React.FC = () => {
     return hourlyData;
   };
 
-  const processPopularTraits = (assessments: any[]) => {
+  const processPopularTraits = (assessments: unknown[]) => {
     const traitCounts: Record<string, number> = {};
     
-    assessments.forEach(assessment => {
-      if (assessment.profile?.scores) {
+    assessments.forEach((assessment: any) => {
+      if (assessment?.profile?.scores) {
         Object.keys(assessment.profile.scores).forEach(trait => {
           traitCounts[trait] = (traitCounts[trait] || 0) + 1;
         });

@@ -15,11 +15,7 @@ export class ProductionOptimizer {
   // Remove debug statements in production
   removeDebugCode(): void {
     if (this.isProduction) {
-      // Override console methods in production
-      console.log = () => {};
-      console.debug = () => {};
-      console.trace = () => {};
-      
+      // Console suppression handled by debugCleanup utility
       logger.info('Debug code removal activated for production');
     }
   }

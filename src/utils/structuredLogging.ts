@@ -67,39 +67,28 @@ class StructuredLogger {
     const entry = this.createLogEntry('ERROR', message, context, error);
     this.addToBuffer(entry);
     
-    if (this.isDevelopment) {
-      console.error(this.formatConsoleOutput(entry));
-      if (error) {
-        console.error(error);
-      }
-    }
+    // Use structured logging only - console suppressed in production
   }
 
   warn(message: string, context?: LogContext): void {
     const entry = this.createLogEntry('WARN', message, context);
     this.addToBuffer(entry);
     
-    if (this.isDevelopment) {
-      console.warn(this.formatConsoleOutput(entry));
-    }
+    // Use structured logging only - console suppressed in production
   }
 
   info(message: string, context?: LogContext): void {
     const entry = this.createLogEntry('INFO', message, context);
     this.addToBuffer(entry);
     
-    if (this.isDevelopment) {
-      console.info(this.formatConsoleOutput(entry));
-    }
+    // Use structured logging only - console suppressed in production
   }
 
   debug(message: string, context?: LogContext): void {
     const entry = this.createLogEntry('DEBUG', message, context);
     this.addToBuffer(entry);
     
-    if (this.isDevelopment) {
-      console.debug(this.formatConsoleOutput(entry));
-    }
+    // Use structured logging only - console suppressed in production
   }
 
   getLogs(level?: keyof LogLevel): LogEntry[] {

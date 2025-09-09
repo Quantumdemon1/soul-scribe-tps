@@ -12,6 +12,12 @@ interface PerformanceMetrics {
   errorCount: number;
 }
 
+interface PerformanceMemory {
+  usedJSHeapSize?: number;
+  totalJSHeapSize?: number;
+  jsHeapSizeLimit?: number;
+}
+
 export function PerformanceMonitor() {
   const { getMetrics } = usePerformanceOptimization();
   const [metrics, setMetrics] = useState<PerformanceMetrics>({
@@ -24,13 +30,24 @@ export function PerformanceMonitor() {
   useEffect(() => {
     const updateMetrics = () => {
       const componentMetrics = getMetrics();
-      const memory = (performance as any).memory;
+      const memory = (performance as any).memory as PerformanceMemory;
       
-      setMetrics({
-        memoryUsage: memory ? memory.usedJSHeapSize / 1024 / 1024 : 0,
-        renderTime: Math.max(...Object.values(componentMetrics)) || 0,
-        apiCalls: Object.keys(componentMetrics).filter(key => key.includes('api')).length,
-        errorCount: Object.keys(componentMetrics).filter(key => key.includes('error')).length
+      setMetrics(prevMetrics => {
+        const newMetrics = {
+          memoryUsage: memory ? memory.usedJSHeapSize / 1024 / 1024 : 0,
+          renderTime: Math.max(...Object.values(componentMetrics)) || 0,
+          apiCalls: Object.keys(componentMetrics).filter(key => key.includes('api')).length,
+          errorCount: Object.keys(componentMetrics).filter(key => key.includes('error')).length
+        };
+        
+        // Only update if values changed significantly to prevent infinite loops
+        const hasSignificantChange = 
+          Math.abs(newMetrics.memoryUsage - prevMetrics.memoryUsage) > 1 ||
+          Math.abs(newMetrics.renderTime - prevMetrics.renderTime) > 5 ||
+          newMetrics.apiCalls !== prevMetrics.apiCalls ||
+          newMetrics.errorCount !== prevMetrics.errorCount;
+          
+        return hasSignificantChange ? newMetrics : prevMetrics;
       });
     };
 
@@ -38,7 +55,7 @@ export function PerformanceMonitor() {
     const interval = setInterval(updateMetrics, 5000);
 
     return () => clearInterval(interval);
-  }, [getMetrics]);
+  }, []); // Remove getMetrics dependency to prevent infinite loop
 
   const getHealthStatus = () => {
     if (metrics.memoryUsage > 100 || metrics.renderTime > 100 || metrics.errorCount > 0) {
@@ -58,7 +75,7 @@ export function PerformanceMonitor() {
         <CardTitle className="flex items-center gap-2">
           <Activity className="w-5 h-5" />
           Performance Monitor
-          <Badge variant={health.color as any} className="ml-auto">
+          <Badge variant={health.color as 'default' | 'destructive' | 'outline' | 'secondary'} className="ml-auto">
             {health.status}
           </Badge>
         </CardTitle>

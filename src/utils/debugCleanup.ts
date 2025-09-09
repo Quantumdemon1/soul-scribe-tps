@@ -23,6 +23,7 @@ export class DebugCleanup {
       console.log = () => {};
       console.debug = () => {};
       console.trace = () => {};
+      console.info = () => {};
       
       // Keep warn and error for critical issues
       logger.info('Debug console methods suppressed in production', {
@@ -42,12 +43,12 @@ export class DebugCleanup {
       const originalLog = console.log;
       const originalDebug = console.debug;
 
-      console.log = (...args) => {
+      console.log = (...args: unknown[]) => {
         consoleCallsFound++;
         originalLog.apply(console, args);
       };
 
-      console.debug = (...args) => {
+      console.debug = (...args: unknown[]) => {
         consoleCallsFound++;
         originalDebug.apply(console, args);
       };
