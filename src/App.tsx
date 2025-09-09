@@ -8,6 +8,9 @@ import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { usePerformanceOptimization } from "@/hooks/usePerformanceOptimization";
 import { LazyIndex, LazyAuth, LazyAdmin, LazyAssessmentHistory, LazyAssessments, LazyProfile, LazyMentor, LazyNotFound, PageWrapper } from './components/layout/LazyPages';
 import { lazy } from 'react';
+import { PerformanceTracker } from '@/components/ui/performance-tracker';
+import '@/utils/debugCleanup'; // Initialize debug cleanup
+import '@/utils/bundleOptimizer'; // Initialize bundle optimization
 
 const LazyIntegralAssessment = lazy(() => import('./pages/IntegralAssessment'));
 
@@ -87,6 +90,7 @@ const App = () => (
   <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
       <AppContent />
+      {import.meta.env.DEV && <PerformanceTracker />}
     </QueryClientProvider>
   </ErrorBoundary>
 );
