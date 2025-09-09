@@ -257,7 +257,7 @@ const AssessmentHistory: React.FC = () => {
               <Card>
                 <CardContent className={`${isMobile ? 'p-4' : 'p-6'} text-center`}>
                   <div className={`${isMobile ? 'text-2xl' : 'text-3xl'} font-bold text-primary mb-2`}>
-                    {assessments.filter(a => (a.profile as any).integralDetail).length}
+                    {assessments.filter(a => a.profile.mappings?.integralDetail).length}
                   </div>
                   <p className="text-sm text-muted-foreground">With Integral Levels</p>
                 </CardContent>
@@ -265,7 +265,7 @@ const AssessmentHistory: React.FC = () => {
             </div>
 
             {/* Integral Assessment Callout */}
-            {!assessments.some(a => (a.profile as any)?.integralDetail) && (
+            {!assessments.some(a => a.profile.mappings?.integralDetail) && (
               <Card className="mb-6 border-primary/20">
                 <CardContent className="p-4">
                   <div className="flex items-center gap-3">
@@ -332,10 +332,10 @@ const AssessmentHistory: React.FC = () => {
                                      {assessment.profile.mappings.mbti} • {assessment.profile.mappings.enneagram}
                                    </div>
                                  )}
-                                 {(assessment.profile as any).integralDetail && (
+                                 {assessment.profile.mappings?.integralDetail && (
                                    <div className="mt-1">
                                      <IntegralLevelBadge 
-                                       level={(assessment.profile as any).integralDetail.primaryLevel} 
+                                       level={assessment.profile.mappings.integralDetail.primaryLevel} 
                                        size="sm" 
                                        showName={false}
                                      />
@@ -365,15 +365,15 @@ const AssessmentHistory: React.FC = () => {
                                 <div>D&D: {assessment.profile.mappings.dndAlignment}</div>
                                 <div>Holland: {assessment.profile.mappings.hollandCode}</div>
                               </div>
-                               {(assessment.profile as any).integralDetail && (
+               {assessment.profile.mappings?.integralDetail && (
                                  <div className="mt-2">
                                    <div className="text-xs font-medium mb-1">Integral Level</div>
                                    <IntegralLevelBadge 
-                                     level={(assessment.profile as any).integralDetail.primaryLevel} 
+                                     level={assessment.profile.mappings.integralDetail.primaryLevel} 
                                      size="sm"
                                    />
                                    <div className="text-xs text-muted-foreground mt-1">
-                                     {(assessment.profile as any).integralDetail.primaryLevel.name}
+                                     {assessment.profile.mappings.integralDetail.primaryLevel.name}
                                    </div>
                                  </div>
                                )}
@@ -473,10 +473,10 @@ const AssessmentHistory: React.FC = () => {
                                    MBTI: {assessment.profile.mappings.mbti} | 
                                    Enneagram: {assessment.profile.mappings.enneagram} |
                                    D&D: {assessment.profile.mappings.dndAlignment}
-                                   {(assessment.profile as any).integralDetail && (
+                                   {assessment.profile.mappings?.integralDetail && (
                                      <span className="ml-2">
                                        | <IntegralLevelBadge 
-                                         level={(assessment.profile as any).integralDetail.primaryLevel} 
+                                         level={assessment.profile.mappings.integralDetail.primaryLevel} 
                                          size="sm" 
                                          className="inline-flex"
                                        />
