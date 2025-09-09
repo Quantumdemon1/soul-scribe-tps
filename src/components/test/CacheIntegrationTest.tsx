@@ -7,6 +7,7 @@ import { FrameworkInsightsService } from '@/services/frameworkInsightsService';
 import { AIInsightsService } from '@/services/aiInsightsService';
 import { SocraticClarificationService } from '@/services/socraticClarificationService';
 import { PersonalityProfile, TPSScores } from '@/types/tps.types';
+import { logger } from '@/utils/structuredLogging';
 import { Database, Zap, Users, Clock } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/hooks/use-toast';
@@ -79,7 +80,11 @@ export const CacheIntegrationTest: React.FC = () => {
         description: `Completed in ${endTime - startTime}ms`
       });
     } catch (error) {
-      console.error(`Test ${testName} failed:`, error);
+      logger.error(`Test ${testName} failed`, { 
+        component: 'CacheIntegrationTest',
+        action: testName,
+        metadata: { testName }
+      }, error as Error);
       setTestResults(prev => ({
         ...prev,
         [testName]: {
