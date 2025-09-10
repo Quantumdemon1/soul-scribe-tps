@@ -7,16 +7,15 @@ import {
   TableHeader, 
   TableRow 
 } from '@/components/ui/table';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { toast } from '@/hooks/use-toast';
-import { Search, Users, Filter, RefreshCw, Edit3, Mail } from 'lucide-react';
+import { Users, RefreshCw, Mail, ChevronDown, ChevronRight } from 'lucide-react';
 import { 
   fetchUsersWithOverrides, 
   updateUserOverride, 
@@ -26,113 +25,11 @@ import {
 } from '@/services/userManagementService';
 import { BigFiveEditor } from './BigFiveEditor';
 import { BulkOperationsPanel } from './BulkOperationsPanel';
+import { EnhancedInlineSelect } from './EnhancedInlineSelect';
+import { AdvancedFilters } from './AdvancedFilters';
+import { AuditTrailExpansion } from './AuditTrailExpansion';
 
-interface InlineSelectProps {
-  value: string | null;
-  options: readonly string[];
-  onSave: (value: string | null) => Promise<void>;
-  placeholder: string;
-}
-
-interface BigFiveCellProps {
-  value: any;
-  onSave: (value: any) => Promise<void>;
-}
-
-const InlineSelect: React.FC<InlineSelectProps> = ({ value, options, onSave, placeholder }) => {
-  const [isEditing, setIsEditing] = useState(false);
-  const [currentValue, setCurrentValue] = useState(value || '');
-  const [saving, setSaving] = useState(false);
-
-  const handleSave = async () => {
-    setSaving(true);
-    try {
-      const newValue = currentValue === '' ? null : currentValue;
-      await onSave(newValue);
-      setIsEditing(false);
-    } catch (error) {
-      toast({ 
-        title: 'Save Failed', 
-        description: 'Could not update override.', 
-        variant: 'destructive' 
-      });
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleCancel = () => {
-    setCurrentValue(value || '');
-    setIsEditing(false);
-  };
-
-  if (isEditing) {
-    return (
-      <div className="flex items-center gap-1">
-        <Select value={currentValue} onValueChange={setCurrentValue}>
-          <SelectTrigger className="h-6 text-xs min-w-24">
-            <SelectValue placeholder={placeholder} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="">None</SelectItem>
-            {options.map(option => (
-              <SelectItem key={option} value={option}>{option}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Button 
-          size="sm" 
-          variant="ghost" 
-          className="h-6 px-1"
-          onClick={handleSave}
-          disabled={saving}
-        >
-          ✓
-        </Button>
-        <Button 
-          size="sm" 
-          variant="ghost" 
-          className="h-6 px-1"
-          onClick={handleCancel}
-        >
-          ✕
-        </Button>
-      </div>
-    );
-  }
-
-  const hasOverride = value !== null;
-
-  return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <button
-            onClick={() => setIsEditing(true)}
-            className={`text-left hover:bg-muted/50 rounded px-1 py-0.5 transition-colors min-h-6 w-full ${
-              hasOverride ? 'bg-primary/10 border border-primary/20' : ''
-            }`}
-          >
-            {value ? (
-              <Badge variant={hasOverride ? "default" : "secondary"} className="text-xs">
-                {value}
-              </Badge>
-            ) : (
-              <span className="text-xs text-muted-foreground">—</span>
-            )}
-          </button>
-        </TooltipTrigger>
-        <TooltipContent>
-          <p className="text-xs">
-            {hasOverride ? 'Manual override active' : 'Click to set override'}
-          </p>
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
-  );
-};
-
-const BigFiveCell: React.FC<BigFiveCellProps> = ({ value, onSave }) => {
+const BigFiveCell: React.FC<{ value: any; onSave: (value: any) => Promise<void> }> = ({ value, onSave }) => {
   const [isEditing, setIsEditing] = useState(false);
   const hasOverride = value !== null;
 
@@ -195,73 +92,279 @@ const BigFiveCell: React.FC<BigFiveCellProps> = ({ value, onSave }) => {
   );
 };
 
+interface UserManagementTableState {
+  users: UserWithOverrides[];
+  selectedUsers: Set<string>;
+  loading: boolean;
+  filters: UserManagementFilters;
+  totalCount: number;
+  expandedRows: Set<string>;
+}
+
+interface UserRowProps {
+  user: UserWithOverrides;
+  isSelected: boolean;
+  isExpanded: boolean;
+  onSelect: (checked: boolean) => void;
+  onToggleExpand: () => void;
+  onOverrideUpdate: (framework: string, value: any) => Promise<void>;
+}
+
+const UserRow: React.FC<UserRowProps> = ({
+  user,
+  isSelected,
+  isExpanded,
+  onSelect,
+  onToggleExpand,
+  onOverrideUpdate
+}) => {
+  const [cellLoading, setCellLoading] = useState<Set<string>>(new Set());
+
+  const handleCellUpdate = async (framework: string, value: any) => {
+    setCellLoading(prev => new Set([...prev, framework]));
+    try {
+      await onOverrideUpdate(framework, value);
+    } finally {
+      setCellLoading(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(framework);
+        return newSet;
+      });
+    }
+  };
+
+  return (
+    <>
+      <TableRow className="hover:bg-muted/50">
+        <TableCell>
+          <div className="flex items-center gap-2">
+            <Checkbox
+              checked={isSelected}
+              onCheckedChange={onSelect}
+            />
+            <CollapsibleTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 w-6 p-0"
+                onClick={onToggleExpand}
+              >
+                {isExpanded ? (
+                  <ChevronDown className="h-3 w-3" />
+                ) : (
+                  <ChevronRight className="h-3 w-3" />
+                )}
+              </Button>
+            </CollapsibleTrigger>
+          </div>
+        </TableCell>
+        <TableCell>
+          <div className="space-y-1">
+            <div className="font-medium text-sm">
+              {user.display_name || user.username || 'No Name'}
+            </div>
+            <div className="text-xs text-muted-foreground flex items-center gap-1">
+              <Mail className="h-3 w-3" />
+              {user.email}
+            </div>
+            <div className="text-xs text-muted-foreground">
+              ID: {user.id.slice(0, 8)}...
+            </div>
+            {user.verification_level && (
+              <Badge variant="outline" className="text-xs">
+                {user.verification_level}
+              </Badge>
+            )}
+          </div>
+        </TableCell>
+        <TableCell className="text-center">
+          <div className="space-y-1">
+            <div className="text-sm font-medium">{user.assessment_count}</div>
+            {user.last_assessment_date && (
+              <div className="text-xs text-muted-foreground">
+                {new Date(user.last_assessment_date).toLocaleDateString()}
+              </div>
+            )}
+          </div>
+        </TableCell>
+        <TableCell className="text-center">
+          <EnhancedInlineSelect
+            value={user.mbti_type}
+            options={FRAMEWORK_OPTIONS.mbti_type}
+            onSave={(value) => handleCellUpdate('mbti_type', value)}
+            placeholder="MBTI"
+            disabled={cellLoading.has('mbti_type')}
+          />
+        </TableCell>
+        <TableCell className="text-center">
+          <EnhancedInlineSelect
+            value={user.enneagram_type}
+            options={FRAMEWORK_OPTIONS.enneagram_type}
+            onSave={(value) => handleCellUpdate('enneagram_type', value)}
+            placeholder="Type"
+            disabled={cellLoading.has('enneagram_type')}
+          />
+        </TableCell>
+        <TableCell className="text-center">
+          <BigFiveCell
+            value={user.big_five_scores}
+            onSave={(value) => handleCellUpdate('big_five_scores', value)}
+          />
+        </TableCell>
+        <TableCell className="text-center">
+          <EnhancedInlineSelect
+            value={user.holland_code}
+            options={FRAMEWORK_OPTIONS.holland_code}
+            onSave={(value) => handleCellUpdate('holland_code', value)}
+            placeholder="Code"
+            disabled={cellLoading.has('holland_code')}
+          />
+        </TableCell>
+        <TableCell className="text-center">
+          <EnhancedInlineSelect
+            value={user.alignment}
+            options={FRAMEWORK_OPTIONS.alignment}
+            onSave={(value) => handleCellUpdate('alignment', value)}
+            placeholder="Alignment"
+            disabled={cellLoading.has('alignment')}
+          />
+        </TableCell>
+        <TableCell className="text-center">
+          <EnhancedInlineSelect
+            value={user.socionics_type}
+            options={FRAMEWORK_OPTIONS.socionics_type}
+            onSave={(value) => handleCellUpdate('socionics_type', value)}
+            placeholder="Type"
+            disabled={cellLoading.has('socionics_type')}
+          />
+        </TableCell>
+        <TableCell className="text-center">
+          <EnhancedInlineSelect
+            value={user.integral_level}
+            options={FRAMEWORK_OPTIONS.integral_level}
+            onSave={(value) => handleCellUpdate('integral_level', value)}
+            placeholder="Level"
+            disabled={cellLoading.has('integral_level')}
+          />
+        </TableCell>
+        <TableCell className="text-center">
+          <EnhancedInlineSelect
+            value={user.attachment_style}
+            options={FRAMEWORK_OPTIONS.attachment_style}
+            onSave={(value) => handleCellUpdate('attachment_style', value)}
+            placeholder="Style"
+            disabled={cellLoading.has('attachment_style')}
+          />
+        </TableCell>
+      </TableRow>
+      
+      {isExpanded && (
+        <TableRow>
+          <TableCell colSpan={11} className="bg-muted/20 p-4">
+            <AuditTrailExpansion 
+              userId={user.id} 
+              onRollback={() => window.location.reload()} 
+            />
+          </TableCell>
+        </TableRow>
+      )}
+    </>
+  );
+};
+
 export const UserManagementTable: React.FC = () => {
-  const [users, setUsers] = useState<UserWithOverrides[]>([]);
-  const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
-  const [loading, setLoading] = useState(true);
-  const [filters, setFilters] = useState<UserManagementFilters>({
-    page: 0,
-    pageSize: 50
+  const [state, setState] = useState<UserManagementTableState>({
+    users: [],
+    selectedUsers: new Set(),
+    loading: true,
+    filters: { page: 0, pageSize: 50 },
+    totalCount: 0,
+    expandedRows: new Set()
   });
-  const [totalCount, setTotalCount] = useState(0);
 
   const loadUsers = async () => {
-    setLoading(true);
+    setState(prev => ({ ...prev, loading: true }));
     try {
-      const response = await fetchUsersWithOverrides(filters);
-      setUsers(response.users);
-      setTotalCount(response.totalCount);
+      const response = await fetchUsersWithOverrides(state.filters);
+      setState(prev => ({
+        ...prev,
+        users: response.users,
+        totalCount: response.totalCount,
+        loading: false
+      }));
     } catch (error) {
       toast({ 
         title: 'Load Failed', 
         description: 'Could not load user data.', 
         variant: 'destructive' 
       });
-    } finally {
-      setLoading(false);
+      setState(prev => ({ ...prev, loading: false }));
     }
   };
 
   useEffect(() => {
     loadUsers();
-  }, [filters]);
+  }, [state.filters]);
 
   const handleUserSelection = (userId: string, checked: boolean) => {
-    const newSelection = new Set(selectedUsers);
-    if (checked) {
-      newSelection.add(userId);
-    } else {
-      newSelection.delete(userId);
-    }
-    setSelectedUsers(newSelection);
-  };
-
-  const handleSelectAll = (checked: boolean) => {
-    if (checked) {
-      setSelectedUsers(new Set(users.map(u => u.id)));
-    } else {
-      setSelectedUsers(new Set());
-    }
-  };
-
-  const handleOverrideUpdate = async (userId: string, framework: string, value: string | null) => {
-    await updateUserOverride(userId, framework, value);
-    
-    // Update local state
-    setUsers(users.map(user => 
-      user.id === userId 
-        ? { ...user, [framework]: value }
-        : user
-    ));
-
-    toast({
-      title: 'Override Updated',
-      description: `${framework.replace('_', ' ')} updated for user.`
+    setState(prev => {
+      const newSelection = new Set(prev.selectedUsers);
+      if (checked) {
+        newSelection.add(userId);
+      } else {
+        newSelection.delete(userId);
+      }
+      return { ...prev, selectedUsers: newSelection };
     });
   };
 
-  const handleSearchChange = (search: string) => {
-    setFilters({ ...filters, search, page: 0 });
+  const handleSelectAll = (checked: boolean) => {
+    setState(prev => ({
+      ...prev,
+      selectedUsers: checked ? new Set(prev.users.map(u => u.id)) : new Set()
+    }));
+  };
+
+  const handleToggleExpand = (userId: string) => {
+    setState(prev => {
+      const newExpanded = new Set(prev.expandedRows);
+      if (newExpanded.has(userId)) {
+        newExpanded.delete(userId);
+      } else {
+        newExpanded.add(userId);
+      }
+      return { ...prev, expandedRows: newExpanded };
+    });
+  };
+
+  const handleOverrideUpdate = async (userId: string, framework: string, value: any) => {
+    await updateUserOverride(userId, framework, value);
+    
+    setState(prev => ({
+      ...prev,
+      users: prev.users.map(user => 
+        user.id === userId 
+          ? { ...user, [framework]: value }
+          : user
+      )
+    }));
+
+    toast({
+      title: 'Override Updated',
+      description: `${framework.replace('_', ' ')} updated successfully.`
+    });
+  };
+
+  const handleFiltersChange = (newFilters: UserManagementFilters) => {
+    setState(prev => ({ ...prev, filters: newFilters }));
+  };
+
+  const handleClearFilters = () => {
+    setState(prev => ({
+      ...prev,
+      filters: { page: 0, pageSize: 50 },
+      selectedUsers: new Set()
+    }));
   };
 
   return (
@@ -270,76 +373,32 @@ export const UserManagementTable: React.FC = () => {
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold flex items-center gap-2">
           <Users className="h-5 w-5 text-primary" />
-          User Management ({totalCount} users)
+          User Management ({state.totalCount} users)
         </h2>
-        <Button onClick={loadUsers} disabled={loading} variant="outline" size="sm">
+        <Button onClick={loadUsers} disabled={state.loading} variant="outline" size="sm">
           <RefreshCw className="h-4 w-4 mr-2" />
           Refresh
         </Button>
       </div>
 
-      {/* Filters */}
-      <Card>
-        <CardContent className="pt-4">
-          <div className="flex flex-wrap gap-4 items-center">
-            <div className="flex items-center gap-2">
-              <Search className="h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search by name or username..."
-                value={filters.search || ''}
-                onChange={(e) => handleSearchChange(e.target.value)}
-                className="w-64"
-              />
-            </div>
-            
-            <Select 
-              value={filters.hasOverrides?.toString() || 'all'} 
-              onValueChange={(value) => setFilters({ 
-                ...filters, 
-                hasOverrides: value === 'all' ? undefined : value === 'true',
-                page: 0 
-              })}
-            >
-              <SelectTrigger className="w-40">
-                <SelectValue placeholder="Override Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Users</SelectItem>
-                <SelectItem value="true">Has Overrides</SelectItem>
-                <SelectItem value="false">No Overrides</SelectItem>
-              </SelectContent>
-            </Select>
+      {/* Advanced Filters */}
+      <AdvancedFilters
+        filters={state.filters}
+        onFiltersChange={handleFiltersChange}
+        totalCount={state.totalCount}
+        onClearFilters={handleClearFilters}
+      />
 
-            <Select 
-              value={filters.hasAssessments?.toString() || 'all'} 
-              onValueChange={(value) => setFilters({ 
-                ...filters, 
-                hasAssessments: value === 'all' ? undefined : value === 'true',
-                page: 0 
-              })}
-            >
-              <SelectTrigger className="w-40">
-                <SelectValue placeholder="Assessment Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Users</SelectItem>
-                <SelectItem value="true">Has Assessments</SelectItem>
-                <SelectItem value="false">No Assessments</SelectItem>
-              </SelectContent>
-            </Select>
-
-            {selectedUsers.size > 0 && (
-              <BulkOperationsPanel
-                selectedUserIds={Array.from(selectedUsers)}
-                onComplete={() => {
-                  setSelectedUsers(new Set());
-                  loadUsers();
-                }}
-              />
-            )}
-          </div>
-        </CardContent>
-      </Card>
+      {/* Bulk Operations */}
+      {state.selectedUsers.size > 0 && (
+        <BulkOperationsPanel
+          selectedUserIds={Array.from(state.selectedUsers)}
+          onComplete={() => {
+            setState(prev => ({ ...prev, selectedUsers: new Set() }));
+            loadUsers();
+          }}
+        />
+      )}
 
       {/* Table */}
       <Card>
@@ -348,9 +407,9 @@ export const UserManagementTable: React.FC = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-12">
+                  <TableHead className="w-16">
                     <Checkbox
-                      checked={users.length > 0 && selectedUsers.size === users.length}
+                      checked={state.users.length > 0 && state.selectedUsers.size === state.users.length}
                       onCheckedChange={handleSelectAll}
                     />
                   </TableHead>
@@ -367,119 +426,30 @@ export const UserManagementTable: React.FC = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {loading ? (
+                {state.loading ? (
                   <TableRow>
-                    <TableCell colSpan={10} className="text-center py-8">
+                    <TableCell colSpan={11} className="text-center py-8">
                       Loading users...
                     </TableCell>
                   </TableRow>
-                ) : users.length === 0 ? (
+                ) : state.users.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={11} className="text-center py-8 text-muted-foreground">
                       No users found
                     </TableCell>
                   </TableRow>
                 ) : (
-                  users.map((user) => (
-                    <TableRow key={user.id} className="hover:bg-muted/50">
-                      <TableCell>
-                        <Checkbox
-                          checked={selectedUsers.has(user.id)}
-                          onCheckedChange={(checked) => handleUserSelection(user.id, !!checked)}
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <div className="space-y-1">
-                          <div className="font-medium text-sm">
-                            {user.display_name || user.username || 'No Name'}
-                          </div>
-                          <div className="text-xs text-muted-foreground flex items-center gap-1">
-                            <Mail className="h-3 w-3" />
-                            {user.email}
-                          </div>
-                          <div className="text-xs text-muted-foreground">
-                            ID: {user.id.slice(0, 8)}...
-                          </div>
-                          {user.verification_level && (
-                            <Badge variant="outline" className="text-xs">
-                              {user.verification_level}
-                            </Badge>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <div className="space-y-1">
-                          <div className="text-sm font-medium">{user.assessment_count}</div>
-                          {user.last_assessment_date && (
-                            <div className="text-xs text-muted-foreground">
-                              {new Date(user.last_assessment_date).toLocaleDateString()}
-                            </div>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <InlineSelect
-                          value={user.mbti_type}
-                          options={FRAMEWORK_OPTIONS.mbti_type}
-                          onSave={(value) => handleOverrideUpdate(user.id, 'mbti_type', value)}
-                          placeholder="MBTI"
-                        />
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <InlineSelect
-                          value={user.enneagram_type}
-                          options={FRAMEWORK_OPTIONS.enneagram_type}
-                          onSave={(value) => handleOverrideUpdate(user.id, 'enneagram_type', value)}
-                          placeholder="Type"
-                        />
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <BigFiveCell
-                          value={user.big_five_scores}
-                          onSave={(value) => handleOverrideUpdate(user.id, 'big_five_scores', value)}
-                        />
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <InlineSelect
-                          value={user.holland_code}
-                          options={FRAMEWORK_OPTIONS.holland_code}
-                          onSave={(value) => handleOverrideUpdate(user.id, 'holland_code', value)}
-                          placeholder="Code"
-                        />
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <InlineSelect
-                          value={user.alignment}
-                          options={FRAMEWORK_OPTIONS.alignment}
-                          onSave={(value) => handleOverrideUpdate(user.id, 'alignment', value)}
-                          placeholder="Alignment"
-                        />
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <InlineSelect
-                          value={user.socionics_type}
-                          options={FRAMEWORK_OPTIONS.socionics_type}
-                          onSave={(value) => handleOverrideUpdate(user.id, 'socionics_type', value)}
-                          placeholder="Type"
-                        />
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <InlineSelect
-                          value={user.integral_level}
-                          options={FRAMEWORK_OPTIONS.integral_level}
-                          onSave={(value) => handleOverrideUpdate(user.id, 'integral_level', value)}
-                          placeholder="Level"
-                        />
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <InlineSelect
-                          value={user.attachment_style}
-                          options={FRAMEWORK_OPTIONS.attachment_style}
-                          onSave={(value) => handleOverrideUpdate(user.id, 'attachment_style', value)}
-                          placeholder="Style"
-                        />
-                      </TableCell>
-                    </TableRow>
+                  state.users.map((user) => (
+                    <Collapsible key={user.id} open={state.expandedRows.has(user.id)}>
+                      <UserRow
+                        user={user}
+                        isSelected={state.selectedUsers.has(user.id)}
+                        isExpanded={state.expandedRows.has(user.id)}
+                        onSelect={(checked) => handleUserSelection(user.id, checked)}
+                        onToggleExpand={() => handleToggleExpand(user.id)}
+                        onOverrideUpdate={(framework, value) => handleOverrideUpdate(user.id, framework, value)}
+                      />
+                    </Collapsible>
                   ))
                 )}
               </TableBody>
@@ -491,22 +461,28 @@ export const UserManagementTable: React.FC = () => {
       {/* Pagination */}
       <div className="flex items-center justify-between">
         <div className="text-sm text-muted-foreground">
-          Showing {users.length} of {totalCount} users
+          Showing {state.users.length} of {state.totalCount} users
         </div>
         <div className="flex gap-2">
           <Button
             variant="outline"
             size="sm"
-            disabled={filters.page === 0}
-            onClick={() => setFilters({ ...filters, page: filters.page! - 1 })}
+            disabled={state.filters.page === 0}
+            onClick={() => setState(prev => ({
+              ...prev,
+              filters: { ...prev.filters, page: prev.filters.page! - 1 }
+            }))}
           >
             Previous
           </Button>
           <Button
             variant="outline"
             size="sm"
-            disabled={(filters.page! + 1) * filters.pageSize! >= totalCount}
-            onClick={() => setFilters({ ...filters, page: filters.page! + 1 })}
+            disabled={(state.filters.page! + 1) * state.filters.pageSize! >= state.totalCount}
+            onClick={() => setState(prev => ({
+              ...prev,
+              filters: { ...prev.filters, page: prev.filters.page! + 1 }
+            }))}
           >
             Next
           </Button>

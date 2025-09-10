@@ -28,6 +28,8 @@ export interface UserManagementFilters {
   hasOverrides?: boolean;
   hasAssessments?: boolean;
   verificationLevel?: string;
+  sortBy?: string;
+  sortDirection?: 'asc' | 'desc';
   page?: number;
   pageSize?: number;
 }
