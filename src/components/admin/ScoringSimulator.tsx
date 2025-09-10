@@ -120,7 +120,7 @@ export const ScoringSimulator: React.FC = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         {/* Input Panel */}
         <div className="space-y-4">
           <Card>
@@ -149,7 +149,7 @@ export const ScoringSimulator: React.FC = () => {
             </CardHeader>
             <CardContent className="space-y-2 max-h-[400px] overflow-auto">
               {TPS_QUESTIONS.map((question, index) => (
-                <div key={index} className="grid grid-cols-6 gap-2 items-center text-xs">
+                <div key={index} className="grid grid-cols-3 sm:grid-cols-6 gap-2 items-center text-xs">
                   <div className="col-span-4 truncate" title={question}>
                     Q{index + 1}: {question}
                   </div>

@@ -172,7 +172,7 @@ export const EnhancedScoringSimulator: React.FC = () => {
         </Card>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         {/* Controls Panel */}
         <div className="space-y-4">
           <Card>

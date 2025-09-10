@@ -247,7 +247,7 @@ export function UserComparisonTool() {
               </TabsList>
               
               <TabsContent value="overview" className="space-y-4">
-                <div className="grid gap-4 md:grid-cols-2">
+                <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
                   <div className="p-3 border rounded-lg">
                     <div className="font-medium mb-2">MBTI Distribution</div>
                     <div className="space-y-1">
