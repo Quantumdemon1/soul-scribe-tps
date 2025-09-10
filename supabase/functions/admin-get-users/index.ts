@@ -60,7 +60,7 @@ Deno.serve(async (req) => {
       pageSize = 50
     } = filters
 
-    // Get profiles with overrides
+    // Get profiles (we'll fetch overrides separately to avoid FK dependency)
     let profileQuery = supabaseClient
       .from('profiles')
       .select(`
@@ -68,20 +68,7 @@ Deno.serve(async (req) => {
         display_name,
         username,
         verification_level,
-        created_at,
-        personality_overrides!left (
-          mbti_type,
-          enneagram_type,
-          big_five_scores,
-          integral_level,
-          holland_code,
-          alignment,
-          socionics_type,
-          attachment_style,
-          created_by,
-          created_at,
-          updated_at
-        )
+        created_at
       `, { count: 'exact' })
       .order('created_at', { ascending: false })
 
@@ -106,14 +93,47 @@ Deno.serve(async (req) => {
       throw profilesError
     }
 
-    // Get user emails from auth.users (admin access)
+    // Prepare user id list
     const userIds = profiles?.map(p => p.user_id) || []
+
+    // Fetch overrides separately (manual join)
+    let overrideMap: Record<string, any> = {}
+    if (userIds.length > 0) {
+      const { data: overrides, error: overridesError } = await supabaseClient
+        .from('personality_overrides')
+        .select(`
+          user_id,
+          mbti_type,
+          enneagram_type,
+          big_five_scores,
+          integral_level,
+          holland_code,
+          alignment,
+          socionics_type,
+          attachment_style,
+          created_by,
+          created_at,
+          updated_at
+        `)
+        .in('user_id', userIds)
+
+      if (overridesError) {
+        throw overridesError
+      }
+
+      overrideMap = (overrides || []).reduce((acc, o) => {
+        if (!acc[o.user_id]) acc[o.user_id] = o
+        return acc
+      }, {} as Record<string, any>)
+    }
+
+    // Get user emails from auth.users (admin access)
     const { data: authUsers, error: authError2 } = await supabaseClient.auth.admin.listUsers()
     
     if (authError2) {
       throw authError2
     }
-
+    
     const userEmails = authUsers.users.reduce((acc, authUser) => {
       acc[authUser.id] = authUser.email || `user-${authUser.id.slice(0, 8)}@example.com`
       return acc
@@ -144,9 +164,7 @@ Deno.serve(async (req) => {
 
     // Transform the data
     const users = profiles?.map(profile => {
-      const override = Array.isArray(profile.personality_overrides) 
-        ? profile.personality_overrides[0] 
-        : profile.personality_overrides
+      const override = overrideMap[profile.user_id] || null
       const assessmentInfo = assessmentCounts[profile.user_id] || { count: 0, latest: null }
 
       return {
