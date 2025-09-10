@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { AdminPanel } from '@/components/admin/AdminPanel';
 import { ProductionTestSuiteIntegration } from '@/components/test/ProductionTestSuiteIntegration';
 import { ProductionStatusDashboard } from '@/components/admin/ProductionStatusDashboard';
@@ -9,8 +9,125 @@ import { DemoTestRunner } from '@/components/test/DemoTestRunner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Shield, Settings, TestTube, Activity, UserPlus, BarChart3 } from 'lucide-react';
+import { MobileAdminTabs } from '@/components/admin/MobileAdminTabs';
+import { MobileAdminLayout } from '@/components/admin/MobileAdminLayout';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 export default function Admin() {
+  const isMobile = useIsMobile();
+  const [activeTab, setActiveTab] = useState('admin');
+
+  const adminTabs = [
+    { value: 'admin', label: 'Admin Panel', icon: Settings },
+    { value: 'create-user', label: 'Create User', icon: UserPlus },
+    { value: 'production', label: 'Production', icon: Activity },
+    { value: 'tests', label: 'Tests', icon: TestTube },
+    { value: 'test-results', label: 'Results', icon: BarChart3 },
+    { value: 'monitoring', label: 'Monitor', icon: Activity },
+    { value: 'security', label: 'Security', icon: Shield }
+  ];
+
+  if (isMobile) {
+    return (
+      <MobileAdminLayout title="Admin Dashboard">
+        <MobileAdminTabs 
+          tabs={adminTabs}
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          className="mb-4"
+        />
+        
+        <div className="space-y-4">
+          {activeTab === 'admin' && <AdminPanel />}
+          {activeTab === 'create-user' && <AdminUserCreation />}
+          {activeTab === 'production' && <ProductionStatusDashboard />}
+          {activeTab === 'tests' && <ProductionTestSuiteIntegration />}
+          {activeTab === 'test-results' && (
+            <Tabs defaultValue="overview" className="space-y-4">
+              <MobileAdminTabs 
+                tabs={[
+                  { value: 'overview', label: 'Overview', icon: BarChart3 },
+                  { value: 'results', label: 'Results', icon: TestTube },
+                  { value: 'demo', label: 'Demo', icon: Activity }
+                ]}
+                activeTab="overview"
+                onTabChange={() => {}}
+              />
+              <TabsContent value="overview">
+                <TestResultsOverview />
+              </TabsContent>
+              <TabsContent value="results">
+                <TestResultsList />
+              </TabsContent>
+              <TabsContent value="demo">
+                <DemoTestRunner />
+              </TabsContent>
+            </Tabs>
+          )}
+          {activeTab === 'monitoring' && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Activity className="w-5 h-5" />
+                  System Monitoring
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground mb-4">
+                  Real-time system monitoring and performance metrics.
+                </p>
+                <div className="space-y-4">
+                  <div className="p-4 border rounded-lg">
+                    <h4 className="font-medium mb-2">Application Health</h4>
+                    <div className="text-2xl font-bold text-green-600">Healthy</div>
+                    <p className="text-sm text-muted-foreground">All systems operational</p>
+                  </div>
+                  <div className="p-4 border rounded-lg">
+                    <h4 className="font-medium mb-2">Active Users</h4>
+                    <div className="text-2xl font-bold">1,247</div>
+                    <p className="text-sm text-muted-foreground">+12% from last week</p>
+                  </div>
+                  <div className="p-4 border rounded-lg">
+                    <h4 className="font-medium mb-2">Error Rate</h4>
+                    <div className="text-2xl font-bold text-green-600">0.02%</div>
+                    <p className="text-sm text-muted-foreground">Within acceptable limits</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+          {activeTab === 'security' && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Shield className="w-5 h-5" />
+                  Security Dashboard
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground mb-4">
+                  Security monitoring and compliance status.
+                </p>
+                <div className="space-y-4">
+                  <div className="p-4 border rounded-lg">
+                    <h4 className="font-medium mb-2">Authentication</h4>
+                    <div className="text-2xl font-bold text-green-600">Secure</div>
+                    <p className="text-sm text-muted-foreground">JWT tokens properly configured</p>
+                  </div>
+                  <div className="p-4 border rounded-lg">
+                    <h4 className="font-medium mb-2">Data Protection</h4>
+                    <div className="text-2xl font-bold text-green-600">Active</div>
+                    <p className="text-sm text-muted-foreground">Row-level security enabled</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      </MobileAdminLayout>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto py-8 px-4">
@@ -22,36 +139,38 @@ export default function Admin() {
         </div>
 
         <Tabs defaultValue="admin" className="w-full">
-          <TabsList className="grid w-full grid-cols-7">
-            <TabsTrigger value="admin" className="flex items-center gap-2">
-              <Settings className="w-4 h-4" />
-              Admin Panel
-            </TabsTrigger>
-            <TabsTrigger value="create-user" className="flex items-center gap-2">
-              <UserPlus className="w-4 h-4" />
-              Create User
-            </TabsTrigger>
-            <TabsTrigger value="production" className="flex items-center gap-2">
-              <Activity className="w-4 h-4" />
-              Production Status
-            </TabsTrigger>
-            <TabsTrigger value="tests" className="flex items-center gap-2">
-              <TestTube className="w-4 h-4" />
-              Test Suite
-            </TabsTrigger>
-            <TabsTrigger value="test-results" className="flex items-center gap-2">
-              <BarChart3 className="w-4 h-4" />
-              Test Results
-            </TabsTrigger>
-            <TabsTrigger value="monitoring" className="flex items-center gap-2">
-              <Activity className="w-4 h-4" />
-              Monitoring
-            </TabsTrigger>
-            <TabsTrigger value="security" className="flex items-center gap-2">
-              <Shield className="w-4 h-4" />
-              Security
-            </TabsTrigger>
-          </TabsList>
+          <div className="overflow-x-auto">
+            <TabsList className="grid w-full grid-cols-7 min-w-max">
+              <TabsTrigger value="admin" className="flex items-center gap-2 whitespace-nowrap">
+                <Settings className="w-4 h-4" />
+                Admin Panel
+              </TabsTrigger>
+              <TabsTrigger value="create-user" className="flex items-center gap-2 whitespace-nowrap">
+                <UserPlus className="w-4 h-4" />
+                Create User
+              </TabsTrigger>
+              <TabsTrigger value="production" className="flex items-center gap-2 whitespace-nowrap">
+                <Activity className="w-4 h-4" />
+                Production Status
+              </TabsTrigger>
+              <TabsTrigger value="tests" className="flex items-center gap-2 whitespace-nowrap">
+                <TestTube className="w-4 h-4" />
+                Test Suite
+              </TabsTrigger>
+              <TabsTrigger value="test-results" className="flex items-center gap-2 whitespace-nowrap">
+                <BarChart3 className="w-4 h-4" />
+                Test Results
+              </TabsTrigger>
+              <TabsTrigger value="monitoring" className="flex items-center gap-2 whitespace-nowrap">
+                <Activity className="w-4 h-4" />
+                Monitoring
+              </TabsTrigger>
+              <TabsTrigger value="security" className="flex items-center gap-2 whitespace-nowrap">
+                <Shield className="w-4 h-4" />
+                Security
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           <TabsContent value="admin" className="mt-6">
             <AdminPanel />

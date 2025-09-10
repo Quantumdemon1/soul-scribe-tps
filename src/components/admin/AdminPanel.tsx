@@ -302,48 +302,60 @@ export const AdminPanel: React.FC = () => {
         </div>
 
         <Tabs defaultValue="llm" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-10">
-            <TabsTrigger value="llm" className="flex items-center gap-2">
-              <Brain className="w-4 h-4" />
-              LLM Config
-            </TabsTrigger>
-            <TabsTrigger value="database" className="flex items-center gap-2">
-              <Database className="w-4 h-4" />
-              Database
-            </TabsTrigger>
-            <TabsTrigger value="sessions" className="flex items-center gap-2">
-              <Activity className="w-4 h-4" />
-              Test Sessions
-            </TabsTrigger>
-            <TabsTrigger value="results" className="flex items-center gap-2">
-              <BarChart3 className="w-4 h-4" />
-              Test Results
-            </TabsTrigger>
-            <TabsTrigger value="analytics" className="flex items-center gap-2">
-              <BarChart3 className="w-4 h-4" />
-              Analytics
-            </TabsTrigger>
-            <TabsTrigger value="testing" className="flex items-center gap-2">
-              <CheckCircle className="w-4 h-4" />
-              Cache Testing
-            </TabsTrigger>
-            <TabsTrigger value="scoring" className="flex items-center gap-2">
-              <SlidersHorizontal className="w-4 h-4" />
-              Scoring Tuner
-            </TabsTrigger>
-            <TabsTrigger value="production" className="flex items-center gap-2">
-              <Shield className="w-4 h-4" />
-              Production
-            </TabsTrigger>
-            <TabsTrigger value="bulk" className="flex items-center gap-2">
-              <Upload className="w-4 h-4" />
-              Bulk Import
-            </TabsTrigger>
-            <TabsTrigger value="mobile" className="flex items-center gap-2">
-              <Activity className="w-4 h-4" />
-              Mobile
-            </TabsTrigger>
-          </TabsList>
+          <div className="overflow-x-auto">
+            <TabsList className="grid w-full grid-cols-10 min-w-max lg:grid-cols-5 xl:grid-cols-10">
+              <TabsTrigger value="llm" className="flex items-center gap-2 whitespace-nowrap text-xs lg:text-sm">
+                <Brain className="w-4 h-4" />
+                <span className="hidden sm:inline">LLM Config</span>
+                <span className="sm:hidden">LLM</span>
+              </TabsTrigger>
+              <TabsTrigger value="database" className="flex items-center gap-2 whitespace-nowrap text-xs lg:text-sm">
+                <Database className="w-4 h-4" />
+                <span className="hidden sm:inline">Database</span>
+                <span className="sm:hidden">DB</span>
+              </TabsTrigger>
+              <TabsTrigger value="sessions" className="flex items-center gap-2 whitespace-nowrap text-xs lg:text-sm">
+                <Activity className="w-4 h-4" />
+                <span className="hidden sm:inline">Test Sessions</span>
+                <span className="sm:hidden">Sessions</span>
+              </TabsTrigger>
+              <TabsTrigger value="results" className="flex items-center gap-2 whitespace-nowrap text-xs lg:text-sm">
+                <BarChart3 className="w-4 h-4" />
+                <span className="hidden sm:inline">Test Results</span>
+                <span className="sm:hidden">Results</span>
+              </TabsTrigger>
+              <TabsTrigger value="analytics" className="flex items-center gap-2 whitespace-nowrap text-xs lg:text-sm">
+                <BarChart3 className="w-4 h-4" />
+                <span className="hidden sm:inline">Analytics</span>
+                <span className="sm:hidden">Stats</span>
+              </TabsTrigger>
+              <TabsTrigger value="testing" className="flex items-center gap-2 whitespace-nowrap text-xs lg:text-sm">
+                <CheckCircle className="w-4 h-4" />
+                <span className="hidden sm:inline">Cache Testing</span>
+                <span className="sm:hidden">Cache</span>
+              </TabsTrigger>
+              <TabsTrigger value="scoring" className="flex items-center gap-2 whitespace-nowrap text-xs lg:text-sm">
+                <SlidersHorizontal className="w-4 h-4" />
+                <span className="hidden sm:inline">Scoring Tuner</span>
+                <span className="sm:hidden">Scoring</span>
+              </TabsTrigger>
+              <TabsTrigger value="production" className="flex items-center gap-2 whitespace-nowrap text-xs lg:text-sm">
+                <Shield className="w-4 h-4" />
+                <span className="hidden sm:inline">Production</span>
+                <span className="sm:hidden">Prod</span>
+              </TabsTrigger>
+              <TabsTrigger value="bulk" className="flex items-center gap-2 whitespace-nowrap text-xs lg:text-sm">
+                <Upload className="w-4 h-4" />
+                <span className="hidden sm:inline">Bulk Import</span>
+                <span className="sm:hidden">Bulk</span>
+              </TabsTrigger>
+              <TabsTrigger value="mobile" className="flex items-center gap-2 whitespace-nowrap text-xs lg:text-sm">
+                <Activity className="w-4 h-4" />
+                <span className="hidden sm:inline">Mobile</span>
+                <span className="sm:hidden">Mobile</span>
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           <TabsContent value="llm" className="space-y-6">
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
