@@ -52,88 +52,94 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
       <CardContent className="pt-4">
         <div className="space-y-4">
           {/* Search and Quick Filters */}
-          <div className="flex flex-wrap gap-4 items-center">
+          <div className="space-y-3 md:space-y-0 md:flex md:flex-wrap md:gap-4 md:items-center">
             <div className="flex items-center gap-2">
               <Search className="h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search by name, username, or email..."
                 value={filters.search || ''}
                 onChange={(e) => handleSearchChange(e.target.value)}
-                className="w-64"
+                className="w-full md:w-64"
               />
             </div>
             
-            <Select 
-              value={filters.hasOverrides?.toString() || 'all'} 
-              onValueChange={(value) => handleFilterChange('hasOverrides', 
-                value === 'all' ? undefined : value === 'true'
-              )}
-            >
-              <SelectTrigger className="w-40">
-                <SelectValue placeholder="Override Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Users</SelectItem>
-                <SelectItem value="true">Has Overrides</SelectItem>
-                <SelectItem value="false">No Overrides</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:flex md:gap-4">
+              <Select 
+                value={filters.hasOverrides?.toString() || 'all'} 
+                onValueChange={(value) => handleFilterChange('hasOverrides', 
+                  value === 'all' ? undefined : value === 'true'
+                )}
+              >
+                <SelectTrigger className="w-full md:w-40">
+                  <SelectValue placeholder="Override Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Users</SelectItem>
+                  <SelectItem value="true">Has Overrides</SelectItem>
+                  <SelectItem value="false">No Overrides</SelectItem>
+                </SelectContent>
+              </Select>
 
-            <Select 
-              value={filters.hasAssessments?.toString() || 'all'} 
-              onValueChange={(value) => handleFilterChange('hasAssessments',
-                value === 'all' ? undefined : value === 'true'
-              )}
-            >
-              <SelectTrigger className="w-40">
-                <SelectValue placeholder="Assessment Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Users</SelectItem>
-                <SelectItem value="true">Has Assessments</SelectItem>
-                <SelectItem value="false">No Assessments</SelectItem>
-              </SelectContent>
-            </Select>
+              <Select 
+                value={filters.hasAssessments?.toString() || 'all'} 
+                onValueChange={(value) => handleFilterChange('hasAssessments',
+                  value === 'all' ? undefined : value === 'true'
+                )}
+              >
+                <SelectTrigger className="w-full md:w-40">
+                  <SelectValue placeholder="Assessment Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Users</SelectItem>
+                  <SelectItem value="true">Has Assessments</SelectItem>
+                  <SelectItem value="false">No Assessments</SelectItem>
+                </SelectContent>
+              </Select>
 
-            <Select 
-              value={filters.verificationLevel || 'all'} 
-              onValueChange={(value) => handleFilterChange('verificationLevel',
-                value === 'all' ? undefined : value
-              )}
-            >
-              <SelectTrigger className="w-40">
-                <SelectValue placeholder="Verification Level" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Levels</SelectItem>
-                <SelectItem value="basic">Basic</SelectItem>
-                <SelectItem value="verified">Verified</SelectItem>
-                <SelectItem value="premium">Premium</SelectItem>
-              </SelectContent>
-            </Select>
+              <Select 
+                value={filters.verificationLevel || 'all'} 
+                onValueChange={(value) => handleFilterChange('verificationLevel',
+                  value === 'all' ? undefined : value
+                )}
+              >
+                <SelectTrigger className="w-full md:w-40">
+                  <SelectValue placeholder="Verification Level" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Levels</SelectItem>
+                  <SelectItem value="basic">Basic</SelectItem>
+                  <SelectItem value="verified">Verified</SelectItem>
+                  <SelectItem value="premium">Premium</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           {/* Sort Controls */}
-          <div className="flex items-center gap-2">
-            <Filter className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm text-muted-foreground">Sort by:</span>
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <Filter className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm text-muted-foreground">Sort by:</span>
+            </div>
             
-            {['created_at', 'display_name', 'assessment_count', 'verification_level'].map(column => (
-              <Button
-                key={column}
-                variant={sortColumn === column ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => handleSort(column)}
-                className="text-xs"
-              >
-                {column.replace('_', ' ')}
-                {sortColumn === column && (
-                  sortDirection === 'asc' ? 
-                    <SortAsc className="h-3 w-3 ml-1" /> : 
-                    <SortDesc className="h-3 w-3 ml-1" />
-                )}
-              </Button>
-            ))}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 md:flex md:gap-2">
+              {['created_at', 'display_name', 'assessment_count', 'verification_level'].map(column => (
+                <Button
+                  key={column}
+                  variant={sortColumn === column ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => handleSort(column)}
+                  className="text-xs min-h-[36px]"
+                >
+                  <span className="truncate">{column.replace('_', ' ')}</span>
+                  {sortColumn === column && (
+                    sortDirection === 'asc' ? 
+                      <SortAsc className="h-3 w-3 ml-1 flex-shrink-0" /> : 
+                      <SortDesc className="h-3 w-3 ml-1 flex-shrink-0" />
+                  )}
+                </Button>
+              ))}
+            </div>
           </div>
 
           {/* Active Filters & Clear */}

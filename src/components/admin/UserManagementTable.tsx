@@ -448,7 +448,7 @@ export const UserManagementTable: React.FC = () => {
       {/* Mobile vs Desktop Layout */}
       {isMobile ? (
         /* Mobile Card Layout */
-        <div className="space-y-3">
+        <div className="space-y-3 px-1">
           {state.loading ? (
             <Card>
               <CardContent className="py-8 text-center text-muted-foreground">

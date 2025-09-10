@@ -119,19 +119,19 @@ export const BulkOperationsPanel: React.FC<BulkOperationsPanelProps> = ({
             variant={operation === 'update' ? 'default' : 'outline'}
             size="sm"
             onClick={() => setOperation('update')}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 min-h-[36px]"
           >
             <Edit className="h-3 w-3" />
-            Update
+            <span className="hidden sm:inline">Update</span>
           </Button>
           <Button
             variant={operation === 'clear' ? 'default' : 'outline'}
             size="sm"
             onClick={() => setOperation('clear')}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 min-h-[36px]"
           >
             <Trash2 className="h-3 w-3" />
-            Clear
+            <span className="hidden sm:inline">Clear</span>
           </Button>
         </div>
 

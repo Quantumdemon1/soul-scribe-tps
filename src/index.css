@@ -5,6 +5,47 @@
 /* TPS Personality Assessment Design System */
 
 @layer base {
+  /* Mobile Safe Area Support */
+  @supports(padding: max(0px)) {
+    .pt-safe-top { padding-top: max(1rem, env(safe-area-inset-top)); }
+    .pb-safe-bottom { padding-bottom: max(1rem, env(safe-area-inset-bottom)); }
+    .pl-safe-left { padding-left: max(1rem, env(safe-area-inset-left)); }
+    .pr-safe-right { padding-right: max(1rem, env(safe-area-inset-right)); }
+  }
+
+  /* Mobile Touch Optimizations */
+  .touch-manipulation {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    user-select: none;
+  }
+
+  /* Hide scrollbars on mobile */
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Landscape orientation optimizations */
+  .landscape-optimized {
+    @media (orientation: landscape) and (max-height: 500px) {
+      padding-top: 0.5rem;
+      padding-bottom: 0.5rem;
+    }
+  }
+
+  /* Portrait orientation optimizations */
+  .portrait-optimized {
+    @media (orientation: portrait) {
+      padding-top: 1rem;
+      padding-bottom: 1rem;
+    }
+  }
+
   /* Fix dropdown transparency issues */
   [data-radix-navigation-menu-content],
   [data-radix-dropdown-menu-content],
