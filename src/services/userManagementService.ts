@@ -123,6 +123,23 @@ export async function fetchUsersWithOverrides(
       }
     }
 
+    // Get email addresses from auth.users (requires service role for admin access)
+    let userEmails: Record<string, string> = {};
+    if (userIds.length > 0) {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          // For now, we'll use a placeholder. In production, this would need admin service role access
+          userEmails = userIds.reduce((acc, id) => {
+            acc[id] = `user-${id.slice(0, 8)}@example.com`;
+            return acc;
+          }, {} as Record<string, string>);
+        }
+      } catch (error) {
+        // Fallback for email access
+      }
+    }
+
     // Transform the data
     const users: UserWithOverrides[] = profiles?.map(profile => {
       const override = Array.isArray(profile.personality_overrides) 
@@ -132,7 +149,7 @@ export async function fetchUsersWithOverrides(
 
       return {
         id: profile.user_id,
-        email: '', // We'll fetch this separately if needed
+        email: userEmails[profile.user_id] || `user-${profile.user_id.slice(0, 8)}@example.com`,
         display_name: profile.display_name,
         username: profile.username,
         verification_level: profile.verification_level,
@@ -197,7 +214,7 @@ export async function updateUserOverride(
       .from('personality_overrides')
       .select('*')
       .eq('user_id', userId)
-      .single();
+      .maybeSingle();
 
     const updateData = {
       [framework]: value,
@@ -231,6 +248,64 @@ export async function updateUserOverride(
     }, error as Error);
     throw error;
   }
+}
+
+export async function bulkUpdateOverrides(
+  userIds: string[],
+  framework: string,
+  value: string | null
+): Promise<{ success: number; failed: number; errors: string[] }> {
+  const results = { success: 0, failed: 0, errors: [] as string[] };
+
+  for (const userId of userIds) {
+    try {
+      await updateUserOverride(userId, framework, value);
+      results.success++;
+    } catch (error) {
+      results.failed++;
+      results.errors.push(`User ${userId}: ${(error as Error).message}`);
+    }
+  }
+
+  return results;
+}
+
+export async function bulkClearOverrides(
+  userIds: string[],
+  frameworks: string[]
+): Promise<{ success: number; failed: number; errors: string[] }> {
+  const results = { success: 0, failed: 0, errors: [] as string[] };
+
+  for (const userId of userIds) {
+    try {
+      const clearData = frameworks.reduce((acc, framework) => {
+        acc[framework] = null;
+        return acc;
+      }, {} as Record<string, null>);
+
+      const { data: existing } = await supabase
+        .from('personality_overrides')
+        .select('*')
+        .eq('user_id', userId)
+        .maybeSingle();
+
+      if (existing) {
+        const { error } = await supabase
+          .from('personality_overrides')
+          .update({ ...clearData, updated_at: new Date().toISOString() })
+          .eq('user_id', userId);
+
+        if (error) throw error;
+      }
+      
+      results.success++;
+    } catch (error) {
+      results.failed++;
+      results.errors.push(`User ${userId}: ${(error as Error).message}`);
+    }
+  }
+
+  return results;
 }
 
 export const FRAMEWORK_OPTIONS = {

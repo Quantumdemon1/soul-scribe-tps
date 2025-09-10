@@ -13,8 +13,10 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { toast } from '@/hooks/use-toast';
-import { Search, Users, Filter, RefreshCw } from 'lucide-react';
+import { Search, Users, Filter, RefreshCw, Edit3, Mail } from 'lucide-react';
 import { 
   fetchUsersWithOverrides, 
   updateUserOverride, 
@@ -22,12 +24,19 @@ import {
   type UserWithOverrides,
   type UserManagementFilters 
 } from '@/services/userManagementService';
+import { BigFiveEditor } from './BigFiveEditor';
+import { BulkOperationsPanel } from './BulkOperationsPanel';
 
 interface InlineSelectProps {
   value: string | null;
   options: readonly string[];
   onSave: (value: string | null) => Promise<void>;
   placeholder: string;
+}
+
+interface BigFiveCellProps {
+  value: any;
+  onSave: (value: any) => Promise<void>;
 }
 
 const InlineSelect: React.FC<InlineSelectProps> = ({ value, options, onSave, placeholder }) => {
@@ -92,19 +101,97 @@ const InlineSelect: React.FC<InlineSelectProps> = ({ value, options, onSave, pla
     );
   }
 
+  const hasOverride = value !== null;
+
   return (
-    <button
-      onClick={() => setIsEditing(true)}
-      className="text-left hover:bg-muted/50 rounded px-1 py-0.5 transition-colors min-h-6 w-full"
-    >
-      {value ? (
-        <Badge variant="secondary" className="text-xs">
-          {value}
-        </Badge>
-      ) : (
-        <span className="text-xs text-muted-foreground">—</span>
-      )}
-    </button>
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <button
+            onClick={() => setIsEditing(true)}
+            className={`text-left hover:bg-muted/50 rounded px-1 py-0.5 transition-colors min-h-6 w-full ${
+              hasOverride ? 'bg-primary/10 border border-primary/20' : ''
+            }`}
+          >
+            {value ? (
+              <Badge variant={hasOverride ? "default" : "secondary"} className="text-xs">
+                {value}
+              </Badge>
+            ) : (
+              <span className="text-xs text-muted-foreground">—</span>
+            )}
+          </button>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p className="text-xs">
+            {hasOverride ? 'Manual override active' : 'Click to set override'}
+          </p>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+};
+
+const BigFiveCell: React.FC<BigFiveCellProps> = ({ value, onSave }) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const hasOverride = value !== null;
+
+  const handleSave = async (newValue: any) => {
+    await onSave(newValue);
+    setIsEditing(false);
+  };
+
+  const getDisplayValue = () => {
+    if (!value) return null;
+    const traits = ['O', 'C', 'E', 'A', 'N'];
+    const scores = [
+      value.openness || 50,
+      value.conscientiousness || 50, 
+      value.extraversion || 50,
+      value.agreeableness || 50,
+      value.neuroticism || 50
+    ];
+    return traits.map((trait, i) => `${trait}:${scores[i]}`).join(' ');
+  };
+
+  return (
+    <Popover open={isEditing} onOpenChange={setIsEditing}>
+      <PopoverTrigger asChild>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                className={`text-left hover:bg-muted/50 rounded px-1 py-0.5 transition-colors min-h-6 w-full ${
+                  hasOverride ? 'bg-primary/10 border border-primary/20' : ''
+                }`}
+              >
+                {value ? (
+                  <Badge variant={hasOverride ? "default" : "secondary"} className="text-xs">
+                    Big Five
+                  </Badge>
+                ) : (
+                  <span className="text-xs text-muted-foreground">—</span>
+                )}
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p className="text-xs max-w-48">
+                {hasOverride 
+                  ? `Big Five scores: ${getDisplayValue()}` 
+                  : 'Click to set Big Five scores'}
+              </p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0" align="center">
+        <BigFiveEditor
+          value={value}
+          onSave={handleSave}
+          onCancel={() => setIsEditing(false)}
+        />
+      </PopoverContent>
+    </Popover>
   );
 };
 
@@ -242,16 +329,13 @@ export const UserManagementTable: React.FC = () => {
             </Select>
 
             {selectedUsers.size > 0 && (
-              <div className="flex items-center gap-2">
-                <Badge variant="outline">{selectedUsers.size} selected</Badge>
-                <Button 
-                  variant="destructive" 
-                  size="sm"
-                  onClick={() => setSelectedUsers(new Set())}
-                >
-                  Clear Selection
-                </Button>
-              </div>
+              <BulkOperationsPanel
+                selectedUserIds={Array.from(selectedUsers)}
+                onComplete={() => {
+                  setSelectedUsers(new Set());
+                  loadUsers();
+                }}
+              />
             )}
           </div>
         </CardContent>
@@ -274,6 +358,7 @@ export const UserManagementTable: React.FC = () => {
                   <TableHead className="text-center">Assessments</TableHead>
                   <TableHead className="text-center">MBTI</TableHead>
                   <TableHead className="text-center">Enneagram</TableHead>
+                  <TableHead className="text-center">Big Five</TableHead>
                   <TableHead className="text-center">Holland</TableHead>
                   <TableHead className="text-center">Alignment</TableHead>
                   <TableHead className="text-center">Socionics</TableHead>
@@ -284,13 +369,13 @@ export const UserManagementTable: React.FC = () => {
               <TableBody>
                 {loading ? (
                   <TableRow>
-                    <TableCell colSpan={9} className="text-center py-8">
+                    <TableCell colSpan={10} className="text-center py-8">
                       Loading users...
                     </TableCell>
                   </TableRow>
                 ) : users.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
                       No users found
                     </TableCell>
                   </TableRow>
@@ -307,6 +392,10 @@ export const UserManagementTable: React.FC = () => {
                         <div className="space-y-1">
                           <div className="font-medium text-sm">
                             {user.display_name || user.username || 'No Name'}
+                          </div>
+                          <div className="text-xs text-muted-foreground flex items-center gap-1">
+                            <Mail className="h-3 w-3" />
+                            {user.email}
                           </div>
                           <div className="text-xs text-muted-foreground">
                             ID: {user.id.slice(0, 8)}...
@@ -342,6 +431,12 @@ export const UserManagementTable: React.FC = () => {
                           options={FRAMEWORK_OPTIONS.enneagram_type}
                           onSave={(value) => handleOverrideUpdate(user.id, 'enneagram_type', value)}
                           placeholder="Type"
+                        />
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <BigFiveCell
+                          value={user.big_five_scores}
+                          onSave={(value) => handleOverrideUpdate(user.id, 'big_five_scores', value)}
                         />
                       </TableCell>
                       <TableCell className="text-center">
