@@ -44,163 +44,36 @@ export async function fetchUsersWithOverrides(
   filters: UserManagementFilters = {}
 ): Promise<UserManagementResponse> {
   try {
-    const {
-      search = '',
-      hasOverrides,
-      hasAssessments,
-      verificationLevel,
-      page = 0,
-      pageSize = 50
-    } = filters;
+    // Use admin edge function to get user data with proper auth.users access
+    const { data, error } = await supabase.functions.invoke('admin-get-users', {
+      body: filters
+    });
 
-    // Start with profiles query including assessment counts
-    let query = supabase
-      .from('profiles')
-      .select(`
-        user_id,
-        display_name,
-        username,
-        verification_level,
-        created_at,
-        personality_overrides!left (
-          mbti_type,
-          enneagram_type,
-          big_five_scores,
-          integral_level,
-          holland_code,
-          alignment,
-          socionics_type,
-          attachment_style,
-          created_by,
-          created_at,
-          updated_at
-        )
-      `)
-      .order('created_at', { ascending: false });
-
-    // Apply search filter
-    if (search) {
-      query = query.or(`display_name.ilike.%${search}%,username.ilike.%${search}%`);
+    if (error) {
+      throw error;
     }
 
-    // Apply verification level filter
-    if (verificationLevel) {
-      query = query.eq('verification_level', verificationLevel);
-    }
-
-    // Apply pagination
-    const from = page * pageSize;
-    const to = from + pageSize - 1;
-    query = query.range(from, to);
-
-    const { data: profiles, error: profilesError, count } = await query;
-
-    if (profilesError) {
-      throw profilesError;
-    }
-
-    // Get assessment counts separately due to RLS limitations
-    const userIds = profiles?.map(p => p.user_id) || [];
-    let assessmentCounts: Record<string, { count: number; latest: string | null }> = {};
-
-    if (userIds.length > 0) {
-      const { data: assessmentData, error: assessmentError } = await supabase
-        .from('assessments')
-        .select('user_id, created_at')
-        .in('user_id', userIds)
-        .order('created_at', { ascending: false });
-
-      if (!assessmentError && assessmentData) {
-        // Group by user_id and count
-        assessmentCounts = assessmentData.reduce((acc, assessment) => {
-          if (!acc[assessment.user_id]) {
-            acc[assessment.user_id] = { count: 0, latest: null };
-          }
-          acc[assessment.user_id].count++;
-          if (!acc[assessment.user_id].latest) {
-            acc[assessment.user_id].latest = assessment.created_at;
-          }
-          return acc;
-        }, {} as Record<string, { count: number; latest: string | null }>);
-      }
-    }
-
-    // Get email addresses from auth.users (requires service role for admin access)
-    let userEmails: Record<string, string> = {};
-    if (userIds.length > 0) {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          // For now, we'll use a placeholder. In production, this would need admin service role access
-          userEmails = userIds.reduce((acc, id) => {
-            acc[id] = `user-${id.slice(0, 8)}@example.com`;
-            return acc;
-          }, {} as Record<string, string>);
-        }
-      } catch (error) {
-        // Fallback for email access
-      }
-    }
-
-    // Transform the data
-    const users: UserWithOverrides[] = profiles?.map(profile => {
-      const override = Array.isArray(profile.personality_overrides) 
-        ? profile.personality_overrides[0] 
-        : profile.personality_overrides;
-      const assessmentInfo = assessmentCounts[profile.user_id] || { count: 0, latest: null };
-
-      return {
-        id: profile.user_id,
-        email: userEmails[profile.user_id] || `user-${profile.user_id.slice(0, 8)}@example.com`,
-        display_name: profile.display_name,
-        username: profile.username,
-        verification_level: profile.verification_level,
-        created_at: profile.created_at,
-        assessment_count: assessmentInfo.count,
-        last_assessment_date: assessmentInfo.latest,
-        mbti_type: override?.mbti_type || null,
-        enneagram_type: override?.enneagram_type || null,
-        big_five_scores: override?.big_five_scores || null,
-        integral_level: override?.integral_level || null,
-        holland_code: override?.holland_code || null,
-        alignment: override?.alignment || null,
-        socionics_type: override?.socionics_type || null,
-        attachment_style: override?.attachment_style || null,
-        override_created_by: override?.created_by || null,
-        override_created_at: override?.created_at || null,
-        override_updated_at: override?.updated_at || null,
-      };
-    }) || [];
-
-    // Apply post-query filters
-    let filteredUsers = users;
-
-    if (hasOverrides !== undefined) {
-      filteredUsers = filteredUsers.filter(user => {
-        const hasAnyOverride = !!(
-          user.mbti_type || user.enneagram_type || user.big_five_scores ||
-          user.integral_level || user.holland_code || user.alignment ||
-          user.socionics_type || user.attachment_style
-        );
-        return hasOverrides ? hasAnyOverride : !hasAnyOverride;
-      });
-    }
-
-    if (hasAssessments !== undefined) {
-      filteredUsers = filteredUsers.filter(user => 
-        hasAssessments ? user.assessment_count > 0 : user.assessment_count === 0
-      );
+    if (!data || data.error) {
+      throw new Error(data?.error || 'Failed to fetch users');
     }
 
     return {
-      users: filteredUsers,
-      totalCount: count || 0,
-      hasNextPage: (count || 0) > (page + 1) * pageSize
+      users: data.users || [],
+      totalCount: data.totalCount || 0,
+      hasNextPage: data.hasNextPage || false
     };
 
   } catch (error) {
-    logger.error('Error fetching users with overrides', { component: 'userManagementService' }, error as Error);
-    throw error;
+    logger.error('Error fetching users with overrides', { 
+      component: 'userManagementService'
+    }, error as Error);
+    
+    // Return empty state instead of throwing to prevent UI crashes
+    return {
+      users: [],
+      totalCount: 0,
+      hasNextPage: false
+    };
   }
 }
 
