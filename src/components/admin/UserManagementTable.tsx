@@ -28,6 +28,10 @@ import { BulkOperationsPanel } from './BulkOperationsPanel';
 import { EnhancedInlineSelect } from './EnhancedInlineSelect';
 import { AdvancedFilters } from './AdvancedFilters';
 import { AuditTrailExpansion } from './AuditTrailExpansion';
+import { ExportImportPanel } from './ExportImportPanel';
+import { ConfirmationDialog } from './ConfirmationDialog';
+import { MobileUserCard } from './MobileUserCard';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const BigFiveCell: React.FC<{ value: any; onSave: (value: any) => Promise<void> }> = ({ value, onSave }) => {
   const [isEditing, setIsEditing] = useState(false);
@@ -99,6 +103,14 @@ interface UserManagementTableState {
   filters: UserManagementFilters;
   totalCount: number;
   expandedRows: Set<string>;
+  confirmDialog: {
+    open: boolean;
+    title: string;
+    description: string;
+    action: string;
+    variant: 'default' | 'destructive';
+    onConfirm: () => void;
+  } | null;
 }
 
 interface UserRowProps {
@@ -273,13 +285,15 @@ const UserRow: React.FC<UserRowProps> = ({
 };
 
 export const UserManagementTable: React.FC = () => {
+  const isMobile = useIsMobile();
   const [state, setState] = useState<UserManagementTableState>({
     users: [],
     selectedUsers: new Set(),
     loading: true,
     filters: { page: 0, pageSize: 50 },
     totalCount: 0,
-    expandedRows: new Set()
+    expandedRows: new Set(),
+    confirmDialog: null
   });
 
   const loadUsers = async () => {
@@ -338,6 +352,29 @@ export const UserManagementTable: React.FC = () => {
   };
 
   const handleOverrideUpdate = async (userId: string, framework: string, value: any) => {
+    // Show confirmation for sensitive changes
+    if (framework === 'mbti_type' || framework === 'enneagram_type') {
+      setState(prev => ({
+        ...prev,
+        confirmDialog: {
+          open: true,
+          title: 'Confirm Override Change',
+          description: `Are you sure you want to update ${framework.replace('_', ' ')} for this user? This will override their assessment results.`,
+          action: 'Update Override',
+          variant: 'default',
+          onConfirm: async () => {
+            await performOverrideUpdate(userId, framework, value);
+            setState(prev => ({ ...prev, confirmDialog: null }));
+          }
+        }
+      }));
+      return;
+    }
+    
+    await performOverrideUpdate(userId, framework, value);
+  };
+
+  const performOverrideUpdate = async (userId: string, framework: string, value: any) => {
     await updateUserOverride(userId, framework, value);
     
     setState(prev => ({
@@ -375,10 +412,12 @@ export const UserManagementTable: React.FC = () => {
           <Users className="h-5 w-5 text-primary" />
           User Management ({state.totalCount} users)
         </h2>
-        <Button onClick={loadUsers} disabled={state.loading} variant="outline" size="sm">
-          <RefreshCw className="h-4 w-4 mr-2" />
-          Refresh
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={loadUsers} disabled={state.loading} variant="outline" size="sm">
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Refresh
+          </Button>
+        </div>
       </div>
 
       {/* Advanced Filters */}
@@ -387,6 +426,12 @@ export const UserManagementTable: React.FC = () => {
         onFiltersChange={handleFiltersChange}
         totalCount={state.totalCount}
         onClearFilters={handleClearFilters}
+      />
+
+      {/* Export/Import Panel */}
+      <ExportImportPanel
+        users={state.users}
+        onImportComplete={loadUsers}
       />
 
       {/* Bulk Operations */}
@@ -400,63 +445,97 @@ export const UserManagementTable: React.FC = () => {
         />
       )}
 
-      {/* Table */}
-      <Card>
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-16">
-                    <Checkbox
-                      checked={state.users.length > 0 && state.selectedUsers.size === state.users.length}
-                      onCheckedChange={handleSelectAll}
-                    />
-                  </TableHead>
-                  <TableHead>User</TableHead>
-                  <TableHead className="text-center">Assessments</TableHead>
-                  <TableHead className="text-center">MBTI</TableHead>
-                  <TableHead className="text-center">Enneagram</TableHead>
-                  <TableHead className="text-center">Big Five</TableHead>
-                  <TableHead className="text-center">Holland</TableHead>
-                  <TableHead className="text-center">Alignment</TableHead>
-                  <TableHead className="text-center">Socionics</TableHead>
-                  <TableHead className="text-center">Integral</TableHead>
-                  <TableHead className="text-center">Attachment</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {state.loading ? (
+      {/* Mobile vs Desktop Layout */}
+      {isMobile ? (
+        /* Mobile Card Layout */
+        <div className="space-y-3">
+          {state.loading ? (
+            <Card>
+              <CardContent className="py-8 text-center text-muted-foreground">
+                Loading users...
+              </CardContent>
+            </Card>
+          ) : state.users.length === 0 ? (
+            <Card>
+              <CardContent className="py-8 text-center text-muted-foreground">
+                No users found
+              </CardContent>
+            </Card>
+          ) : (
+            state.users.map((user) => (
+              <MobileUserCard
+                key={user.id}
+                user={user}
+                isSelected={state.selectedUsers.has(user.id)}
+                isExpanded={state.expandedRows.has(user.id)}
+                onSelect={(checked) => handleUserSelection(user.id, checked)}
+                onToggleExpand={() => handleToggleExpand(user.id)}
+                onOverrideUpdate={(framework, value) => handleOverrideUpdate(user.id, framework, value)}
+              />
+            ))
+          )}
+        </div>
+      ) : (
+
+        /* Desktop Table Layout */
+        <Card>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
                   <TableRow>
-                    <TableCell colSpan={11} className="text-center py-8">
-                      Loading users...
-                    </TableCell>
-                  </TableRow>
-                ) : state.users.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={11} className="text-center py-8 text-muted-foreground">
-                      No users found
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  state.users.map((user) => (
-                    <Collapsible key={user.id} open={state.expandedRows.has(user.id)}>
-                      <UserRow
-                        user={user}
-                        isSelected={state.selectedUsers.has(user.id)}
-                        isExpanded={state.expandedRows.has(user.id)}
-                        onSelect={(checked) => handleUserSelection(user.id, checked)}
-                        onToggleExpand={() => handleToggleExpand(user.id)}
-                        onOverrideUpdate={(framework, value) => handleOverrideUpdate(user.id, framework, value)}
+                    <TableHead className="w-16">
+                      <Checkbox
+                        checked={state.users.length > 0 && state.selectedUsers.size === state.users.length}
+                        onCheckedChange={handleSelectAll}
+                        aria-label="Select all users"
                       />
-                    </Collapsible>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
+                    </TableHead>
+                    <TableHead>User</TableHead>
+                    <TableHead className="text-center">Assessments</TableHead>
+                    <TableHead className="text-center">MBTI</TableHead>
+                    <TableHead className="text-center">Enneagram</TableHead>
+                    <TableHead className="text-center">Big Five</TableHead>
+                    <TableHead className="text-center">Holland</TableHead>
+                    <TableHead className="text-center">Alignment</TableHead>
+                    <TableHead className="text-center">Socionics</TableHead>
+                    <TableHead className="text-center">Integral</TableHead>
+                    <TableHead className="text-center">Attachment</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {state.loading ? (
+                    <TableRow>
+                      <TableCell colSpan={11} className="text-center py-8">
+                        Loading users...
+                      </TableCell>
+                    </TableRow>
+                  ) : state.users.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={11} className="text-center py-8 text-muted-foreground">
+                        No users found
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    state.users.map((user) => (
+                      <Collapsible key={user.id} open={state.expandedRows.has(user.id)}>
+                        <UserRow
+                          user={user}
+                          isSelected={state.selectedUsers.has(user.id)}
+                          isExpanded={state.expandedRows.has(user.id)}
+                          onSelect={(checked) => handleUserSelection(user.id, checked)}
+                          onToggleExpand={() => handleToggleExpand(user.id)}
+                          onOverrideUpdate={(framework, value) => handleOverrideUpdate(user.id, framework, value)}
+                        />
+                      </Collapsible>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Pagination */}
       <div className="flex items-center justify-between">
@@ -472,6 +551,7 @@ export const UserManagementTable: React.FC = () => {
               ...prev,
               filters: { ...prev.filters, page: prev.filters.page! - 1 }
             }))}
+            aria-label="Go to previous page"
           >
             Previous
           </Button>
@@ -483,11 +563,29 @@ export const UserManagementTable: React.FC = () => {
               ...prev,
               filters: { ...prev.filters, page: prev.filters.page! + 1 }
             }))}
+            aria-label="Go to next page"
           >
             Next
           </Button>
         </div>
       </div>
+
+      {/* Confirmation Dialog */}
+      {state.confirmDialog && (
+        <ConfirmationDialog
+          open={state.confirmDialog.open}
+          onOpenChange={(open) => setState(prev => ({ 
+            ...prev, 
+            confirmDialog: open ? prev.confirmDialog : null 
+          }))}
+          title={state.confirmDialog.title}
+          description={state.confirmDialog.description}
+          action={state.confirmDialog.action}
+          variant={state.confirmDialog.variant}
+          userCount={state.selectedUsers.size || undefined}
+          onConfirm={state.confirmDialog.onConfirm}
+        />
+      )}
     </div>
   );
 };

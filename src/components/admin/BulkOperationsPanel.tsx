@@ -34,6 +34,14 @@ export const BulkOperationsPanel: React.FC<BulkOperationsPanelProps> = ({
   const handleBulkUpdate = async () => {
     if (!framework || !value) return;
     
+    // Show confirmation for large operations
+    if (selectedUserIds.length > 5) {
+      const confirmed = window.confirm(
+        `Are you sure you want to update ${framework.replace('_', ' ')} for ${selectedUserIds.length} users? This action cannot be undone.`
+      );
+      if (!confirmed) return;
+    }
+    
     setLoading(true);
     try {
       const result = await bulkUpdateOverrides(
@@ -62,6 +70,12 @@ export const BulkOperationsPanel: React.FC<BulkOperationsPanelProps> = ({
 
   const handleBulkClear = async () => {
     if (!framework) return;
+    
+    // Show confirmation for destructive operations
+    const confirmed = window.confirm(
+      `Are you sure you want to clear ${framework.replace('_', ' ')} for ${selectedUserIds.length} users? This will remove their personality overrides and cannot be undone.`
+    );
+    if (!confirmed) return;
     
     setLoading(true);
     try {
