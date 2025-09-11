@@ -10,6 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { TestResult } from '@/hooks/useTestResultsTracking';
 import { Search, Download, Eye, Filter } from 'lucide-react';
 import { format } from 'date-fns';
+import { logger } from '@/utils/structuredLogging';
 
 export function TestResultsList() {
   const [testResults, setTestResults] = useState<TestResult[]>([]);
@@ -39,13 +40,19 @@ export function TestResultsList() {
         .order('created_at', { ascending: false });
 
       if (error) {
-        console.error('Error fetching test results:', error);
+        logger.error('Failed to fetch test results', {
+          component: 'TestResultsList',
+          action: 'loadTestResults'
+        }, error as Error);
         return;
       }
 
       setTestResults(data as TestResult[] || []);
     } catch (error) {
-      console.error('Error:', error);
+      logger.error('Test results loading failed', {
+        component: 'TestResultsList',
+        action: 'loadTestResults'
+      }, error as Error);
     } finally {
       setLoading(false);
     }

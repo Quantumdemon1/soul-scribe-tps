@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
 import { supabase } from '@/integrations/supabase/client';
 import { TestSession } from '@/hooks/useTestSession';
+import { logger } from '@/utils/structuredLogging';
 import { 
   Activity, 
   Users, 
@@ -65,7 +66,10 @@ export const TestSessionsOverview: React.FC = () => {
       setSessions((data || []) as TestSession[]);
       calculateStats((data || []) as TestSession[]);
     } catch (error) {
-      console.error('Failed to fetch test sessions:', error);
+      logger.error('Failed to fetch test sessions', {
+        component: 'TestSessionsOverview',
+        action: 'fetchTestSessions'
+      }, error as Error);
       toast({
         title: "Error",
         description: "Failed to load test sessions.",

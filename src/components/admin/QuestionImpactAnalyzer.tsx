@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { EnhancedTPSScoring } from '@/utils/enhancedTPSScoring';
 import { TPS_QUESTIONS } from '@/data/questions';
 import { useToast } from '@/hooks/use-toast';
+import { logger } from '@/utils/structuredLogging';
 
 interface QuestionImpactAnalyzerProps {
   responses: number[];
@@ -39,7 +40,10 @@ export function QuestionImpactAnalyzer({ responses }: QuestionImpactAnalyzerProp
         description: `Impact analysis for Q${questionIndex + 1} completed`,
       });
     } catch (error) {
-      console.error('Impact analysis failed:', error);
+      logger.error('Question impact analysis failed', {
+        component: 'QuestionImpactAnalyzer',
+        action: 'analyzeQuestionImpact'
+      }, error as Error);
       toast({
         title: "Analysis Failed",
         description: "Failed to run question impact analysis",
@@ -70,7 +74,10 @@ export function QuestionImpactAnalyzer({ responses }: QuestionImpactAnalyzerProp
         description: "Threshold sensitivity analysis completed",
       });
     } catch (error) {
-      console.error('Threshold analysis failed:', error);
+      logger.error('Threshold analysis failed', {
+        component: 'QuestionImpactAnalyzer',
+        action: 'analyzeThresholds'
+      }, error as Error);
       toast({
         title: "Analysis Failed",
         description: "Failed to run threshold sensitivity analysis",

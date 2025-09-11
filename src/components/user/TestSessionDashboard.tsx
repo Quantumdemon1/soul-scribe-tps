@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useTestSession, TestSession } from '@/hooks/useTestSession';
+import { logger } from '@/utils/structuredLogging';
 import { 
   Activity, 
   CheckCircle, 
@@ -50,7 +51,10 @@ export const TestSessionDashboard: React.FC = () => {
       if (error) throw error;
       setSessions((data || []) as TestSession[]);
     } catch (error) {
-      console.error('Failed to fetch user sessions:', error);
+      logger.error('Failed to fetch user test sessions', {
+        component: 'TestSessionDashboard',
+        action: 'fetchTestSessions'
+      }, error as Error);
       toast({
         title: "Error",
         description: "Failed to load your test sessions.",

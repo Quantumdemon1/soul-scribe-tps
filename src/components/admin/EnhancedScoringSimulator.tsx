@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from '@/hooks/use-toast';
+import { logger } from '@/utils/structuredLogging';
 import { TPS_QUESTIONS } from '@/data/questions';
 import { TPSScoring } from '@/utils/tpsScoring';
 import { readLocalOverrides } from '@/services/scoringConfigService';
@@ -51,7 +52,10 @@ export const EnhancedScoringSimulator: React.FC = () => {
       
       return results;
     } catch (error) {
-      console.error('Simulation error:', error);
+      logger.error('Enhanced scoring simulation failed', {
+        component: 'EnhancedScoringSimulator',
+        action: 'runSimulation'
+      }, error as Error);
       return null;
     }
   }, [responses, overrides]);

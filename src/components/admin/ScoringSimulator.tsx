@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from '@/hooks/use-toast';
+import { logger } from '@/utils/structuredLogging';
 import { TPS_QUESTIONS } from '@/data/questions';
 import { TPSScoring } from '@/utils/tpsScoring';
 import { readLocalOverrides } from '@/services/scoringConfigService';
@@ -35,7 +36,10 @@ export const ScoringSimulator: React.FC = () => {
         enneagram: calculateEnneagramEnhanced(scores),
       };
     } catch (error) {
-      console.error('Simulation error:', error);
+      logger.error('Scoring simulation failed', {
+        component: 'ScoringSimulator',
+        action: 'runSimulation'
+      }, error as Error);
       return null;
     }
   }, [responses, overrides]);

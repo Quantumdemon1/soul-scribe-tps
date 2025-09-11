@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ChartContainer, ChartConfig } from '@/components/ui/chart';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
 import { Activity, Users, TrendingUp, AlertTriangle } from 'lucide-react';
+import { logger } from '@/utils/structuredLogging';
 
 interface TestStats {
   totalTests: number;
@@ -45,14 +46,20 @@ export function TestResultsOverview() {
         .order('created_at', { ascending: false });
 
       if (error) {
-        console.error('Error fetching test results:', error);
+        logger.error('Failed to fetch test results for overview', {
+          component: 'TestResultsOverview',
+          action: 'fetchTestResults'
+        }, error as Error);
         return;
       }
 
       setTestResults(data as TestResult[] || []);
       calculateStats(data as TestResult[] || []);
     } catch (error) {
-      console.error('Error:', error);
+      logger.error('Test results overview loading failed', {
+        component: 'TestResultsOverview',
+        action: 'fetchTestResults'
+      }, error as Error);
     } finally {
       setLoading(false);
     }

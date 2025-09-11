@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { EnhancedTPSScoring } from '@/utils/enhancedTPSScoring';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { logger } from '@/utils/structuredLogging';
 
 interface UserProfile {
   userId: string;
@@ -73,7 +74,10 @@ export function UserComparisonTool() {
         description: `Successfully loaded ${profiles.length} user profiles`,
       });
     } catch (error) {
-      console.error('Failed to load user profiles:', error);
+      logger.error('Failed to load user profiles for comparison', {
+        component: 'UserComparisonTool',
+        action: 'loadUserProfiles'
+      }, error as Error);
       toast({
         title: "Load Failed",
         description: "Failed to load user profiles",
