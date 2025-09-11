@@ -352,44 +352,59 @@ export const UserManagementTable: React.FC = () => {
   };
 
   const handleOverrideUpdate = async (userId: string, framework: string, value: any) => {
-    // Show confirmation for sensitive changes
-    if (framework === 'mbti_type' || framework === 'enneagram_type') {
-      setState(prev => ({
-        ...prev,
-        confirmDialog: {
-          open: true,
-          title: 'Confirm Override Change',
-          description: `Are you sure you want to update ${framework.replace('_', ' ')} for this user? This will override their assessment results.`,
-          action: 'Update Override',
-          variant: 'default',
-          onConfirm: async () => {
-            await performOverrideUpdate(userId, framework, value);
-            setState(prev => ({ ...prev, confirmDialog: null }));
+    try {
+      // Show confirmation for sensitive changes
+      if (framework === 'mbti_type' || framework === 'enneagram_type') {
+        setState(prev => ({
+          ...prev,
+          confirmDialog: {
+            open: true,
+            title: 'Confirm Override Change',
+            description: `Are you sure you want to update ${framework.replace('_', ' ')} for this user? This will override their assessment results.`,
+            action: 'Update Override',
+            variant: 'default',
+            onConfirm: async () => {
+              await performOverrideUpdate(userId, framework, value);
+              setState(prev => ({ ...prev, confirmDialog: null }));
+            }
           }
-        }
-      }));
-      return;
+        }));
+        return;
+      }
+      
+      await performOverrideUpdate(userId, framework, value);
+    } catch (error) {
+      toast({
+        title: 'Update Failed',
+        description: error instanceof Error ? error.message : 'Failed to update override',
+        variant: 'destructive'
+      });
     }
-    
-    await performOverrideUpdate(userId, framework, value);
   };
 
   const performOverrideUpdate = async (userId: string, framework: string, value: any) => {
-    await updateUserOverride(userId, framework, value);
-    
-    setState(prev => ({
-      ...prev,
-      users: prev.users.map(user => 
-        user.id === userId 
-          ? { ...user, [framework]: value }
-          : user
-      )
-    }));
+    try {
+      await updateUserOverride(userId, framework, value);
+      
+      // Update local state optimistically
+      setState(prev => ({
+        ...prev,
+        users: prev.users.map(user => 
+          user.id === userId 
+            ? { ...user, [framework]: value }
+            : user
+        )
+      }));
 
-    toast({
-      title: 'Override Updated',
-      description: `${framework.replace('_', ' ')} updated successfully.`
-    });
+      toast({
+        title: 'Override Updated',
+        description: `${framework.replace('_', ' ')} updated successfully.`
+      });
+    } catch (error) {
+      // Reload data on error to ensure consistency
+      loadUsers();
+      throw error; // Re-throw to be handled by caller
+    }
   };
 
   const handleFiltersChange = (newFilters: UserManagementFilters) => {

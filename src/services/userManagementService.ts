@@ -84,12 +84,35 @@ export async function updateUserOverride(
   reason?: string
 ): Promise<void> {
   try {
+    // Validate inputs
+    if (!userId || !framework) {
+      throw new Error('User ID and framework are required');
+    }
+
+    // Validate framework value if provided
+    if (value && FRAMEWORK_OPTIONS[framework as keyof typeof FRAMEWORK_OPTIONS]) {
+      const validOptions = FRAMEWORK_OPTIONS[framework as keyof typeof FRAMEWORK_OPTIONS];
+      if (!validOptions.includes(value as never)) {
+        throw new Error(`Invalid value "${value}" for framework "${framework}"`);
+      }
+    }
+
+    // Get current user for audit trail
+    const { data: { user: currentUser } } = await supabase.auth.getUser();
+    if (!currentUser) {
+      throw new Error('Authentication required');
+    }
+
     // Check if user has existing overrides
-    const { data: existing } = await supabase
+    const { data: existing, error: fetchError } = await supabase
       .from('personality_overrides')
       .select('*')
       .eq('user_id', userId)
       .maybeSingle();
+
+    if (fetchError && fetchError.code !== 'PGRST116') {
+      throw fetchError;
+    }
 
     const updateData = {
       [framework]: value,
@@ -110,12 +133,18 @@ export async function updateUserOverride(
         .from('personality_overrides')
         .insert({
           user_id: userId,
-          created_by: (await supabase.auth.getUser()).data.user?.id || '',
+          created_by: currentUser.id,
           ...updateData
         });
 
       if (error) throw error;
     }
+
+    logger.info('User override updated successfully', {
+      component: 'userManagementService',
+      userId
+    });
+
   } catch (error) {
     logger.error('Error updating user override', { 
       component: 'userManagementService',

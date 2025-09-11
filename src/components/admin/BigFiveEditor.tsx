@@ -45,6 +45,7 @@ export const BigFiveEditor: React.FC<BigFiveEditorProps> = ({ value, onSave, onC
 
   const [scores, setScores] = useState<BigFiveScores>(initialScores);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleTraitChange = (trait: keyof BigFiveScores, value: number[]) => {
     setScores(prev => ({ ...prev, [trait]: value[0] }));
@@ -52,8 +53,21 @@ export const BigFiveEditor: React.FC<BigFiveEditorProps> = ({ value, onSave, onC
 
   const handleSave = async () => {
     setSaving(true);
+    setError(null);
     try {
+      // Validate scores
+      const isValid = Object.values(scores).every(score => 
+        score >= 0 && score <= 100 && !isNaN(score)
+      );
+      
+      if (!isValid) {
+        throw new Error('All scores must be between 0 and 100');
+      }
+      
       await onSave(scores);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to save scores';
+      setError(errorMessage);
     } finally {
       setSaving(false);
     }
@@ -61,8 +75,12 @@ export const BigFiveEditor: React.FC<BigFiveEditorProps> = ({ value, onSave, onC
 
   const handleClear = async () => {
     setSaving(true);
+    setError(null);
     try {
       await onSave(null);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to clear scores';
+      setError(errorMessage);
     } finally {
       setSaving(false);
     }
@@ -93,6 +111,12 @@ export const BigFiveEditor: React.FC<BigFiveEditorProps> = ({ value, onSave, onC
           </div>
         ))}
         
+        {error && (
+          <div className="text-xs text-destructive bg-destructive/10 p-2 rounded">
+            {error}
+          </div>
+        )}
+        
         <div className="flex gap-2 pt-2">
           <Button
             size="sm"
@@ -100,7 +124,7 @@ export const BigFiveEditor: React.FC<BigFiveEditorProps> = ({ value, onSave, onC
             disabled={saving}
             className="flex-1"
           >
-            Save
+            {saving ? 'Saving...' : 'Save'}
           </Button>
           <Button
             size="sm"
@@ -114,6 +138,7 @@ export const BigFiveEditor: React.FC<BigFiveEditorProps> = ({ value, onSave, onC
             size="sm"
             variant="ghost"
             onClick={onCancel}
+            disabled={saving}
           >
             Cancel
           </Button>
