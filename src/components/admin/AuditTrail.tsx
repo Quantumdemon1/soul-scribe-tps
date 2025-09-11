@@ -12,8 +12,11 @@ import { toast } from '@/hooks/use-toast';
 import { Clock, User, Target, Undo2, Eye, AlertTriangle, History } from 'lucide-react';
 import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { MobileAdminSection } from './MobileAdminSection';
 
 export const AuditTrail: React.FC = () => {
+  const isMobile = useIsMobile();
   const [auditLog, setAuditLog] = useState<AuditLogEntry[]>([]);
   const [snapshots, setSnapshots] = useState<ConfigSnapshot[]>([]);
   const [selectedSnapshot, setSelectedSnapshot] = useState<ConfigSnapshot | null>(null);
@@ -122,13 +125,12 @@ export const AuditTrail: React.FC = () => {
     }
   };
 
-  return (
-    <div className="space-y-6">
-      <Tabs defaultValue="log" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="log">Audit Log</TabsTrigger>
-          <TabsTrigger value="snapshots">Snapshots</TabsTrigger>
-        </TabsList>
+  const content = (
+    <Tabs defaultValue="log" className="w-full">
+      <TabsList className={`grid w-full grid-cols-2 ${isMobile ? 'h-11' : ''}`}>
+        <TabsTrigger value="log" className={isMobile ? 'text-sm' : ''}>Audit Log</TabsTrigger>
+        <TabsTrigger value="snapshots" className={isMobile ? 'text-sm' : ''}>Snapshots</TabsTrigger>
+      </TabsList>
 
         <TabsContent value="log" className="space-y-4">
           <Card>
@@ -198,6 +200,7 @@ export const AuditTrail: React.FC = () => {
               <Button 
                 onClick={handleCreateSnapshot}
                 disabled={loading || !snapshotDescription.trim()}
+                className="h-11"
               >
                 Create Snapshot
               </Button>
@@ -288,6 +291,15 @@ export const AuditTrail: React.FC = () => {
           </Card>
         </TabsContent>
       </Tabs>
-    </div>
   );
+
+  if (isMobile) {
+    return (
+      <MobileAdminSection title="Audit & Safety Trail">
+        {content}
+      </MobileAdminSection>
+    );
+  }
+
+  return <div className="space-y-6">{content}</div>;
 };

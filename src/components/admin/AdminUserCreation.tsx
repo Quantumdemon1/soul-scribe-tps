@@ -8,6 +8,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2, UserPlus, Eye, EyeOff } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { MobileAdminSection } from './MobileAdminSection';
 
 interface PersonalityTypes {
   mbti_type?: string;
@@ -22,6 +24,7 @@ interface PersonalityTypes {
 
 export const AdminUserCreation: React.FC = () => {
   const { toast } = useToast();
+  const isMobile = useIsMobile();
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [generatedPassword, setGeneratedPassword] = useState('');
@@ -128,7 +131,7 @@ export const AdminUserCreation: React.FC = () => {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2'}`}>
               <div className="space-y-2">
                 <Label htmlFor="email">Email Address *</Label>
                 <Input
@@ -137,6 +140,7 @@ export const AdminUserCreation: React.FC = () => {
                   value={formData.email}
                   onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
                   required
+                  className="h-11"
                 />
               </div>
               
@@ -147,6 +151,7 @@ export const AdminUserCreation: React.FC = () => {
                   value={formData.displayName}
                   onChange={(e) => setFormData(prev => ({ ...prev, displayName: e.target.value }))}
                   required
+                  className="h-11"
                 />
               </div>
             </div>
@@ -157,7 +162,7 @@ export const AdminUserCreation: React.FC = () => {
                 Configure personality types for this user. All fields are optional.
               </p>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2'}`}>
                 <div className="space-y-2">
                   <Label htmlFor="mbti">MBTI Type</Label>
                   <Select onValueChange={(value) => handlePersonalityChange('mbti_type', value)}>
@@ -239,7 +244,7 @@ export const AdminUserCreation: React.FC = () => {
               </div>
             </div>
 
-            <Button type="submit" disabled={loading} className="w-full">
+            <Button type="submit" disabled={loading} className="w-full h-11">
               {loading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />

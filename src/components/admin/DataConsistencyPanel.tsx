@@ -6,8 +6,11 @@ import { Badge } from '@/components/ui/badge';
 import { Database, RefreshCw, CheckCircle, AlertTriangle, TrendingUp } from 'lucide-react';
 import { useAssessmentDataConsistency } from '@/hooks/useAssessmentDataConsistency';
 import { EnhancedLoadingSpinner } from '@/components/ui/enhanced-loading-spinner';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { MobileAdminSection } from './MobileAdminSection';
 
 export const DataConsistencyPanel: React.FC = () => {
+  const isMobile = useIsMobile();
   const {
     isChecking,
     isBackfilling,
@@ -33,7 +36,7 @@ export const DataConsistencyPanel: React.FC = () => {
           />
         ) : result ? (
           <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'grid-cols-1 sm:grid-cols-2'}`}>
               <div className="text-center p-3 bg-muted/30 rounded-lg">
                 <div className="flex items-center justify-center gap-2 mb-1">
                   {result.hasIntegralGaps ? (
@@ -73,6 +76,7 @@ export const DataConsistencyPanel: React.FC = () => {
                     disabled={isBackfilling}
                     size="sm"
                     variant="outline"
+                    className="h-9"
                   >
                     {isBackfilling ? 'Processing...' : 'Backfill Data'}
                   </Button>
@@ -108,10 +112,10 @@ export const DataConsistencyPanel: React.FC = () => {
           </>
         ) : (
           <div className="text-center py-4">
-            <Button onClick={checkDataConsistency} variant="outline">
-              <Database className="w-4 h-4 mr-2" />
-              Run Consistency Check
-            </Button>
+              <Button onClick={checkDataConsistency} variant="outline" className="h-11">
+                <Database className="w-4 h-4 mr-2" />
+                Run Consistency Check
+              </Button>
           </div>
         )}
       </CardContent>

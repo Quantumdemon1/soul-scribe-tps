@@ -9,6 +9,8 @@ import { Progress } from '@/components/ui/progress';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Upload, FileSpreadsheet, CheckCircle2, AlertCircle, Download } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { MobileAdminSection } from './MobileAdminSection';
 
 interface ParsedUserRow {
   email: string;
@@ -51,6 +53,7 @@ function downloadTemplate(type: 'users' | 'assessments') {
 }
 
 export const BulkImport: React.FC = () => {
+  const isMobile = useIsMobile();
   const [usersRows, setUsersRows] = useState<ParsedUserRow[]>([]);
   const [assessmentRows, setAssessmentRows] = useState<ParsedAssessmentRow[]>([]);
   const [processing, setProcessing] = useState(false);
@@ -127,21 +130,20 @@ export const BulkImport: React.FC = () => {
     }
   };
 
-  return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileSpreadsheet className="w-5 h-5 text-primary" />
-            Bulk Import
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+  const content = (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <FileSpreadsheet className="w-5 h-5 text-primary" />
+          Bulk Import
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <div className={`grid gap-6 ${isMobile ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-2'}`}>
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <Label className="text-base">Create Users from CSV</Label>
-                <Button variant="outline" size="sm" onClick={() => downloadTemplate('users')}>
+                <Button variant="outline" size="sm" onClick={() => downloadTemplate('users')} className="h-9">
                   <Download className="w-4 h-4 mr-2" /> Template
                 </Button>
               </div>
@@ -151,7 +153,7 @@ export const BulkImport: React.FC = () => {
               </div>
               <div className="flex items-center gap-3">
                 <Badge variant="secondary">{usersRows.length} rows</Badge>
-                <Button size="sm" onClick={() => invokeImport('users')} disabled={!usersRows.length || processing}>
+                <Button size="sm" onClick={() => invokeImport('users')} disabled={!usersRows.length || processing} className="h-9">
                   <Upload className="w-4 h-4 mr-2" /> Import Users
                 </Button>
               </div>
@@ -160,7 +162,7 @@ export const BulkImport: React.FC = () => {
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <Label className="text-base">Import Assessments from CSV</Label>
-                <Button variant="outline" size="sm" onClick={() => downloadTemplate('assessments')}>
+                <Button variant="outline" size="sm" onClick={() => downloadTemplate('assessments')} className="h-9">
                   <Download className="w-4 h-4 mr-2" /> Template
                 </Button>
               </div>
@@ -170,7 +172,7 @@ export const BulkImport: React.FC = () => {
               </div>
               <div className="flex items-center gap-3">
                 <Badge variant="secondary">{assessmentRows.length} rows</Badge>
-                <Button size="sm" onClick={() => invokeImport('assessments')} disabled={!assessmentRows.length || processing}>
+                <Button size="sm" onClick={() => invokeImport('assessments')} disabled={!assessmentRows.length || processing} className="h-9">
                   <Upload className="w-4 h-4 mr-2" /> Import Assessments
                 </Button>
               </div>
@@ -192,8 +194,17 @@ export const BulkImport: React.FC = () => {
           </div>
         </CardContent>
       </Card>
-    </div>
   );
+
+  if (isMobile) {
+    return (
+      <MobileAdminSection title="Bulk Import">
+        {content}
+      </MobileAdminSection>
+    );
+  }
+
+  return <div className="space-y-6">{content}</div>;
 };
 
 export default BulkImport;

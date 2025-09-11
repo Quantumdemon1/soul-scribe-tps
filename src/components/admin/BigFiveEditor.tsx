@@ -69,7 +69,7 @@ export const BigFiveEditor: React.FC<BigFiveEditorProps> = ({ value, onSave, onC
   };
 
   return (
-    <Card className="w-80">
+    <Card className="w-full max-w-md">
       <CardHeader>
         <CardTitle className="text-sm">Edit Big Five Scores</CardTitle>
       </CardHeader>

@@ -13,6 +13,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { Settings, Database, Brain, BarChart3, Save, RefreshCw, CheckCircle, AlertCircle, Copy, Upload, Download, Activity, Shield, SlidersHorizontal } from 'lucide-react';
 import { useAdminRole } from '@/hooks/useAdminRole';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { MobileAdminLayout } from './MobileAdminLayout';
+import { MobileAdminTabs } from './MobileAdminTabs';
 import { AnalyticsOverview } from '@/components/analytics/AnalyticsOverview';
 import { SystemHealth } from '@/components/analytics/SystemHealth';
 import { CacheIntegrationTest } from '@/components/test/CacheIntegrationTest';
@@ -73,6 +76,7 @@ const modelOptions = {
 
 export const AdminPanel: React.FC = () => {
   const { isAdmin, loading: adminLoading } = useAdminRole();
+  const isMobile = useIsMobile();
   const [config, setConfig] = useState<LLMConfig>(defaultConfig);
   const [loading, setLoading] = useState(false);
   const [stats, setStats] = useState<{
@@ -83,6 +87,7 @@ export const AdminPanel: React.FC = () => {
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [testResult, setTestResult] = useState<string>('');
   const [selectedPrompt, setSelectedPrompt] = useState<keyof typeof DEFAULT_SYSTEM_PROMPTS>('tieBreaking');
+  const [activeTab, setActiveTab] = useState('llm');
 
   useEffect(() => {
     if (isAdmin) {
@@ -280,6 +285,58 @@ export const AdminPanel: React.FC = () => {
           </p>
         </div>
       </div>
+    );
+  }
+
+  // Mobile admin tabs configuration
+  const adminTabs = [
+    { value: 'llm', label: 'LLM Config', icon: Brain },
+    { value: 'database', label: 'Database', icon: Database },
+    { value: 'sessions', label: 'Sessions', icon: Activity },
+    { value: 'results', label: 'Results', icon: BarChart3 },
+    { value: 'analytics', label: 'Analytics', icon: BarChart3 },
+    { value: 'testing', label: 'Testing', icon: CheckCircle },
+    { value: 'scoring', label: 'Scoring', icon: SlidersHorizontal },
+    { value: 'production', label: 'Production', icon: Shield },
+    { value: 'bulk', label: 'Bulk Import', icon: Upload },
+    { value: 'mobile', label: 'Mobile', icon: Activity }
+  ];
+
+  if (isMobile) {
+    return (
+      <MobileAdminLayout
+        title="Admin Panel"
+        headerActions={
+          <Badge variant="secondary" className="text-xs">
+            Admin Access
+          </Badge>
+        }
+      >
+        <div className="space-y-4">
+          <MobileAdminTabs
+            tabs={adminTabs}
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+          />
+          
+          <div className="min-h-[400px]">
+            {activeTab === 'llm' && renderLLMConfig()}
+            {activeTab === 'database' && renderDatabaseStats()}
+            {activeTab === 'sessions' && <TestSessionsOverview />}
+            {activeTab === 'results' && <TestResultsOverview />}
+            {activeTab === 'analytics' && renderAnalytics()}
+            {activeTab === 'testing' && renderTesting()}
+            {activeTab === 'scoring' && renderScoring()}
+            {activeTab === 'production' && <ProductionTestSuite />}
+            {activeTab === 'bulk' && (
+              <React.Suspense fallback={<div className="text-sm text-muted-foreground">Loading...</div>}>
+                <BulkImportLazy />
+              </React.Suspense>
+            )}
+            {activeTab === 'mobile' && <MobileTestIntegration />}
+          </div>
+        </div>
+      </MobileAdminLayout>
     );
   }
 
@@ -685,4 +742,175 @@ export const AdminPanel: React.FC = () => {
       </div>
     </div>
   );
+
+  // Mobile helper functions
+  function renderLLMConfig() {
+    return (
+      <div className="space-y-4">
+        <Card className="h-fit">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Brain className="w-4 h-4 text-primary" />
+              Provider Settings
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label className="text-sm">LLM Provider</Label>
+              <Select 
+                value={config.provider} 
+                onValueChange={(value: 'openai' | 'anthropic') => 
+                  setConfig({...config, provider: value, model: modelOptions[value][0]})
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="openai">OpenAI</SelectItem>
+                  <SelectItem value="anthropic">Anthropic</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-sm">Model</Label>
+              <Select
+                value={config.model}
+                onValueChange={(value) => setConfig({...config, model: value})}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {modelOptions[config.provider].map(model => (
+                    <SelectItem key={model} value={model}>{model}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <Label className="text-sm">Temperature: {config.temperature}</Label>
+                <span className="text-xs text-muted-foreground">
+                  {config.temperature <= 0.3 ? 'Focused' : config.temperature >= 0.7 ? 'Creative' : 'Balanced'}
+                </span>
+              </div>
+              <Slider
+                value={[config.temperature]}
+                onValueChange={([value]) => setConfig({...config, temperature: value})}
+                max={1}
+                min={0}
+                step={0.1}
+                className="w-full"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-sm">Max Tokens</Label>
+              <Input
+                type="number"
+                value={config.maxTokens}
+                onChange={(e) => setConfig({...config, maxTokens: parseInt(e.target.value) || 2000})}
+                min={100}
+                max={8000}
+              />
+            </div>
+
+            <div className="flex gap-2 pt-2">
+              <Button 
+                onClick={saveConfig} 
+                disabled={saveStatus === 'saving'} 
+                className="flex-1 h-11"
+                variant={saveStatus === 'saved' ? 'default' : 'default'}
+              >
+                {saveStatus === 'saving' && <RefreshCw className="w-4 h-4 mr-2 animate-spin" />}
+                {saveStatus === 'saved' && <CheckCircle className="w-4 h-4 mr-2" />}
+                {saveStatus === 'error' && <AlertCircle className="w-4 h-4 mr-2" />}
+                {saveStatus === 'idle' && <Save className="w-4 h-4 mr-2" />}
+                {saveStatus === 'saving' ? 'Saving...' : saveStatus === 'saved' ? 'Saved!' : 'Save'}
+              </Button>
+              <Button onClick={testLLM} variant="outline" disabled={loading} className="h-11">
+                {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : 'Test'}
+              </Button>
+            </div>
+
+            {testResult && (
+              <div className="p-3 bg-muted rounded-lg">
+                <p className="text-sm font-mono">{testResult}</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  function renderDatabaseStats() {
+    return (
+      <div className="space-y-4">
+        {stats && (
+          <div className="grid grid-cols-1 gap-3">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium">Total Assessments</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-xl font-bold">{stats.totalAssessments}</div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium">AI Insights Generated</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-xl font-bold">{stats.totalInsights}</div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium">Socratic Sessions</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-xl font-bold">{stats.totalSessions}</div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+        <DataConsistencyPanel />
+      </div>
+    );
+  }
+
+  function renderAnalytics() {
+    return (
+      <div className="space-y-4">
+        <AnalyticsOverview />
+        <SystemHealth />
+      </div>
+    );
+  }
+
+  function renderTesting() {
+    return (
+      <div className="space-y-4">
+        <CacheIntegrationTest />
+        <AlignmentTest />
+      </div>
+    );
+  }
+
+  function renderScoring() {
+    return (
+      <div className="space-y-4">
+        <ScoringTuner />
+        <ScoringSimulator />
+        <UserOverrideManager />
+        <AuditTrail />
+      </div>
+    );
+  }
 };

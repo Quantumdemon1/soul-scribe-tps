@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
 import { Download, Upload, FileSpreadsheet, AlertCircle } from 'lucide-react';
 import { type UserWithOverrides } from '@/services/userManagementService';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface ExportImportPanelProps {
   users: UserWithOverrides[];
@@ -15,6 +16,7 @@ export const ExportImportPanel: React.FC<ExportImportPanelProps> = ({
   users, 
   onImportComplete 
 }) => {
+  const isMobile = useIsMobile();
   const [exporting, setExporting] = useState(false);
   const [importing, setImporting] = useState(false);
 
@@ -141,7 +143,7 @@ export const ExportImportPanel: React.FC<ExportImportPanelProps> = ({
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2'}`}>
           {/* Export Section */}
           <div className="space-y-2">
             <h4 className="text-sm font-medium">Export Data</h4>
@@ -152,7 +154,7 @@ export const ExportImportPanel: React.FC<ExportImportPanelProps> = ({
               onClick={exportToCSV}
               disabled={exporting || users.length === 0}
               size="sm"
-              className="w-full"
+              className="w-full h-11"
             >
               <Download className="h-3 w-3 mr-2" />
               {exporting ? 'Exporting...' : 'Export CSV'}
@@ -178,7 +180,7 @@ export const ExportImportPanel: React.FC<ExportImportPanelProps> = ({
                 disabled={importing}
                 size="sm"
                 variant="outline"
-                className="w-full"
+                className="w-full h-11"
               >
                 <Upload className="h-3 w-3 mr-2" />
                 {importing ? 'Processing...' : 'Upload CSV'}

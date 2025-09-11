@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { toast } from '@/hooks/use-toast';
 import { TPSScoring } from '@/utils/tpsScoring';
 import { EnhancedTPSScoring } from '@/utils/enhancedTPSScoring';
@@ -16,6 +17,8 @@ import { ScoringValidator, ValidationResult } from '@/utils/scoringValidation';
 import { AuditTrailService } from '@/services/auditTrailService';
 import { ImpactAssessment } from './ImpactAssessment';
 import { SlidersHorizontal, RefreshCw, Save, ListChecks, Calculator, Settings, AlertTriangle } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { MobileAdminSection } from './MobileAdminSection';
 
 const DEFAULT_MBTI_WEIGHTS: Record<MBTIDimensionKey, { traits: Record<string, number>; threshold?: number }> = {
   EI: { traits: { 'Communal Navigate': 0.35, 'Dynamic': 0.35, 'Assertive': 0.15, 'Direct': 0.15 }, threshold: 5 },
@@ -25,6 +28,7 @@ const DEFAULT_MBTI_WEIGHTS: Record<MBTIDimensionKey, { traits: Record<string, nu
 };
 
 export const ScoringTuner: React.FC = () => {
+  const isMobile = useIsMobile();
   const [loading, setLoading] = useState(true);
   const [mbti, setMbti] = useState(DEFAULT_MBTI_WEIGHTS);
   const [traitMappings, setTraitMappings] = useState<Record<string, number[]>>({});
@@ -163,6 +167,177 @@ export const ScoringTuner: React.FC = () => {
     );
   }
 
+  // Mobile rendering with accordion
+  if (isMobile) {
+    return (
+      <MobileAdminSection title="Scoring Tuner">
+        <div className="flex gap-2 mb-4">
+          <Button onClick={resetDefaults} variant="outline" size="sm" className="h-9 px-3 text-xs">
+            Reset
+          </Button>
+          <Button onClick={saveAll} size="sm" className="h-9 px-3 text-xs">
+            <Save className="h-3 w-3 mr-1" /> Save
+          </Button>
+        </div>
+        <Accordion type="single" collapsible className="w-full space-y-2">
+          <AccordionItem value="weights">
+            <AccordionTrigger className="text-sm">
+              <div className="flex items-center gap-2">
+                <SlidersHorizontal className="h-4 w-4" />
+                MBTI Weights
+              </div>
+            </AccordionTrigger>
+            <AccordionContent className="space-y-3">
+              {(['EI','SN','TF','JP'] as MBTIDimensionKey[]).map((dim) => (
+                <Card key={dim} className="border-muted">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm">{dim} Dimension</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    {Object.entries(mbti[dim].traits).map(([trait, weight]) => (
+                      <div key={trait} className="flex items-center justify-between gap-2">
+                        <Label className="text-xs truncate flex-1" title={trait}>{trait}</Label>
+                        <Input
+                          type="number"
+                          value={weight}
+                          step={0.05}
+                          min={0}
+                          max={2}
+                          onChange={(e) => handleWeightChange(dim, trait, parseFloat(e.target.value))}
+                          className="w-20 h-8 text-xs"
+                        />
+                      </div>
+                    ))}
+                    <div className="flex items-center justify-between gap-2 pt-2 border-t">
+                      <Label className="text-xs">Threshold</Label>
+                      <Input
+                        type="number"
+                        value={mbti[dim].threshold ?? 5}
+                        step={0.1}
+                        min={1}
+                        max={9}
+                        onChange={(e) => handleThresholdChange(dim, parseFloat(e.target.value))}
+                        className="w-20 h-8 text-xs"
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </AccordionContent>
+          </AccordionItem>
+
+          <AccordionItem value="mappings">
+            <AccordionTrigger className="text-sm">
+              <div className="flex items-center gap-2">
+                <ListChecks className="h-4 w-4" />
+                Question Mappings
+              </div>
+            </AccordionTrigger>
+            <AccordionContent className="space-y-3">
+              <div className="space-y-2">
+                <Label className="text-xs">Select Trait</Label>
+                <select 
+                  value={selectedTrait}
+                  onChange={(e) => setSelectedTrait(e.target.value)}
+                  className="w-full p-2 border rounded-md text-sm h-10"
+                >
+                  {Object.keys(traitMappings).map((trait) => (
+                    <option key={trait} value={trait}>{trait}</option>
+                  ))}
+                </select>
+              </div>
+              
+              {selectedTrait && (
+                <div className="space-y-2">
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="Question # (1-125)"
+                      value={newIndex}
+                      onChange={(e) => setNewIndex(e.target.value)}
+                      className="flex-1 h-10"
+                    />
+                    <Button onClick={addIndexToTrait} size="sm" className="h-10">Add</Button>
+                  </div>
+                  
+                  <div className="space-y-1 max-h-40 overflow-auto">
+                    {(traitMappings[selectedTrait] || []).map((idx) => (
+                      <div key={idx} className="flex items-center justify-between p-2 border rounded-md">
+                        <span className="text-xs">Q{idx}</span>
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          onClick={() => removeIndexFromTrait(idx)}
+                          className="h-6 px-2 text-xs"
+                        >
+                          Remove
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </AccordionContent>
+          </AccordionItem>
+
+          <AccordionItem value="frameworks">
+            <AccordionTrigger className="text-sm">
+              <div className="flex items-center gap-2">
+                <Settings className="h-4 w-4" />
+                All Frameworks
+              </div>
+            </AccordionTrigger>
+            <AccordionContent className="space-y-3">
+              <Card className="border-muted">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm">Big Five</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  {['Openness', 'Conscientiousness', 'Extraversion', 'Agreeableness', 'Neuroticism'].map((factor) => (
+                    <div key={factor} className="flex items-center justify-between gap-2">
+                      <Label className="text-xs flex-1">{factor}</Label>
+                      <Input
+                        type="number"
+                        value={bigFive[factor]}
+                        step={0.1}
+                        min={0}
+                        max={3}
+                        onChange={(e) => setBigFive(prev => ({ ...prev, [factor]: parseFloat(e.target.value) || 0 }))}
+                        className="w-20 h-8 text-xs"
+                      />
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+              
+              <Card className="border-muted">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm">Enneagram</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  {Array.from({length: 9}, (_, i) => i + 1).map((type) => (
+                    <div key={type} className="flex items-center justify-between gap-2">
+                      <Label className="text-xs flex-1">Type {type}</Label>
+                      <Input
+                        type="number"
+                        value={enneagram[`Type ${type}`]}
+                        step={0.1}
+                        min={0}
+                        max={3}
+                        onChange={(e) => setEnneagram(prev => ({ ...prev, [`Type ${type}`]: parseFloat(e.target.value) || 0 }))}
+                        className="w-20 h-8 text-xs"
+                      />
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+      </MobileAdminSection>
+    );
+  }
+
+  // Desktop rendering
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
