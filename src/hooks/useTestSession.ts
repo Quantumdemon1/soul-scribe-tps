@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { toast } from '@/hooks/use-toast';
+import { logger } from '@/utils/structuredLogging';
 
 export interface TestSession {
   id: string;
@@ -70,7 +71,11 @@ export function useTestSession() {
       setCurrentSession(data as TestSession);
       return data as TestSession;
     } catch (error) {
-      console.error('Failed to create test session:', error);
+      logger.error('Failed to create test session', {
+        component: 'useTestSession',
+        action: 'createSession',
+        metadata: { testType, testName, totalPages }
+      }, error as Error);
       toast({
         title: "Session Error",
         description: "Failed to create test session. Please try again.",
@@ -104,7 +109,11 @@ export function useTestSession() {
         setCurrentSession(prev => prev ? { ...prev, ...updates } : null);
       }
     } catch (error) {
-      console.error('Failed to update test session:', error);
+      logger.error('Failed to update test session', {
+        component: 'useTestSession',
+        action: 'updateSession',
+        metadata: { sessionId, updates: Object.keys(updates) }
+      }, error as Error);
     }
   }, [user, currentSession]);
 
@@ -137,7 +146,11 @@ export function useTestSession() {
       setCurrentSession(data as TestSession);
       return data as TestSession;
     } catch (error) {
-      console.error('Failed to resume test session:', error);
+      logger.error('Failed to resume test session', {
+        component: 'useTestSession',
+        action: 'resumeSession',
+        metadata: { sessionToken }
+      }, error as Error);
       toast({
         title: "Resume Error",
         description: "Failed to resume test session. Please start a new test.",
@@ -163,7 +176,11 @@ export function useTestSession() {
         current_page: currentSession?.total_pages || 0
       });
     } catch (error) {
-      console.error('Failed to complete test session:', error);
+      logger.error('Failed to complete test session', {
+        component: 'useTestSession',
+        action: 'completeSession',
+        metadata: { sessionId, responseCount: finalResponses.length }
+      }, error as Error);
     }
   }, [user, updateSession, currentSession]);
 
@@ -173,7 +190,11 @@ export function useTestSession() {
     try {
       await updateSession(sessionId, { status: 'abandoned' });
     } catch (error) {
-      console.error('Failed to abandon test session:', error);
+      logger.error('Failed to abandon test session', {
+        component: 'useTestSession',
+        action: 'abandonSession',
+        metadata: { sessionId }
+      }, error as Error);
     }
   }, [user, updateSession]);
 
@@ -195,7 +216,11 @@ export function useTestSession() {
       if (error) throw error;
       return data as TestSession;
     } catch (error) {
-      console.error('Failed to get active session:', error);
+      logger.error('Failed to get active session', {
+        component: 'useTestSession',
+        action: 'getActiveSession',
+        metadata: { testType }
+      }, error as Error);
       return null;
     }
   }, [user]);

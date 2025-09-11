@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
+import { logger } from '@/utils/structuredLogging';
 
 export interface TestResult {
   id: string;
@@ -70,7 +71,11 @@ export function useTestResultsTracking() {
         .single();
 
       if (error) {
-        console.error('Failed to start test tracking:', error);
+        logger.error('Failed to start test tracking', {
+          component: 'useTestResultsTracking',
+          action: 'startTest',
+          metadata: { testType, testName }
+        }, error);
         return null;
       }
 
@@ -86,7 +91,10 @@ export function useTestResultsTracking() {
       sessionStorage.setItem('currentTestSession', sessionId);
       return session;
     } catch (error) {
-      console.error('Error starting test tracking:', error);
+      logger.error('Error starting test tracking', {
+        component: 'useTestResultsTracking',
+        action: 'startTest'
+      }, error as Error);
       return null;
     }
   }, [user]);
@@ -110,10 +118,17 @@ export function useTestResultsTracking() {
         .eq('user_id', user.id);
 
       if (error) {
-        console.error('Failed to update test:', error);
+        logger.error('Failed to update test', {
+          component: 'useTestResultsTracking',
+          action: 'updateTest',
+          metadata: { sessionId, updates: Object.keys(updates) }
+        }, error);
       }
     } catch (error) {
-      console.error('Error updating test:', error);
+      logger.error('Error updating test', {
+        component: 'useTestResultsTracking',
+        action: 'updateTest'
+      }, error as Error);
     }
   }, [user]);
 
@@ -144,13 +159,20 @@ export function useTestResultsTracking() {
         .eq('user_id', user.id);
 
       if (error) {
-        console.error('Failed to end test:', error);
+        logger.error('Failed to end test', {
+          component: 'useTestResultsTracking',
+          action: 'endTest',
+          metadata: { sessionId, status }
+        }, error);
       } else {
         setCurrentSession(null);
         sessionStorage.removeItem('currentTestSession');
       }
     } catch (error) {
-      console.error('Error ending test:', error);
+      logger.error('Error ending test', {
+        component: 'useTestResultsTracking',
+        action: 'endTest'
+      }, error as Error);
     }
   }, [user, currentSession]);
 
@@ -181,7 +203,11 @@ export function useTestResultsTracking() {
         .eq('session_id', sessionId)
         .eq('user_id', user.id);
     } catch (updateError) {
-      console.error('Error logging test error:', updateError);
+      logger.error('Error logging test error', {
+        component: 'useTestResultsTracking',
+        action: 'logError',
+        metadata: { sessionId }
+      }, updateError as Error);
     }
   }, [user]);
 

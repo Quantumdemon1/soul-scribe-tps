@@ -10,6 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Loader2, UserPlus, Eye, EyeOff } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { MobileAdminSection } from './MobileAdminSection';
+import { logger } from '@/utils/structuredLogging';
 
 interface PersonalityTypes {
   mbti_type?: string;
@@ -106,7 +107,11 @@ export const AdminUserCreation: React.FC = () => {
         throw new Error(data.error || 'Failed to create user');
       }
     } catch (error) {
-      console.error('Error creating user:', error);
+      logger.error('Failed to create admin user', {
+        component: 'AdminUserCreation',
+        action: 'createUser',
+        metadata: { email: formData.email }
+      }, error as Error);
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : 'Failed to create user',

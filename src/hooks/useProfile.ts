@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { logger } from '@/utils/structuredLogging';
 
 export interface UserProfile {
   id: string;
@@ -68,7 +69,11 @@ export function useProfile() {
 
       setProfile(data as UserProfile);
     } catch (error) {
-      console.error('Error fetching profile:', error);
+      logger.error('Failed to fetch user profile', {
+        component: 'useProfile',
+        action: 'fetchProfile',
+        metadata: { userId: user.id }
+      }, error as Error);
       toast({
         title: 'Error',
         description: 'Failed to load profile data',
@@ -94,7 +99,11 @@ export function useProfile() {
 
       setPrivacySettings(data);
     } catch (error) {
-      console.error('Error fetching privacy settings:', error);
+      logger.error('Failed to fetch privacy settings', {
+        component: 'useProfile',
+        action: 'fetchPrivacySettings',
+        metadata: { userId: user.id }
+      }, error as Error);
       toast({
         title: 'Error',
         description: 'Failed to load privacy settings',
@@ -124,7 +133,11 @@ export function useProfile() {
       });
       return true;
     } catch (error) {
-      console.error('Error updating profile:', error);
+      logger.error('Failed to update user profile', {
+        component: 'useProfile',
+        action: 'updateProfile',
+        metadata: { userId: user.id, updates: Object.keys(updates) }
+      }, error as Error);
       toast({
         title: 'Error',
         description: 'Failed to update profile',
@@ -155,7 +168,11 @@ export function useProfile() {
       });
       return true;
     } catch (error) {
-      console.error('Error updating privacy settings:', error);
+      logger.error('Failed to update privacy settings', {
+        component: 'useProfile',
+        action: 'updatePrivacySettings',
+        metadata: { userId: user.id, updates: Object.keys(updates) }
+      }, error as Error);
       toast({
         title: 'Error',
         description: 'Failed to update privacy settings',
@@ -178,7 +195,11 @@ export function useProfile() {
       if (error) throw error;
       return data;
     } catch (error) {
-      console.error('Error validating username:', error);
+      logger.error('Failed to validate username', {
+        component: 'useProfile',
+        action: 'validateUsername',
+        metadata: { username }
+      }, error as Error);
       return false;
     }
   };

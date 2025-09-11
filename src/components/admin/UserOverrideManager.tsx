@@ -1,8 +1,8 @@
 import React from 'react';
-import { UserManagementTable } from './UserManagementTable';
+import { IntegratedUserOverrideManager } from './IntegratedUserOverrideManager';
 
 export const UserOverrideManager: React.FC = () => {
-  return <UserManagementTable />;
+  return <IntegratedUserOverrideManager />;
 };
 
 export default UserOverrideManager;

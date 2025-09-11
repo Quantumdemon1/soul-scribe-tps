@@ -7,6 +7,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { MessageSquare, Users, Lock, CheckCircle, Clock } from 'lucide-react';
+import { logger } from '@/utils/structuredLogging';
 
 interface ForumCategory {
   id: string;
@@ -64,7 +65,11 @@ export const ForumAccess: React.FC = () => {
       setCategories(categoriesData || []);
       setMemberships(membershipsData || []);
     } catch (error) {
-      console.error('Error fetching forum data:', error);
+      logger.error('Failed to fetch forum data', {
+        component: 'ForumAccess',
+        action: 'fetchForumData',
+        metadata: { userId: user!.id }
+      }, error as Error);
       toast({
         title: 'Error',
         description: 'Failed to load forum information',
@@ -98,7 +103,11 @@ export const ForumAccess: React.FC = () => {
 
       fetchForumData(); // Refresh memberships
     } catch (error) {
-      console.error('Error joining forum:', error);
+      logger.error('Failed to join forum', {
+        component: 'ForumAccess',
+        action: 'joinForum',
+        metadata: { categoryId, userId: user.id }
+      }, error as Error);
       toast({
         title: 'Error',
         description: 'Failed to join forum',
