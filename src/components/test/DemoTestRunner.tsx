@@ -3,6 +3,7 @@ import { TrackedTestComponent } from './TrackedTestComponent';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { logger } from '@/utils/structuredLogging';
 
 // Demo test components that simulate different test scenarios
 function DemoAssessmentTest({ onProgress, onComplete, onError }: any) {
@@ -156,7 +157,7 @@ export function DemoTestRunner() {
           <TrackedTestComponent
             testName="Personality Assessment Demo"
             testType="assessment"
-            onTestComplete={(result) => console.log('Assessment completed:', result)}
+            onTestComplete={(result) => logger.info('Assessment completed', { component: 'DemoTestRunner', metadata: { result } })}
           >
             <DemoAssessmentTest />
           </TrackedTestComponent>
@@ -166,7 +167,7 @@ export function DemoTestRunner() {
           <TrackedTestComponent
             testName="Performance Benchmark Demo"
             testType="performance"
-            onTestComplete={(result) => console.log('Performance test completed:', result)}
+            onTestComplete={(result) => logger.info('Performance test completed', { component: 'DemoTestRunner', metadata: { result } })}
           >
             <DemoPerformanceTest />
           </TrackedTestComponent>
@@ -176,7 +177,7 @@ export function DemoTestRunner() {
           <TrackedTestComponent
             testName="System Health Check Demo"
             testType="system"
-            onTestComplete={(result) => console.log('System test completed:', result)}
+            onTestComplete={(result) => logger.info('System test completed', { component: 'DemoTestRunner', metadata: { result } })}
           >
             <DemoSystemTest />
           </TrackedTestComponent>

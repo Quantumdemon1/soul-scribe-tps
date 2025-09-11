@@ -23,6 +23,8 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import { logger } from '@/utils/structuredLogging';
+import { ErrorBoundary } from '@/components/ui/error-boundary';
+import { MobileLayoutWrapper } from '@/components/layout/MobileLayoutWrapper';
 
 
 const AssessmentHistory: React.FC = () => {
@@ -127,8 +129,10 @@ const AssessmentHistory: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className={`max-w-6xl mx-auto ${isMobile ? 'p-4' : 'p-6'}`}>
+    <ErrorBoundary>
+      <MobileLayoutWrapper>
+        <div className="min-h-screen bg-background">
+          <div className={`max-w-6xl mx-auto ${isMobile ? 'p-4' : 'p-6'}`}>
         {/* Header */}
         <div className={`mb-${isMobile ? '6' : '8'}`}>
           {/* Mobile Header */}
@@ -560,8 +564,10 @@ const AssessmentHistory: React.FC = () => {
             </Tabs>
           </>
         )}
-      </div>
-    </div>
+          </div>
+        </div>
+      </MobileLayoutWrapper>
+    </ErrorBoundary>
   );
 };
 
